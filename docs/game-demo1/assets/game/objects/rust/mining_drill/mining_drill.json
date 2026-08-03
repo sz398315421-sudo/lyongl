@@ -1,0 +1,44 @@
+{
+  "id": "mining_drill",
+  "planet": "rust",
+  "image": "mining_drill.png",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 6,
+  "anchor": {
+    "x": 48,
+    "y": 84
+  },
+  "states": {
+    "idle": {
+      "startFrame": 0,
+      "frameCount": 1,
+      "fps": 0,
+      "loop": false
+    },
+    "running": {
+      "startFrame": 1,
+      "frameCount": 4,
+      "fps": 9,
+      "loop": true
+    },
+    "completed": {
+      "startFrame": 5,
+      "frameCount": 1,
+      "fps": 0,
+      "loop": false
+    }
+  },
+  "frames": [
+    "idle.png",
+    "running_00.png",
+    "running_01.png",
+    "running_02.png",
+    "running_03.png",
+    "completed.png"
+  ],
+  "interactionRadius": null,
+  "guardRadius": 142,
+  "blendMode": "source-over",
+  "imageSmoothingEnabled": false
+}

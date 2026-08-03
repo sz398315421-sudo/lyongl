@@ -1,0 +1,6 @@
+{
+  "id": "muzzle_flash", "image": "muzzle_flash.png", "frameWidth": 32, "frameHeight": 32,
+  "frameCount": 4, "fps": 18, "loop": false, "anchor": { "x": 16, "y": 16 },
+  "blendMode": "source-over", "frames": ["frame_00.png", "frame_01.png", "frame_02.png", "frame_03.png"],
+  "imageSmoothingEnabled": false
+}

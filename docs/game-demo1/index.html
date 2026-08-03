@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#090d10">
+  <title>星际外勤｜微信小游戏原型</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="prototype-shell">
+    <aside class="brief-rail" aria-label="原型说明">
+      <div class="corp-mark">
+        <span class="corp-mark__glyph">P/A</span>
+        <span>泛星际资产<br>再利用公司</span>
+      </div>
+      <p class="eyebrow">FIELD TEST // 0.1.0</p>
+      <h1>每颗星球<br><em>都不在保险范围内。</em></h1>
+      <p class="lede">一款竖屏、单手操作的职业割草撤离肉鸽原型。移动是唯一输入，剩下的由绩效系统处理。</p>
+      <dl class="spec-list">
+        <div><dt>画幅</dt><dd>9:16 斜俯视</dd></div>
+        <div><dt>战斗</dt><dd>全自动</dd></div>
+        <div><dt>目标</dt><dd>任务后撤离</dd></div>
+        <div><dt>存档</dt><dd>本机自动保存</dd></div>
+      </dl>
+    </aside>
+
+    <section class="game-stage" aria-label="星际外勤试玩区">
+      <div class="device-frame">
+        <div class="device-frame__notch"><span></span></div>
+        <canvas id="game" width="720" height="1280" aria-label="星际外勤游戏画面"></canvas>
+        <div class="device-frame__speaker"></div>
+      </div>
+      <p class="mobile-hint">按住画面拖动宇航员 · 推荐开启声音</p>
+    </section>
+
+    <aside class="log-rail" aria-label="操作与设计说明">
+      <p class="eyebrow">EMPLOYEE HANDBOOK</p>
+      <ol class="field-manual">
+        <li><b>拖动</b><span>按住任意位置移动，所有武器和技能自动触发。</span></li>
+        <li><b>构筑</b><span>升级三选一。相应卡片满级后出现公开组合进化。</span></li>
+        <li><b>完成任务</b><span>摧毁巢穴、激活信标或守护钻机。</span></li>
+        <li><b>决定撤离</b><span>带回额外战利品，或在打印体报废前及时止损。</span></li>
+      </ol>
+      <div class="status-note">
+        <span class="status-note__dot"></span>
+        <p><b>浏览器试玩版</b><br>与微信小游戏入口共享玩法核心。</p>
+      </div>
+      <p class="legal">本终端显示的“自愿加班”由公司单方面解释。</p>
+    </aside>
+  </main>
+
+  <script src="src/data.js"></script>
+  <script src="src/assets.js"></script>
+  <script src="src/game-core.js"></script>
+  <script src="src/web.js"></script>
+</body>
+</html>

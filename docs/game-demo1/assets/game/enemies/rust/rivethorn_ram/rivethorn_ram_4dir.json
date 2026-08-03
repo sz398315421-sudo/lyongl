@@ -1,0 +1,16 @@
+{
+  "id": "rivethorn_ram",
+  "name": "铆钉角兽",
+  "enemyType": "charger",
+  "planet": "rust",
+  "image": "rivethorn_ram_4dir.png",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "anchor": { "x": 32, "y": 56 },
+  "radius": 15,
+  "visualSize": { "width": 48, "height": 40 },
+  "order": ["front", "right", "back", "left"],
+  "frames": { "front": 0, "right": 1, "back": 2, "left": 3 },
+  "movementDirections": { "down": "front", "right": "right", "up": "back", "left": "left" },
+  "rendering": { "imageSmoothingEnabled": false }
+}

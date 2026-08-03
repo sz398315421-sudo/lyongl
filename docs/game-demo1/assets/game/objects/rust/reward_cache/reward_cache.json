@@ -1,0 +1,44 @@
+{
+  "id": "reward_cache",
+  "planet": "rust",
+  "image": "reward_cache.png",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "frameCount": 6,
+  "anchor": {
+    "x": 32,
+    "y": 56
+  },
+  "states": {
+    "locked": {
+      "startFrame": 0,
+      "frameCount": 1,
+      "fps": 0,
+      "loop": false
+    },
+    "ready": {
+      "startFrame": 1,
+      "frameCount": 4,
+      "fps": 8,
+      "loop": true
+    },
+    "opened": {
+      "startFrame": 5,
+      "frameCount": 1,
+      "fps": 0,
+      "loop": false
+    }
+  },
+  "frames": [
+    "locked.png",
+    "ready_00.png",
+    "ready_01.png",
+    "ready_02.png",
+    "ready_03.png",
+    "opened.png"
+  ],
+  "interactionRadius": 42,
+  "guardRadius": null,
+  "blendMode": "source-over",
+  "imageSmoothingEnabled": false
+}

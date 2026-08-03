@@ -1,0 +1,44 @@
+{
+  "id": "company_beacon",
+  "planet": "rust",
+  "image": "company_beacon.png",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "frameCount": 6,
+  "anchor": {
+    "x": 32,
+    "y": 56
+  },
+  "states": {
+    "inactive": {
+      "startFrame": 0,
+      "frameCount": 1,
+      "fps": 0,
+      "loop": false
+    },
+    "charging": {
+      "startFrame": 1,
+      "frameCount": 4,
+      "fps": 8,
+      "loop": true
+    },
+    "completed": {
+      "startFrame": 5,
+      "frameCount": 1,
+      "fps": 0,
+      "loop": false
+    }
+  },
+  "frames": [
+    "inactive.png",
+    "charging_00.png",
+    "charging_01.png",
+    "charging_02.png",
+    "charging_03.png",
+    "completed.png"
+  ],
+  "interactionRadius": 44,
+  "guardRadius": null,
+  "blendMode": "source-over",
+  "imageSmoothingEnabled": false
+}

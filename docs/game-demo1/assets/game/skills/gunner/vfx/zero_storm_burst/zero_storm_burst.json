@@ -1,0 +1,6 @@
+{
+  "id": "zero_storm_burst", "image": "zero_storm_burst.png", "frameWidth": 128, "frameHeight": 128,
+  "frameCount": 6, "fps": 15, "loop": false, "anchor": { "x": 64, "y": 64 },
+  "blendMode": "source-over", "frames": ["frame_00.png", "frame_01.png", "frame_02.png", "frame_03.png", "frame_04.png", "frame_05.png"],
+  "imageSmoothingEnabled": false
+}

@@ -1,0 +1,30 @@
+{
+  "id": "extraction_field",
+  "planet": "rust",
+  "image": "extraction_field.png",
+  "frameWidth": 128,
+  "frameHeight": 64,
+  "frameCount": 4,
+  "anchor": {
+    "x": 64,
+    "y": 32
+  },
+  "states": {
+    "active": {
+      "startFrame": 0,
+      "frameCount": 4,
+      "fps": 10,
+      "loop": true
+    }
+  },
+  "frames": [
+    "active_00.png",
+    "active_01.png",
+    "active_02.png",
+    "active_03.png"
+  ],
+  "interactionRadius": 82,
+  "guardRadius": null,
+  "blendMode": "lighter",
+  "imageSmoothingEnabled": false
+}

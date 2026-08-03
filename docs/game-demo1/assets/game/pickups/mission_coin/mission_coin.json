@@ -1,0 +1,23 @@
+{
+  "id": "mission_coin",
+  "image": "mission_coin.png",
+  "frameWidth": 24,
+  "frameHeight": 24,
+  "frameCount": 4,
+  "fps": 8,
+  "loop": true,
+  "anchor": {
+    "x": 12,
+    "y": 12
+  },
+  "faction": "player",
+  "color": "#ecb136",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png"
+  ],
+  "blendMode": "source-over",
+  "imageSmoothingEnabled": false
+}
