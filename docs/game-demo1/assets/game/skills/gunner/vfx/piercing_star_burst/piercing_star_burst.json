@@ -1,6 +1,40 @@
 {
-  "id": "piercing_star_burst", "image": "piercing_star_burst.png", "frameWidth": 96, "frameHeight": 96,
-  "frameCount": 6, "fps": 15, "loop": false, "anchor": { "x": 48, "y": 48 },
-  "blendMode": "source-over", "frames": ["frame_00.png", "frame_01.png", "frame_02.png", "frame_03.png", "frame_04.png", "frame_05.png"],
-  "imageSmoothingEnabled": false
+  "id": "piercing_star_burst",
+  "comboId": "piercing_star",
+  "classId": "gunner",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 8,
+  "fps": 16,
+  "loop": false,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "source-over",
+  "eventUnit": "attack_cycle_and_first_pierce",
+  "sheet": "piercing_star_burst.png",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png",
+    "frame_06.png",
+    "frame_07.png"
+  ],
+  "previewGif": "piercing_star_burst.gif",
+  "imageSmoothingEnabled": false,
+  "generationModel": "gpt-image-2",
+  "generationProvider": "codex",
+  "generationQuality": "medium",
+  "alphaMethod": "chroma-key",
+  "pixelization": "nearest-neighbor",
+  "palette": "cyan-white with orange-hot core",
+  "role": "gunner",
+  "previewImage": "piercing_star_burst_preview.png",
+  "sourceReviewId": "v16_piercing_star_burst",
+  "sourceReviewPath": "assets/concepts/v16_combo_vfx_review/vfx/piercing_star_burst",
+  "runtimePath": "assets/game/skills/gunner/vfx/piercing_star_burst/piercing_star_burst.png"
 }

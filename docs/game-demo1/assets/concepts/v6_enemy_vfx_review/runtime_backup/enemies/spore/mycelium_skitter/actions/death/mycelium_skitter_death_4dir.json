@@ -1,0 +1,77 @@
+{
+  "id": "mycelium_skitter.death",
+  "assetType": "enemy_action",
+  "assetId": "mycelium_skitter",
+  "role": null,
+  "state": "death",
+  "sheet": "mycelium_skitter_death_4dir.png",
+  "sheetLayout": "rows-by-direction",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "frameCount": 6,
+  "directionOrder": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "directions": {
+    "front": {
+      "row": 0
+    },
+    "right": {
+      "row": 1
+    },
+    "back": {
+      "row": 2
+    },
+    "left": {
+      "row": 3
+    }
+  },
+  "frames": {
+    "front": [
+      "front_00.png",
+      "front_01.png",
+      "front_02.png",
+      "front_03.png",
+      "front_04.png",
+      "front_05.png"
+    ],
+    "right": [
+      "right_00.png",
+      "right_01.png",
+      "right_02.png",
+      "right_03.png",
+      "right_04.png",
+      "right_05.png"
+    ],
+    "back": [
+      "back_00.png",
+      "back_01.png",
+      "back_02.png",
+      "back_03.png",
+      "back_04.png",
+      "back_05.png"
+    ],
+    "left": [
+      "left_00.png",
+      "left_01.png",
+      "left_02.png",
+      "left_03.png",
+      "left_04.png",
+      "left_05.png"
+    ]
+  },
+  "anchor": {
+    "x": 32,
+    "y": 56
+  },
+  "fps": 10,
+  "loop": false,
+  "blendMode": "source-over",
+  "previewGif": "mycelium_skitter_death.gif",
+  "imageSmoothingEnabled": false,
+  "planet": "spore",
+  "enemyType": "swarm"
+}

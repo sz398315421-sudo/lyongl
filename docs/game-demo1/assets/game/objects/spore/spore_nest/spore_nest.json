@@ -1,0 +1,36 @@
+{
+  "id": "spore_nest",
+  "planet": "spore",
+  "image": "spore_nest.png",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "frameCount": 4,
+  "anchor": {
+    "x": 32,
+    "y": 56
+  },
+  "states": {
+    "idle": {
+      "startFrame": 0,
+      "frameCount": 4,
+      "fps": 7,
+      "loop": true
+    }
+  },
+  "frames": [
+    "idle_00.png",
+    "idle_01.png",
+    "idle_02.png",
+    "idle_03.png"
+  ],
+  "previewGif": "spore_nest.gif",
+  "interactionRadius": 34,
+  "blendMode": "source-over",
+  "imageSmoothingEnabled": false,
+  "sourceReviewId": "spore_nest_v2",
+  "sourceReviewPath": "assets/concepts/v14_spore_nest_review/objects/spore_nest_v2",
+  "generationModel": "gpt-image-2",
+  "generationProvider": "codex",
+  "pixelization": "nearest-neighbor",
+  "alphaMethod": "chroma-key auto matte + hard-alpha threshold"
+}

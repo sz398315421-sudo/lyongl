@@ -1,0 +1,334 @@
+{
+  "passed": true,
+  "targetSheets": 36,
+  "targetFrames": 636,
+  "expectedSheets": 36,
+  "expectedFrames": 636,
+  "failures": [],
+  "entries": [
+    {
+      "asset": "scrap_mite.idle",
+      "family": "enemy",
+      "detail": "swarm",
+      "frameCount": 16,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "scrap_mite.walk",
+      "family": "enemy",
+      "detail": "swarm",
+      "frameCount": 24,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "scrap_mite.attack",
+      "family": "enemy",
+      "detail": "swarm",
+      "frameCount": 16,
+      "minBaseOverlap": 0.9048,
+      "minPaletteIdentity": 0.9643,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "scrap_mite.hit",
+      "family": "enemy",
+      "detail": "swarm",
+      "frameCount": 8,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "scrap_mite.death",
+      "family": "enemy",
+      "detail": "swarm",
+      "frameCount": 24,
+      "minBaseOverlap": 0.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "plasma_watcher.idle",
+      "family": "enemy",
+      "detail": "shooter",
+      "frameCount": 16,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "plasma_watcher.walk",
+      "family": "enemy",
+      "detail": "shooter",
+      "frameCount": 24,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "plasma_watcher.attack",
+      "family": "enemy",
+      "detail": "shooter",
+      "frameCount": 16,
+      "minBaseOverlap": 0.9023,
+      "minPaletteIdentity": 0.9023,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "plasma_watcher.hit",
+      "family": "enemy",
+      "detail": "shooter",
+      "frameCount": 8,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "plasma_watcher.death",
+      "family": "enemy",
+      "detail": "shooter",
+      "frameCount": 24,
+      "minBaseOverlap": 0.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "rivethorn_ram.idle",
+      "family": "enemy",
+      "detail": "charger",
+      "frameCount": 16,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "rivethorn_ram.walk",
+      "family": "enemy",
+      "detail": "charger",
+      "frameCount": 24,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "rivethorn_ram.attack",
+      "family": "enemy",
+      "detail": "charger",
+      "frameCount": 16,
+      "minBaseOverlap": 0.9838,
+      "minPaletteIdentity": 0.9634,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "rivethorn_ram.hit",
+      "family": "enemy",
+      "detail": "charger",
+      "frameCount": 8,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "rivethorn_ram.death",
+      "family": "enemy",
+      "detail": "charger",
+      "frameCount": 24,
+      "minBaseOverlap": 0.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "pressure_bloater.idle",
+      "family": "enemy",
+      "detail": "bloater",
+      "frameCount": 16,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "pressure_bloater.walk",
+      "family": "enemy",
+      "detail": "bloater",
+      "frameCount": 24,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "pressure_bloater.attack",
+      "family": "enemy",
+      "detail": "bloater",
+      "frameCount": 16,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 0.9921,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "pressure_bloater.hit",
+      "family": "enemy",
+      "detail": "bloater",
+      "frameCount": 8,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "pressure_bloater.death",
+      "family": "enemy",
+      "detail": "bloater",
+      "frameCount": 24,
+      "minBaseOverlap": 0.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "gunner_mia.idle",
+      "family": "character",
+      "detail": "gunner",
+      "frameCount": 16,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "gunner_mia.hit",
+      "family": "character",
+      "detail": "gunner",
+      "frameCount": 8,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "gunner_mia.death",
+      "family": "character",
+      "detail": "gunner",
+      "frameCount": 24,
+      "minBaseOverlap": 0.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "gunner_mia.reload",
+      "family": "character",
+      "detail": "gunner",
+      "frameCount": 20,
+      "minBaseOverlap": 0.9818,
+      "minPaletteIdentity": 0.9963,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "gunner_mia.dash",
+      "family": "character",
+      "detail": "gunner",
+      "frameCount": 20,
+      "minBaseOverlap": 0.9799,
+      "minPaletteIdentity": 0.9897,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "warrior_kade.idle",
+      "family": "character",
+      "detail": "warrior",
+      "frameCount": 16,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "warrior_kade.hit",
+      "family": "character",
+      "detail": "warrior",
+      "frameCount": 8,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 0.0011,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "warrior_kade.death",
+      "family": "character",
+      "detail": "warrior",
+      "frameCount": 24,
+      "minBaseOverlap": 0.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "warrior_kade.heavy_attack",
+      "family": "character",
+      "detail": "warrior",
+      "frameCount": 20,
+      "minBaseOverlap": 0.9694,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "warrior_kade.guard",
+      "family": "character",
+      "detail": "warrior",
+      "frameCount": 16,
+      "minBaseOverlap": 0.9684,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "mechanic_locke.idle",
+      "family": "character",
+      "detail": "mechanic",
+      "frameCount": 16,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 1.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "mechanic_locke.hit",
+      "family": "character",
+      "detail": "mechanic",
+      "frameCount": 8,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "mechanic_locke.death",
+      "family": "character",
+      "detail": "mechanic",
+      "frameCount": 24,
+      "minBaseOverlap": 0.0,
+      "minPaletteIdentity": 0.0,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "mechanic_locke.deploy",
+      "family": "character",
+      "detail": "mechanic",
+      "frameCount": 20,
+      "minBaseOverlap": 0.9722,
+      "minPaletteIdentity": 0.9896,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "mechanic_locke.repair",
+      "family": "character",
+      "detail": "mechanic",
+      "frameCount": 20,
+      "minBaseOverlap": 0.9885,
+      "minPaletteIdentity": 0.9947,
+      "cornerEdgeViolations": 0
+    },
+    {
+      "asset": "mechanic_locke.self_destruct",
+      "family": "character",
+      "detail": "mechanic",
+      "frameCount": 24,
+      "minBaseOverlap": 1.0,
+      "minPaletteIdentity": 0.9706,
+      "cornerEdgeViolations": 0
+    }
+  ]
+}

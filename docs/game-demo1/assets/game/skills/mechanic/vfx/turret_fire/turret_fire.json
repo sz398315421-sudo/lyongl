@@ -1,0 +1,26 @@
+{
+  "id": "turret_fire",
+  "category": "vfx",
+  "event": "turret_shot",
+  "paletteVariant": "mechanic",
+  "image": "turret_fire.png",
+  "sheetLayout": "horizontal",
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "frameCount": 4,
+  "fps": 18,
+  "loop": false,
+  "anchor": {
+    "x": 16,
+    "y": 16
+  },
+  "blendMode": "lighter",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png"
+  ],
+  "previewGif": "turret_fire.gif",
+  "imageSmoothingEnabled": false
+}

@@ -1,0 +1,287 @@
+{
+  "version": 7,
+  "sourceReview": "assets/concepts/v7_texture_review/v7_texture_manifest.json",
+  "backup": "assets/concepts/v7_runtime_backup/20260810_234851",
+  "vfx": {
+    "meteor_warning": {
+      "id": "meteor_warning",
+      "sourceReviewId": "meteor_warning_v2",
+      "path": "assets/game/skills/gunner/vfx/meteor_warning/meteor_warning.png",
+      "frameWidth": 96,
+      "frameHeight": 64,
+      "frameCount": 6,
+      "fps": 12,
+      "loop": true,
+      "anchor": {
+        "x": 48,
+        "y": 32
+      },
+      "blendMode": "source-over",
+      "frames": [
+        "frame_00.png",
+        "frame_01.png",
+        "frame_02.png",
+        "frame_03.png",
+        "frame_04.png",
+        "frame_05.png"
+      ],
+      "previewGif": "meteor_warning.gif"
+    },
+    "meteor_impact": {
+      "id": "meteor_impact",
+      "sourceReviewId": "meteor_impact_v2",
+      "path": "assets/game/skills/gunner/vfx/meteor_impact/meteor_impact.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 10,
+      "fps": 18,
+      "loop": false,
+      "anchor": {
+        "x": 64,
+        "y": 64
+      },
+      "blendMode": "source-over",
+      "frames": [
+        "frame_00.png",
+        "frame_01.png",
+        "frame_02.png",
+        "frame_03.png",
+        "frame_04.png",
+        "frame_05.png",
+        "frame_06.png",
+        "frame_07.png",
+        "frame_08.png",
+        "frame_09.png"
+      ],
+      "previewGif": "meteor_impact.gif"
+    },
+    "railgun_beam": {
+      "id": "railgun_beam",
+      "sourceReviewId": "railgun_beam_single",
+      "path": "assets/game/skills/gunner/vfx/railgun_beam/railgun_beam.png",
+      "frameWidth": 128,
+      "frameHeight": 32,
+      "frameCount": 4,
+      "fps": 20,
+      "loop": true,
+      "anchor": {
+        "x": 0,
+        "y": 16
+      },
+      "blendMode": "lighter",
+      "frames": [
+        "frame_00.png",
+        "frame_01.png",
+        "frame_02.png",
+        "frame_03.png"
+      ],
+      "previewGif": "railgun_beam.gif"
+    }
+  },
+  "planetMoon": {
+    "icon": "assets/game/planets/moon/planet_moon.png",
+    "cover": "assets/game/planets/moon/moon_cover.png",
+    "sourceReview": "assets/concepts/v8_moon_style_review/planets/moon",
+    "styleReference": "assets/game/ui/icons/planet_rust.png"
+  },
+  "moonProps": [
+    {
+      "id": "moon_antenna_fragment",
+      "image": "assets/game/props/moon/moon_antenna_fragment.png",
+      "metadata": "assets/game/props/moon/moon_antenna_fragment.json"
+    },
+    {
+      "id": "moon_crystal_cluster",
+      "image": "assets/game/props/moon/moon_crystal_cluster.png",
+      "metadata": "assets/game/props/moon/moon_crystal_cluster.json"
+    },
+    {
+      "id": "moon_dust_ridge",
+      "image": "assets/game/props/moon/moon_dust_ridge.png",
+      "metadata": "assets/game/props/moon/moon_dust_ridge.json"
+    },
+    {
+      "id": "moon_energy_seam",
+      "image": "assets/game/props/moon/moon_energy_seam.png",
+      "metadata": "assets/game/props/moon/moon_energy_seam.json"
+    },
+    {
+      "id": "moon_lander_panel",
+      "image": "assets/game/props/moon/moon_lander_panel.png",
+      "metadata": "assets/game/props/moon/moon_lander_panel.json"
+    },
+    {
+      "id": "moon_probe_wreck",
+      "image": "assets/game/props/moon/moon_probe_wreck.png",
+      "metadata": "assets/game/props/moon/moon_probe_wreck.json"
+    },
+    {
+      "id": "moon_regolith_chunk",
+      "image": "assets/game/props/moon/moon_regolith_chunk.png",
+      "metadata": "assets/game/props/moon/moon_regolith_chunk.json"
+    },
+    {
+      "id": "moon_shallow_crater",
+      "image": "assets/game/props/moon/moon_shallow_crater.png",
+      "metadata": "assets/game/props/moon/moon_shallow_crater.json"
+    }
+  ],
+  "enemyDanger": [
+    {
+      "planet": "moon",
+      "enemyId": "crater_ram",
+      "sheet": "assets/game/enemies/moon/crater_ram/attack_danger/crater_ram_attack_danger_4dir.png",
+      "metadata": "assets/game/enemies/moon/crater_ram/attack_danger/crater_ram_attack_danger_4dir.json"
+    },
+    {
+      "planet": "moon",
+      "enemyId": "prism_sentry",
+      "sheet": "assets/game/enemies/moon/prism_sentry/attack_danger/prism_sentry_attack_danger_4dir.png",
+      "metadata": "assets/game/enemies/moon/prism_sentry/attack_danger/prism_sentry_attack_danger_4dir.json"
+    },
+    {
+      "planet": "moon",
+      "enemyId": "void_bloater",
+      "sheet": "assets/game/enemies/moon/void_bloater/attack_danger/void_bloater_attack_danger_4dir.png",
+      "metadata": "assets/game/enemies/moon/void_bloater/attack_danger/void_bloater_attack_danger_4dir.json"
+    },
+    {
+      "planet": "rust",
+      "enemyId": "plasma_watcher",
+      "sheet": "assets/game/enemies/rust/plasma_watcher/attack_danger/plasma_watcher_attack_danger_4dir.png",
+      "metadata": "assets/game/enemies/rust/plasma_watcher/attack_danger/plasma_watcher_attack_danger_4dir.json"
+    },
+    {
+      "planet": "rust",
+      "enemyId": "pressure_bloater",
+      "sheet": "assets/game/enemies/rust/pressure_bloater/attack_danger/pressure_bloater_attack_danger_4dir.png",
+      "metadata": "assets/game/enemies/rust/pressure_bloater/attack_danger/pressure_bloater_attack_danger_4dir.json"
+    },
+    {
+      "planet": "rust",
+      "enemyId": "rivethorn_ram",
+      "sheet": "assets/game/enemies/rust/rivethorn_ram/attack_danger/rivethorn_ram_attack_danger_4dir.png",
+      "metadata": "assets/game/enemies/rust/rivethorn_ram/attack_danger/rivethorn_ram_attack_danger_4dir.json"
+    },
+    {
+      "planet": "spore",
+      "enemyId": "acid_eye_pod",
+      "sheet": "assets/game/enemies/spore/acid_eye_pod/attack_danger/acid_eye_pod_attack_danger_4dir.png",
+      "metadata": "assets/game/enemies/spore/acid_eye_pod/attack_danger/acid_eye_pod_attack_danger_4dir.json"
+    },
+    {
+      "planet": "spore",
+      "enemyId": "fungal_ram",
+      "sheet": "assets/game/enemies/spore/fungal_ram/attack_danger/fungal_ram_attack_danger_4dir.png",
+      "metadata": "assets/game/enemies/spore/fungal_ram/attack_danger/fungal_ram_attack_danger_4dir.json"
+    },
+    {
+      "planet": "spore",
+      "enemyId": "spore_bloater",
+      "sheet": "assets/game/enemies/spore/spore_bloater/attack_danger/spore_bloater_attack_danger_4dir.png",
+      "metadata": "assets/game/enemies/spore/spore_bloater/attack_danger/spore_bloater_attack_danger_4dir.json"
+    }
+  ],
+  "elites": [
+    {
+      "planet": "moon",
+      "enemyId": "crater_ram",
+      "sheet": "assets/game/enemies/moon/crater_ram/elite/crater_ram_elite_4dir.png",
+      "metadata": "assets/game/enemies/moon/crater_ram/elite/crater_ram_elite_4dir.json",
+      "dangerSheet": "assets/game/enemies/moon/crater_ram/elite/attack_danger/crater_ram_elite_attack_danger_4dir.png"
+    },
+    {
+      "planet": "moon",
+      "enemyId": "prism_sentry",
+      "sheet": "assets/game/enemies/moon/prism_sentry/elite/prism_sentry_elite_4dir.png",
+      "metadata": "assets/game/enemies/moon/prism_sentry/elite/prism_sentry_elite_4dir.json",
+      "dangerSheet": "assets/game/enemies/moon/prism_sentry/elite/attack_danger/prism_sentry_elite_attack_danger_4dir.png"
+    },
+    {
+      "planet": "moon",
+      "enemyId": "static_crawler",
+      "sheet": "assets/game/enemies/moon/static_crawler/elite/static_crawler_elite_4dir.png",
+      "metadata": "assets/game/enemies/moon/static_crawler/elite/static_crawler_elite_4dir.json",
+      "dangerSheet": null
+    },
+    {
+      "planet": "moon",
+      "enemyId": "void_bloater",
+      "sheet": "assets/game/enemies/moon/void_bloater/elite/void_bloater_elite_4dir.png",
+      "metadata": "assets/game/enemies/moon/void_bloater/elite/void_bloater_elite_4dir.json",
+      "dangerSheet": "assets/game/enemies/moon/void_bloater/elite/attack_danger/void_bloater_elite_attack_danger_4dir.png"
+    },
+    {
+      "planet": "rust",
+      "enemyId": "plasma_watcher",
+      "sheet": "assets/game/enemies/rust/plasma_watcher/elite/plasma_watcher_elite_4dir.png",
+      "metadata": "assets/game/enemies/rust/plasma_watcher/elite/plasma_watcher_elite_4dir.json",
+      "dangerSheet": "assets/game/enemies/rust/plasma_watcher/elite/attack_danger/plasma_watcher_elite_attack_danger_4dir.png"
+    },
+    {
+      "planet": "rust",
+      "enemyId": "pressure_bloater",
+      "sheet": "assets/game/enemies/rust/pressure_bloater/elite/pressure_bloater_elite_4dir.png",
+      "metadata": "assets/game/enemies/rust/pressure_bloater/elite/pressure_bloater_elite_4dir.json",
+      "dangerSheet": "assets/game/enemies/rust/pressure_bloater/elite/attack_danger/pressure_bloater_elite_attack_danger_4dir.png"
+    },
+    {
+      "planet": "rust",
+      "enemyId": "rivethorn_ram",
+      "sheet": "assets/game/enemies/rust/rivethorn_ram/elite/rivethorn_ram_elite_4dir.png",
+      "metadata": "assets/game/enemies/rust/rivethorn_ram/elite/rivethorn_ram_elite_4dir.json",
+      "dangerSheet": "assets/game/enemies/rust/rivethorn_ram/elite/attack_danger/rivethorn_ram_elite_attack_danger_4dir.png"
+    },
+    {
+      "planet": "rust",
+      "enemyId": "scrap_mite",
+      "sheet": "assets/game/enemies/rust/scrap_mite/elite/scrap_mite_elite_4dir.png",
+      "metadata": "assets/game/enemies/rust/scrap_mite/elite/scrap_mite_elite_4dir.json",
+      "dangerSheet": null
+    },
+    {
+      "planet": "spore",
+      "enemyId": "acid_eye_pod",
+      "sheet": "assets/game/enemies/spore/acid_eye_pod/elite/acid_eye_pod_elite_4dir.png",
+      "metadata": "assets/game/enemies/spore/acid_eye_pod/elite/acid_eye_pod_elite_4dir.json",
+      "dangerSheet": "assets/game/enemies/spore/acid_eye_pod/elite/attack_danger/acid_eye_pod_elite_attack_danger_4dir.png"
+    },
+    {
+      "planet": "spore",
+      "enemyId": "fungal_ram",
+      "sheet": "assets/game/enemies/spore/fungal_ram/elite/fungal_ram_elite_4dir.png",
+      "metadata": "assets/game/enemies/spore/fungal_ram/elite/fungal_ram_elite_4dir.json",
+      "dangerSheet": "assets/game/enemies/spore/fungal_ram/elite/attack_danger/fungal_ram_elite_attack_danger_4dir.png"
+    },
+    {
+      "planet": "spore",
+      "enemyId": "mycelium_skitter",
+      "sheet": "assets/game/enemies/spore/mycelium_skitter/elite/mycelium_skitter_elite_4dir.png",
+      "metadata": "assets/game/enemies/spore/mycelium_skitter/elite/mycelium_skitter_elite_4dir.json",
+      "dangerSheet": null
+    },
+    {
+      "planet": "spore",
+      "enemyId": "spore_bloater",
+      "sheet": "assets/game/enemies/spore/spore_bloater/elite/spore_bloater_elite_4dir.png",
+      "metadata": "assets/game/enemies/spore/spore_bloater/elite/spore_bloater_elite_4dir.json",
+      "dangerSheet": "assets/game/enemies/spore/spore_bloater/elite/attack_danger/spore_bloater_elite_attack_danger_4dir.png"
+    }
+  ],
+  "exitUi": [
+    "assets/game/ui/exit_run/exit_danger_button_disabled.png",
+    "assets/game/ui/exit_run/exit_danger_button_normal.png",
+    "assets/game/ui/exit_run/exit_danger_button_pressed.png",
+    "assets/game/ui/exit_run/exit_warning_panel.json",
+    "assets/game/ui/exit_run/exit_warning_panel.png",
+    "assets/game/ui/exit_run/loss_warning_icon.json",
+    "assets/game/ui/exit_run/loss_warning_icon.png",
+    "assets/game/ui/exit_run/return_hq_button_disabled.png",
+    "assets/game/ui/exit_run/return_hq_button_normal.png",
+    "assets/game/ui/exit_run/return_hq_button_pressed.png"
+  ],
+  "v8MoonStyle": {
+    "manifest": "assets/game/v8_moon_style_manifest.json",
+    "backup": "assets/concepts/v8_moon_style_backup/20260811_115946/planets/moon"
+  }
+}

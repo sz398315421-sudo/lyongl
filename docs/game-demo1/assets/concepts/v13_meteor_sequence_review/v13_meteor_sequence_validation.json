@@ -1,0 +1,261 @@
+{
+  "id": "v13_meteor_sequence_validation",
+  "passed": true,
+  "warning": {
+    "frameCount": 6,
+    "topBandOpaquePixels": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "impact": {
+    "frameCount": 10,
+    "meteorIntroducedAt": "frame_00"
+  },
+  "checks": [
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_warning_v5\\frames\\frame_00.png",
+      "size": [
+        96,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_warning_v5\\frames\\frame_01.png",
+      "size": [
+        96,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_warning_v5\\frames\\frame_02.png",
+      "size": [
+        96,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_warning_v5\\frames\\frame_03.png",
+      "size": [
+        96,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_warning_v5\\frames\\frame_04.png",
+      "size": [
+        96,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_warning_v5\\frames\\frame_05.png",
+      "size": [
+        96,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_00.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_08.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\frames\\frame_09.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_warning_v5\\meteor_warning_v5.png",
+      "size": [
+        576,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    },
+    {
+      "path": "assets\\concepts\\v13_meteor_sequence_review\\vfx\\meteor_impact_v4\\meteor_impact_v4.png",
+      "size": [
+        1280,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "errors": [],
+      "magentaOpaquePixels": 0
+    }
+  ],
+  "manualSemanticReview": {
+    "warningFramesContainNoMeteor": "required",
+    "impactFrame00IntroducesMeteor": "required",
+    "transitionCenterStable": "required"
+  },
+  "errors": []
+}

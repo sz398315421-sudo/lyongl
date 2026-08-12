@@ -1,6 +1,7 @@
 'use strict';
 
 const { StarDutyGame } = require('./src/game-core.js');
+const DATA = require('./src/data.js');
 const { AssetStore, manifest: assetManifest } = require('./src/assets.js');
 
 const system = wx.getSystemInfoSync();
@@ -14,16 +15,56 @@ class WeChatSynthAudio {
     this.context = null;
     this.lastPlayed = {};
     this.music = null;
+    this.musicTimer = null;
+    this.musicEnabled = true;
+    this.musicUnlocked = false;
+    this.musicBus = null;
+    this.musicRequest = null;
+    this.musicLookahead = 0.18;
+    this.musicScheduleMs = 40;
+    this.musicDefaults = {
+      cockpit: { bpm: 88, root: 110, waveform: 'triangle', pattern: [0, 4, 7, 12, 7, 4, 2, 7] },
+      explore: { bpm: 104, root: 123.47, waveform: 'sawtooth', pattern: [0, 3, 7, 10, 7, 3, 5, 10] },
+      extract: { bpm: 136, root: 146.83, waveform: 'square', pattern: [0, 7, 10, 12, 10, 7, 14, 17] }
+    };
   }
 
   ensure() {
     try {
-      if (!this.context && wx.createWebAudioContext) this.context = wx.createWebAudioContext();
-      if (this.context && this.context.state === 'suspended' && this.context.resume) this.context.resume();
+      if ((!this.context || this.context.state === 'closed') && wx.createWebAudioContext) {
+        this.context = wx.createWebAudioContext();
+        this.musicBus = null;
+      }
+      if (this.context && this.context.state === 'suspended' && this.context.resume) {
+        const resumeResult = this.context.resume();
+        if (resumeResult && resumeResult.catch) resumeResult.catch(() => {});
+      }
+      if (this.context && !this.musicBus && this.context.createGain && this.context.destination) {
+        const bus = this.context.createGain();
+        if (bus.gain && bus.gain.setValueAtTime) bus.gain.setValueAtTime(0.0001, this.context.currentTime);
+        bus.connect(this.context.destination);
+        this.musicBus = bus;
+      }
     } catch (error) {
       this.context = null;
+      this.musicBus = null;
     }
     return this.context;
+  }
+
+  unlockMusic() {
+    const context = this.ensure();
+    if (!context) return false;
+    this.musicUnlocked = true;
+    try {
+      if (context.resume) {
+        const resumeResult = context.resume();
+        if (resumeResult && resumeResult.catch) resumeResult.catch(() => {});
+      }
+    } catch (error) {
+      // The mini-game runtime may require another touch to resume audio.
+    }
+    return this.resumeMusic();
   }
 
   play(name, minimumGap = 0.05) {
@@ -54,38 +95,154 @@ class WeChatSynthAudio {
     }
   }
 
-  intensity(value) {
-    const context = this.context;
-    if (!context || !context.createOscillator) return;
-    try {
-      if (!this.music && value >= 0) {
-        const low = context.createOscillator();
-        const high = context.createOscillator();
-        const lowGain = context.createGain();
-        const highGain = context.createGain();
-        low.type = 'square';
-        high.type = 'sawtooth';
-        low.frequency.value = 55;
-        high.frequency.value = 82.5;
-        lowGain.gain.value = 0.0001;
-        highGain.gain.value = 0.0001;
-        low.connect(lowGain);
-        high.connect(highGain);
-        lowGain.connect(context.destination);
-        highGain.connect(context.destination);
-        low.start();
-        high.start();
-        this.music = { low, high, lowGain, highGain };
-      }
-      if (!this.music) return;
-      const now = context.currentTime;
-      const target = value < 0 ? 0.0001 : 0.0018 + value * 0.0022;
-      const highTarget = value < 0 ? 0.0001 : Math.max(0.0001, (value - 0.28) * 0.0023);
-      this.music.lowGain.gain.setTargetAtTime(target, now, 0.35);
-      this.music.highGain.gain.setTargetAtTime(highTarget, now, 0.28);
-    } catch (error) {
-      this.music = null;
+  setMusicEnabled(value) {
+    this.musicEnabled = Boolean(value);
+    if (!this.musicEnabled) {
+      this.musicRequest = null;
+      this.stopMusic();
+    } else if (this.context) {
+      this.resumeMusic();
     }
+  }
+
+  setMusic(trackId, options = {}) {
+    if (!this.musicEnabled) return;
+    const planet = options.planet || '';
+    const config = this.trackConfig(trackId);
+    this.musicRequest = {
+      trackId,
+      planet,
+      intensity: options.intensity === undefined ? 0.4 : options.intensity,
+      config
+    };
+    if (this.music && this.music.trackId === trackId && this.music.planet === planet) {
+      this.pulseIntensity(this.musicRequest.intensity);
+      this.resumeMusic();
+      return true;
+    }
+    this.stopMusic();
+    return this.resumeMusic();
+  }
+
+  trackConfig(trackId) {
+    return DATA.music && DATA.music[trackId] ? DATA.music[trackId] : (this.musicDefaults[trackId] || this.musicDefaults.explore);
+  }
+
+  isMusicActive() {
+    return Boolean(this.musicEnabled && this.music && this.musicTimer !== null && this.context && this.context.state !== 'closed');
+  }
+
+  resumeMusic() {
+    if (!this.musicEnabled) return false;
+    const context = this.ensure();
+    if (!context || !context.createOscillator) return false;
+    if (!this.music && this.musicRequest) {
+      const request = this.musicRequest;
+      const config = request.config || this.trackConfig(request.trackId);
+      const bpm = Math.max(1, Number(config.bpm) || 104);
+      this.music = {
+        trackId: request.trackId,
+        planet: request.planet,
+        intensity: request.intensity,
+        config,
+        step: 0,
+        stepDuration: 60 / bpm / 2,
+        nextTime: context.currentTime + 0.02
+      };
+    }
+    if (!this.music) return false;
+    this.fadeMusic(0.72, 0.08);
+    if (this.musicTimer === null) this.musicTimer = setInterval(() => this.musicTick(), this.musicScheduleMs);
+    this.musicTick();
+    return true;
+  }
+
+  musicTick() {
+    if (!this.music || !this.musicEnabled) return false;
+    const context = this.ensure();
+    if (!context || !context.createOscillator || context.state === 'suspended') return false;
+    const state = this.music;
+    const now = context.currentTime;
+    if (!Number.isFinite(state.nextTime) || state.nextTime < now - 0.3) state.nextTime = now + 0.02;
+    let scheduled = 0;
+    while (state.nextTime < now + this.musicLookahead && scheduled < 12) {
+      this.scheduleMusicStep(state, state.nextTime);
+      state.nextTime += state.stepDuration;
+      state.step += 1;
+      scheduled += 1;
+    }
+    return scheduled > 0;
+  }
+
+  scheduleMusicStep(state, when) {
+    const context = this.context;
+    if (!context) return;
+    try {
+      const config = state.config || this.trackConfig(state.trackId);
+      const pattern = Array.isArray(config.pattern) && config.pattern.length ? config.pattern : this.musicDefaults.explore.pattern;
+      const offset = state.planet === 'spore' ? -3 : (state.planet === 'moon' ? 5 : 0);
+      const semitone = pattern[state.step % pattern.length] + offset;
+      const root = Number(config.root) || 123.47;
+      const duration = Math.min(state.stepDuration * 0.9, state.trackId === 'extract' ? 0.18 : 0.28);
+      const volume = 0.022 + state.intensity * 0.024;
+      const destination = this.musicBus || context.destination;
+      const osc = context.createOscillator();
+      const gain = context.createGain();
+      osc.type = config.waveform || (state.trackId === 'extract' ? 'square' : 'sawtooth');
+      osc.frequency.setValueAtTime(root * Math.pow(2, semitone / 12), when);
+      gain.gain.setValueAtTime(volume, when);
+      gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+      osc.connect(gain);
+      gain.connect(destination);
+      osc.start(when);
+      osc.stop(when + duration + 0.015);
+      if (state.step % 4 === 0) {
+        const bass = context.createOscillator();
+        const bassGain = context.createGain();
+        const bassDuration = Math.min(state.stepDuration * 2.8, 0.62);
+        bass.type = 'square';
+        bass.frequency.setValueAtTime(root / 2, when);
+        bassGain.gain.setValueAtTime(volume * 0.68, when);
+        bassGain.gain.exponentialRampToValueAtTime(0.0001, when + bassDuration);
+        bass.connect(bassGain);
+        bassGain.connect(destination);
+        bass.start(when);
+        bass.stop(when + bassDuration + 0.015);
+      }
+    } catch (error) {
+      // Keep the timer alive so a temporary WebAudio failure can recover.
+      this.lastMusicError = error;
+    }
+  }
+
+  fadeMusic(value, duration) {
+    if (!this.musicBus || !this.context) return;
+    try {
+      const now = this.context.currentTime;
+      this.musicBus.gain.cancelScheduledValues(now);
+      this.musicBus.gain.setValueAtTime(this.musicBus.gain.value || 0.0001, now);
+      this.musicBus.gain.linearRampToValueAtTime(value, now + duration);
+    } catch (error) {
+      // Gain automation is optional on older WebAudio implementations.
+    }
+  }
+
+  pulseIntensity(value) {
+    if (this.music) this.music.intensity = Math.max(0, Math.min(1, value));
+  }
+
+  intensity(value) {
+    if (value < 0) this.stopMusic();
+    else this.pulseIntensity(value);
+  }
+
+  stopMusic() {
+    if (this.musicTimer !== null) {
+      clearInterval(this.musicTimer);
+      this.musicTimer = null;
+    }
+    this.fadeMusic(0.0001, 0.08);
+    this.music = null;
   }
 }
 
@@ -185,5 +342,13 @@ wx.onTouchCancel((event) => {
   for (const touch of event.changedTouches) game.pointerUp(touch.identifier || 0);
 });
 
-wx.onHide(() => { if (game) game.setPaused(true); });
-wx.onShow(() => { if (game) game.setPaused(false); });
+wx.onHide(() => {
+  if (!game) return;
+  game.setPaused(true);
+  if (game.audio.stopMusic) game.audio.stopMusic();
+});
+wx.onShow(() => {
+  if (!game) return;
+  game.setPaused(false);
+  if (game.syncMusic) game.syncMusic(true);
+});

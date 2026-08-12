@@ -1,0 +1,47 @@
+{
+  "model": "gpt-image-2",
+  "provider": "codex",
+  "quality": "medium",
+  "operation": "images edit",
+  "referenceImages": [
+    "assets/game/planets/moon/moon_cover.png",
+    "assets/game/planets/moon_ground.png"
+  ],
+  "storyboard": "raw/moon_nest_storyboard_magenta_v15.png",
+  "layout": "2x2, four sequential idle frames",
+  "output": {
+    "id": "moon_nest",
+    "reviewId": "moon_nest_v2",
+    "planet": "moon",
+    "assetType": "mission-object",
+    "state": "idle",
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "frameCount": 4,
+    "fps": 7,
+    "loop": true,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    },
+    "interactionRadius": 34,
+    "blendMode": "source-over",
+    "sheet": "moon_nest_v2.png",
+    "frames": [
+      "frames/frame_00.png",
+      "frames/frame_01.png",
+      "frames/frame_02.png",
+      "frames/frame_03.png"
+    ],
+    "previewGif": "moon_nest_v2.gif",
+    "imageSmoothingEnabled": false,
+    "generationModel": "gpt-image-2",
+    "generationProvider": "Codex CLI / Codex image_generation",
+    "generationQuality": "medium",
+    "sourceStoryboard": "raw/moon_nest_storyboard_magenta_v15.png",
+    "alphaStoryboard": "raw/moon_nest_storyboard_alpha_v15.png",
+    "alphaMethod": "chroma-key auto matte + hard-alpha threshold",
+    "pixelization": "nearest-neighbor",
+    "runtimeChanged": false
+  }
+}

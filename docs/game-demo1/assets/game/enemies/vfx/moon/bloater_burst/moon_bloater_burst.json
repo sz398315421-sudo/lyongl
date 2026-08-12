@@ -1,0 +1,30 @@
+{
+  "id": "moon_bloater_burst",
+  "category": "vfx",
+  "event": "burst",
+  "paletteVariant": "moon",
+  "image": "moon_bloater_burst.png",
+  "sheetLayout": "horizontal",
+  "frameWidth": 128,
+  "frameHeight": 128,
+  "frameCount": 8,
+  "fps": 16,
+  "loop": false,
+  "anchor": {
+    "x": 64,
+    "y": 64
+  },
+  "blendMode": "source-over",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png",
+    "frame_06.png",
+    "frame_07.png"
+  ],
+  "previewGif": "moon_bloater_burst.gif",
+  "imageSmoothingEnabled": false
+}

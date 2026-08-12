@@ -1,0 +1,13 @@
+{
+  "id": "exit_warning_panel",
+  "assetType": "ui_panel",
+  "width": 280,
+  "height": 128,
+  "nineSlice": {
+    "left": 8,
+    "top": 8,
+    "right": 8,
+    "bottom": 8
+  },
+  "imageSmoothingEnabled": false
+}

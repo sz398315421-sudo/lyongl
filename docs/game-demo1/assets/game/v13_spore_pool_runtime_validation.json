@@ -1,0 +1,142 @@
+{
+  "id": "v13_spore_pool_runtime_validation",
+  "passed": true,
+  "review": {
+    "passed": true,
+    "frames": [
+      {
+        "frame": 0,
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "opaquePixels": 1676
+      },
+      {
+        "frame": 1,
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "opaquePixels": 1681
+      },
+      {
+        "frame": 2,
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "opaquePixels": 1890
+      },
+      {
+        "frame": 3,
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "opaquePixels": 2627
+      },
+      {
+        "frame": 4,
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "opaquePixels": 3873
+      },
+      {
+        "frame": 5,
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "opaquePixels": 1634
+      }
+    ],
+    "sheet": [
+      576,
+      96
+    ],
+    "gifFrames": 6
+  },
+  "runtimeFiles": {
+    "assets/game/enemies/vfx/spore/spore_pool/frame_00.png": {
+      "bytes": 5251,
+      "sha256": "5050f45f0b41c0a0b10fd13633715f16509df851cf9cbf7121c8afca62bd1155"
+    },
+    "assets/game/enemies/vfx/spore/spore_pool/frame_01.png": {
+      "bytes": 5546,
+      "sha256": "aaa6cb1c0bda4c1c44220df65c21616130fde204ff3210636ec5f05a1213256b"
+    },
+    "assets/game/enemies/vfx/spore/spore_pool/frame_02.png": {
+      "bytes": 6428,
+      "sha256": "dc43829fb8e928c1e5bbad4cb2c8396fefaa76ea526bf2b235dd12c6121b1db2"
+    },
+    "assets/game/enemies/vfx/spore/spore_pool/frame_03.png": {
+      "bytes": 9434,
+      "sha256": "3573d031f058b2dea281d6abe33e727dd6aa92920806990bdf800061749e23c7"
+    },
+    "assets/game/enemies/vfx/spore/spore_pool/frame_04.png": {
+      "bytes": 13308,
+      "sha256": "2bf6f4967e6b8166f858eb882962a2445544261c5895b5fda693545e2cf92069"
+    },
+    "assets/game/enemies/vfx/spore/spore_pool/frame_05.png": {
+      "bytes": 5140,
+      "sha256": "3168b7eb741e2ce3eb7b0eb4d7f30000ccacfbc4f94fa3fc23b100689ba34505"
+    },
+    "assets/game/enemies/vfx/spore/spore_pool/spore_pool.gif": {
+      "bytes": 13025,
+      "sha256": "224ce74d950c93dbf75d69eb16306e5dbfc8dbcc51e4da92137333fc03046108"
+    },
+    "assets/game/enemies/vfx/spore/spore_pool/spore_pool.json": {
+      "bytes": 850,
+      "sha256": "a346282e021e8708692682d014ca71547dbf47745300909add5577eea991a31f"
+    },
+    "assets/game/enemies/vfx/spore/spore_pool/spore_pool.png": {
+      "bytes": 44245,
+      "sha256": "7fbde2b7fce0db7b961de08f24f0402acaaaa89e659960c0d9e488a9ec432a7f"
+    }
+  },
+  "checks": {
+    "sheet": {
+      "size": [
+        576,
+        96
+      ],
+      "expected": [
+        576,
+        96
+      ]
+    },
+    "frameCount": 6,
+    "frameSize": [
+      96,
+      96
+    ],
+    "anchor": [
+      48,
+      48
+    ],
+    "loop": true,
+    "runtimeChanged": true
+  },
+  "backupPath": "assets/concepts/v13_props_runtime_backup/20260812_002246/enemies/vfx/spore/spore_pool"
+}

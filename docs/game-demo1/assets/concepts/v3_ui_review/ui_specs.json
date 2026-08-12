@@ -1,0 +1,156 @@
+{
+  "version": 3,
+  "reviewOnly": true,
+  "codeModified": false,
+  "logicalSize": [
+    360,
+    640
+  ],
+  "previewSize": [
+    720,
+    1280
+  ],
+  "pixelGrid": 2,
+  "scaling": "nearest-neighbor",
+  "navigation": {
+    "labels": [
+      "档案",
+      "活动",
+      "派遣",
+      "任务",
+      "升级"
+    ],
+    "rects": [
+      {
+        "x": 6,
+        "y": 570,
+        "width": 68,
+        "height": 68
+      },
+      {
+        "x": 76,
+        "y": 570,
+        "width": 68,
+        "height": 68
+      },
+      {
+        "x": 146,
+        "y": 570,
+        "width": 68,
+        "height": 68
+      },
+      {
+        "x": 216,
+        "y": 570,
+        "width": 68,
+        "height": 68
+      },
+      {
+        "x": 286,
+        "y": 570,
+        "width": 68,
+        "height": 68
+      }
+    ],
+    "gap": 2,
+    "outerMargin": 6,
+    "iconSize": 30,
+    "dispatchIconSize": 32,
+    "labelFontSize": 10
+  },
+  "joystick": {
+    "imageRect": {
+      "x": 136,
+      "y": 516,
+      "width": 88,
+      "height": 88
+    },
+    "center": [
+      180,
+      560
+    ],
+    "touchReferenceRect": {
+      "x": 124,
+      "y": 504,
+      "width": 112,
+      "height": 112
+    },
+    "knobRect": {
+      "x": 162,
+      "y": 542,
+      "width": 36,
+      "height": 36
+    }
+  },
+  "archive": {
+    "mia": {
+      "representativeSkills": [
+        "burst",
+        "scatter",
+        "railgun"
+      ],
+      "combos": [
+        "piercing_star",
+        "hunt_barrage",
+        "zero_storm"
+      ],
+      "numericStatsShown": false
+    },
+    "kade": {
+      "representativeSkills": [
+        "cleave",
+        "sword_wave",
+        "orbit_blade"
+      ],
+      "combos": [
+        "rift_slash",
+        "star_ring",
+        "phantom_counter"
+      ],
+      "numericStatsShown": false
+    },
+    "locke": {
+      "representativeSkills": [
+        "drone",
+        "turret",
+        "repair_bot"
+      ],
+      "combos": [
+        "swarm_protocol",
+        "mobile_fortress",
+        "infinite_recycle"
+      ],
+      "numericStatsShown": false
+    }
+  },
+  "screens": [
+    "ui/home_mia.png",
+    "ui/home_kade.png",
+    "ui/home_locke.png",
+    "ui/archive_mia.png",
+    "ui/archive_kade.png",
+    "ui/archive_locke.png",
+    "ui/activity_checkin.png",
+    "ui/daily_tasks.png",
+    "ui/upgrade.png",
+    "ui/beacon_rust.png",
+    "ui/beacon_spore.png",
+    "ui/beacon_moon.png"
+  ],
+  "previews": [
+    "ui/home_mia_2x.png",
+    "ui/home_kade_2x.png",
+    "ui/home_locke_2x.png",
+    "ui/archive_mia_2x.png",
+    "ui/archive_kade_2x.png",
+    "ui/archive_locke_2x.png",
+    "ui/activity_checkin_2x.png",
+    "ui/daily_tasks_2x.png",
+    "ui/upgrade_2x.png",
+    "ui/beacon_rust_2x.png",
+    "ui/beacon_spore_2x.png",
+    "ui/beacon_moon_2x.png"
+  ],
+  "overview": "ui/ui_overview.png",
+  "navigationStates": "ui/nav_states.png"
+}

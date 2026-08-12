@@ -1,0 +1,174 @@
+{
+  "version": "3.1",
+  "reviewOnly": true,
+  "gameCodeModified": false,
+  "logicalSize": [
+    360,
+    640
+  ],
+  "previewSize": [
+    720,
+    1280
+  ],
+  "scaling": "nearest-neighbor",
+  "contentSafeBottom": 544,
+  "navigation": {
+    "layout": "continuous-base-raised-center",
+    "labels": [
+      "档案",
+      "活动",
+      "派遣",
+      "任务",
+      "升级"
+    ],
+    "overallRect": {
+      "x": 0,
+      "y": 548,
+      "width": 360,
+      "height": 92
+    },
+    "baseRect": {
+      "x": 0,
+      "y": 580,
+      "width": 360,
+      "height": 60
+    },
+    "hitRects": [
+      {
+        "label": "档案",
+        "x": 0,
+        "y": 560,
+        "width": 70,
+        "height": 80
+      },
+      {
+        "label": "活动",
+        "x": 70,
+        "y": 560,
+        "width": 70,
+        "height": 80
+      },
+      {
+        "label": "派遣",
+        "x": 140,
+        "y": 548,
+        "width": 80,
+        "height": 92
+      },
+      {
+        "label": "任务",
+        "x": 220,
+        "y": 560,
+        "width": 70,
+        "height": 80
+      },
+      {
+        "label": "升级",
+        "x": 290,
+        "y": 560,
+        "width": 70,
+        "height": 80
+      }
+    ],
+    "iconRects": {
+      "档案": {
+        "x": 16,
+        "y": 548,
+        "width": 38,
+        "height": 38
+      },
+      "活动": {
+        "x": 86,
+        "y": 548,
+        "width": 38,
+        "height": 38
+      },
+      "派遣": {
+        "x": 153,
+        "y": 552,
+        "width": 54,
+        "height": 54
+      },
+      "任务": {
+        "x": 236,
+        "y": 548,
+        "width": 38,
+        "height": 38
+      },
+      "升级": {
+        "x": 306,
+        "y": 548,
+        "width": 38,
+        "height": 38
+      }
+    },
+    "sideIconSize": 38,
+    "dispatchIconSize": 54,
+    "sideLabelFontSize": 10,
+    "dispatchLabelFontSize": 12,
+    "badges": {
+      "活动": {
+        "x": 118,
+        "y": 548,
+        "width": 12,
+        "height": 12
+      },
+      "任务": {
+        "x": 268,
+        "y": 548,
+        "width": 12,
+        "height": 12
+      }
+    },
+    "palette": {
+      "base": "#2a211f",
+      "baseHighlight": "#3a2b27",
+      "copper": "#bd6336",
+      "dispatch": "#94441f",
+      "dispatchAccent": "#d9ff57"
+    }
+  },
+  "joystick": {
+    "center": [
+      180,
+      560
+    ],
+    "imageRect": {
+      "x": 136,
+      "y": 516,
+      "width": 88,
+      "height": 88
+    },
+    "unchangedFrom": "../v3_ui_review"
+  },
+  "screens": [
+    "ui/home_mia.png",
+    "ui/home_kade.png",
+    "ui/home_locke.png",
+    "ui/archive_mia.png",
+    "ui/archive_kade.png",
+    "ui/archive_locke.png",
+    "ui/activity_checkin.png",
+    "ui/daily_tasks.png",
+    "ui/upgrade.png",
+    "ui/beacon_rust.png",
+    "ui/beacon_spore.png",
+    "ui/beacon_moon.png"
+  ],
+  "previews": [
+    "ui/home_mia_2x.png",
+    "ui/home_kade_2x.png",
+    "ui/home_locke_2x.png",
+    "ui/archive_mia_2x.png",
+    "ui/archive_kade_2x.png",
+    "ui/archive_locke_2x.png",
+    "ui/activity_checkin_2x.png",
+    "ui/daily_tasks_2x.png",
+    "ui/upgrade_2x.png",
+    "ui/beacon_rust_2x.png",
+    "ui/beacon_spore_2x.png",
+    "ui/beacon_moon_2x.png"
+  ],
+  "overview": "ui/ui_overview.png",
+  "navigationStates": "ui/nav_component_states.png"
+}

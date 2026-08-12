@@ -1,0 +1,34 @@
+{
+  "id": "meteor_warning",
+  "reviewId": "meteor_warning_v3",
+  "assetType": "vfx",
+  "event": "meteor_warning",
+  "frameWidth": 96,
+  "frameHeight": 64,
+  "frameCount": 6,
+  "fps": 12,
+  "loop": true,
+  "anchor": {
+    "x": 48,
+    "y": 32
+  },
+  "blendMode": "source-over",
+  "sheet": "meteor_warning_v3.png",
+  "frames": [
+    "frames/frame_00.png",
+    "frames/frame_01.png",
+    "frames/frame_02.png",
+    "frames/frame_03.png",
+    "frames/frame_04.png",
+    "frames/frame_05.png"
+  ],
+  "previewGif": "meteor_warning_v3.gif",
+  "imageSmoothingEnabled": false,
+  "sourceReviewId": "meteor_impact_v2",
+  "transitionTarget": "meteor_impact/frame_00",
+  "generationModel": "gpt-image-2",
+  "generationProvider": "Codex image_gen",
+  "alphaMethod": "chroma-key + hard-alpha threshold",
+  "pixelization": "nearest-neighbor",
+  "visualNotes": "incoming meteor, ember trajectory, segmented landing scan, compact pre-impact core"
+}

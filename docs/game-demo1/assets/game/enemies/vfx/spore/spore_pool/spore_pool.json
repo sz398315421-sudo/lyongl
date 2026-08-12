@@ -1,0 +1,34 @@
+{
+  "id": "spore_pool",
+  "category": "vfx",
+  "event": "spore_pool",
+  "paletteVariant": "spore",
+  "image": "spore_pool.png",
+  "sheetLayout": "horizontal",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 6,
+  "fps": 10,
+  "loop": true,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "lighter",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png"
+  ],
+  "previewGif": "spore_pool.gif",
+  "imageSmoothingEnabled": false,
+  "sourceReviewId": "spore_pool_v2",
+  "sourceReviewPath": "assets/concepts/v13_spore_burst_review/vfx/spore_pool_v2",
+  "generationModel": "gpt-image-2",
+  "generationProvider": "codex",
+  "pixelization": "nearest-neighbor",
+  "alphaMethod": "chroma-key auto matte + hard-alpha threshold"
+}

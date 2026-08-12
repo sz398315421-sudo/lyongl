@@ -1,0 +1,11 @@
+{
+  "id": "loss_warning_icon",
+  "assetType": "ui_icon",
+  "width": 32,
+  "height": 32,
+  "anchor": {
+    "x": 16,
+    "y": 16
+  },
+  "imageSmoothingEnabled": false
+}

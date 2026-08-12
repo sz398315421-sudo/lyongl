@@ -1,0 +1,20 @@
+{
+  "planet": "moon",
+  "instanceCount": 24,
+  "activeIds": [
+    "moon_shallow_crater",
+    "moon_regolith_chunk",
+    "moon_crystal_cluster",
+    "moon_energy_seam",
+    "moon_probe_wreck",
+    "moon_antenna_fragment",
+    "moon_lander_panel",
+    "moon_dust_ridge"
+  ],
+  "collision": {
+    "shape": "circle",
+    "allActivePropsSolid": true,
+    "radiusIsScaledByInstanceSize": true
+  },
+  "sourceReview": "assets/concepts/v9_moon_props_review"
+}

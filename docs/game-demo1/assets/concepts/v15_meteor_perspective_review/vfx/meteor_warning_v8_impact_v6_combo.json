@@ -1,0 +1,48 @@
+{
+  "id": "meteor_warning_v8_impact_v6_combo",
+  "frameWidth": 128,
+  "frameHeight": 128,
+  "frameCount": 16,
+  "loop": false,
+  "sequence": [
+    {
+      "asset": "meteor_warning_v8",
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "fps": 12
+    },
+    {
+      "asset": "meteor_impact_v6",
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "fps": 18
+    }
+  ],
+  "warningPlacement": {
+    "x": 16,
+    "y": 32
+  },
+  "anchor": {
+    "x": 64,
+    "y": 64
+  },
+  "imageSmoothingEnabled": false,
+  "perspective": "angled-top-down-2.5D-ground-ellipse",
+  "meteorAppearsAt": "meteor_impact_v6.frame_00"
+}

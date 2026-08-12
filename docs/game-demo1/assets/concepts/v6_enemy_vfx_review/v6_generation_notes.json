@@ -1,0 +1,18 @@
+{
+  "sourceReference": "imagegen_enemy_reference.png",
+  "enemyCount": 8,
+  "actionEntryCount": 40,
+  "vfxEntryCount": 31,
+  "style": "hard-edge 8-bit pixel art",
+  "nearestNeighbour": true,
+  "dangerTelegraph": "behavior-specific-with-danger-tint",
+  "imageSmoothingEnabled": false,
+  "runtimePreviews": [
+    "combat_preview_rust_360x640.png",
+    "combat_preview_rust_720x1280.png",
+    "combat_preview_spore_360x640.png",
+    "combat_preview_spore_720x1280.png",
+    "combat_preview_moon_360x640.png",
+    "combat_preview_moon_720x1280.png"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "id": "self_destruct_burst",
+  "category": "vfx",
+  "event": "self_destruct",
+  "paletteVariant": "mechanic",
+  "image": "self_destruct_burst.png",
+  "sheetLayout": "horizontal",
+  "frameWidth": 128,
+  "frameHeight": 128,
+  "frameCount": 6,
+  "fps": 15,
+  "loop": false,
+  "anchor": {
+    "x": 64,
+    "y": 64
+  },
+  "blendMode": "source-over",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png"
+  ],
+  "previewGif": "self_destruct_burst.gif",
+  "imageSmoothingEnabled": false
+}

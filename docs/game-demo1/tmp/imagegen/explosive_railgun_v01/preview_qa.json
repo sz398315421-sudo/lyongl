@@ -1,0 +1,590 @@
+{
+  "task": "explosive_railgun_v01",
+  "official_replaced": false,
+  "reference_images": [
+    "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\refs\\explosive_impact_ref.png",
+    "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\refs\\railgun_beam_ref.png"
+  ],
+  "spec": {
+    "explosive_impact": {
+      "frame_size": [
+        96,
+        96
+      ],
+      "count": 8,
+      "sheet_size": [
+        768,
+        96
+      ],
+      "fps": 18,
+      "loop": false,
+      "anchor": [
+        48,
+        48
+      ]
+    },
+    "railgun_beam": {
+      "frame_size": [
+        128,
+        32
+      ],
+      "count": 4,
+      "sheet_size": [
+        512,
+        32
+      ],
+      "fps": 20,
+      "loop": true,
+      "anchor": [
+        0,
+        16
+      ],
+      "blend": "lighter"
+    }
+  },
+  "files": {
+    "explosive_impact": [
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\frame_00.png",
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          96,
+          96
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 8,
+        "alpha_nonzero": 367,
+        "sha256": "84a4d959b5ab4d6ac077a69e28858a11b9adddbda2d2fa941069471cb77320b9"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\frame_01.png",
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          96,
+          96
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 8,
+        "alpha_nonzero": 521,
+        "sha256": "2ca6b967a12b2b2a6cfc4a43d0e39038e1415be43c50641c3b86c6470a45e4ab"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\frame_02.png",
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          96,
+          96
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 8,
+        "alpha_nonzero": 1077,
+        "sha256": "bf0ae4566b05fc232b5299efed53d9b0cd02b9f507e3c8f1ae204091147412b0"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\frame_03.png",
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          96,
+          96
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 8,
+        "alpha_nonzero": 1512,
+        "sha256": "dd303f1d49bb6a06fe100f10ca33f436e7bf664487612ed22e0be9c8ee204dda"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\frame_04.png",
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          96,
+          96
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 8,
+        "alpha_nonzero": 1947,
+        "sha256": "599cd6ce33fb4da8d35e57d349b0502b3a779ad7e889a8b336db3d3cb9aba691"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\frame_05.png",
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          96,
+          96
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 8,
+        "alpha_nonzero": 1373,
+        "sha256": "f316fbe34d291f09b9567476a5d4de9617c9af8510a1bd7ab109e8ed038902c0"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\frame_06.png",
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          96,
+          96
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 5,
+        "alpha_nonzero": 535,
+        "sha256": "c01755bb2ed51ca7956e6ac007011f4530a3d7a35dd8fe0f835a30d0703d05cf"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\frame_07.png",
+        "size": [
+          96,
+          96
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          96,
+          96
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 4,
+        "alpha_nonzero": 306,
+        "sha256": "77f464fbcdf838ecfb443a91467b487700dad994812b80338037660c2d53738e"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\explosive_impact.png",
+        "size": [
+          768,
+          96
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          768,
+          96
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 8,
+        "alpha_nonzero": 7638,
+        "sha256": "c4e6a6bca7ee816b8922032e6f346e18744b9121e17c5afba9176b51cec1498e"
+      }
+    ],
+    "railgun_beam": [
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\railgun_beam\\frame_00.png",
+        "size": [
+          128,
+          32
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          128,
+          32
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 5,
+        "alpha_nonzero": 372,
+        "sha256": "30132868960151e6148e83b219e9acce351bcfa7e19a791886df75d7c8f8fa0e"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\railgun_beam\\frame_01.png",
+        "size": [
+          128,
+          32
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          128,
+          32
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 6,
+        "alpha_nonzero": 620,
+        "sha256": "a2fdde1cd7d688a6b4530e96a9a7bac509409aebf5aac723f44b388865aa8f1b"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\railgun_beam\\frame_02.png",
+        "size": [
+          128,
+          32
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          128,
+          32
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 6,
+        "alpha_nonzero": 868,
+        "sha256": "5c670ad58804089f444546ee3f8b77496334d05b7913b0b576d3e355d59fdbcc"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\railgun_beam\\frame_03.png",
+        "size": [
+          128,
+          32
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          128,
+          32
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 6,
+        "alpha_nonzero": 620,
+        "sha256": "7364560903c518a0b6ca9a172f8f1be44b15a1a01322a4264eba1c9eb03e7deb"
+      },
+      {
+        "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\railgun_beam\\railgun_beam.png",
+        "size": [
+          512,
+          32
+        ],
+        "mode": "RGBA",
+        "expected_size": [
+          512,
+          32
+        ],
+        "corners_alpha": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "touches_edge": false,
+        "transparent_rgb_scrubbed": true,
+        "visible_colors_exact_palette": true,
+        "visible_color_count": 6,
+        "alpha_nonzero": 2480,
+        "sha256": "0f4f77d85aef424e48eabf366b25f4ea359edc78aeeb1e50b5b95f925ecd47a4"
+      }
+    ]
+  },
+  "gifs": {
+    "explosive_impact.gif": {
+      "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\explosive_impact\\explosive_impact.gif",
+      "size": [
+        96,
+        96
+      ],
+      "frame_count": 8,
+      "durations_ms": [
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "loop": null,
+      "expected": {
+        "size": [
+          96,
+          96
+        ],
+        "frame_count": 8,
+        "duration_ms": 60,
+        "loop": null
+      },
+      "sha256": "77feb1734140b3121528d932a2c0b5aa5aa5242efea67287f3364d1928cfe77a"
+    },
+    "railgun_beam.gif": {
+      "path": "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\generated\\railgun_beam\\railgun_beam.gif",
+      "size": [
+        128,
+        32
+      ],
+      "frame_count": 4,
+      "durations_ms": [
+        50,
+        50,
+        50,
+        50
+      ],
+      "loop": 0,
+      "expected": {
+        "size": [
+          128,
+          32
+        ],
+        "frame_count": 4,
+        "duration_ms": 50,
+        "loop": 0
+      },
+      "sha256": "a7a46c1283c13ef3d0ee94fa93eed93083dc57d2e01dbde6b7b1f77222570356"
+    }
+  },
+  "previews": [
+    "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\preview\\explosive_impact_grid_3x.png",
+    "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\preview\\railgun_beam_grid_6x.png",
+    "E:\\codex\\Game\\tmp\\imagegen\\explosive_railgun_v01\\preview\\explosive_railgun_overview.png"
+  ],
+  "summary": {
+    "png_count": 14,
+    "gif_count": 2,
+    "all_png_geometry_ok": true,
+    "all_transparency_ok": true,
+    "explosive_single_sheet_ok": true,
+    "railgun_single_sheet_ok": true,
+    "gifs_geometry_ok": true,
+    "official_files_touched": false,
+    "all_temp_qa_pass": true
+  },
+  "verification": {
+    "wrapper_transparent_verify": {
+      "profile": "effect",
+      "strict": true,
+      "checked_pngs": 14,
+      "failed_pngs": 0,
+      "passed": true
+    },
+    "dynamic_assets": {
+      "passed": true,
+      "actionCount": 127,
+      "vfxCount": 69,
+      "checkedActionFrames": 2408,
+      "checkedVfxFrames": 369,
+      "errors": []
+    },
+    "runtime_smoke": {
+      "passed": true,
+      "moonProps": 95,
+      "exitFlow": "paused-and-settled",
+      "eliteVariants": "registered",
+      "levelCap": "enforced"
+    },
+    "hash_audit": {
+      "official_target_files_checked": 20,
+      "official_target_files_changed": 0,
+      "protected_files_checked": 4061,
+      "protected_files_changed": 0,
+      "baseline": "E:codexGame\tmpimagegenexplosive_railgun_v01official_baseline.json"
+    },
+    "semantic_review": {
+      "explosive_impact": "8-frame blast core and segmented shrapnel shockwave; no text/UI/background",
+      "railgun_beam": "4-frame single connected beam; no parallel secondary beam; transparent top/bottom edge",
+      "review_status": "passed for temporary preview"
+    }
+  },
+  "delivery": {
+    "status": "official_replaced_and_verified",
+    "official_replacement_pending_confirmation": false,
+    "official_files_touched": true,
+    "replaced_file_count": 16,
+    "replaced_source_equals_official": true,
+    "backup_root": "E:/codex/Game/tmp/imagegen/explosive_railgun_v01/backup_before_replace",
+    "backup_file_count": 16
+  },
+  "post_replace_verification": {
+    "wrapper_transparent_verify": {
+      "profile": "effect",
+      "strict": true,
+      "checked_pngs": 14,
+      "failed_pngs": 0,
+      "passed": true
+    },
+    "specification": {
+      "explosive_impact": {
+        "frames": 8,
+        "frame_size": [
+          96,
+          96
+        ],
+        "sheet_size": [
+          768,
+          96
+        ],
+        "gif_size": [
+          96,
+          96
+        ],
+        "gif_durations_ms": [
+          60,
+          60,
+          60,
+          60,
+          60,
+          60,
+          60,
+          60
+        ],
+        "loop": false,
+        "passed": true
+      },
+      "railgun_beam": {
+        "frames": 4,
+        "frame_size": [
+          128,
+          32
+        ],
+        "sheet_size": [
+          512,
+          32
+        ],
+        "gif_size": [
+          128,
+          32
+        ],
+        "gif_durations_ms": [
+          50,
+          50,
+          50,
+          50
+        ],
+        "loop": true,
+        "passed": true
+      }
+    },
+    "dynamic_assets": {
+      "passed": true,
+      "actionCount": 127,
+      "vfxCount": 69,
+      "checkedActionFrames": 2408,
+      "checkedVfxFrames": 369,
+      "errors": []
+    },
+    "runtime_smoke": {
+      "passed": true,
+      "moonProps": 95,
+      "exitFlow": "paused-and-settled",
+      "eliteVariants": "registered",
+      "levelCap": "enforced"
+    },
+    "hash_audit": {
+      "changed_total": 16,
+      "changed_allowed_only": true,
+      "protected_files_checked": 4061,
+      "protected_files_changed": 0,
+      "preserved_target_files_changed": 0,
+      "backup_files": 16,
+      "source_equals_official": true,
+      "passed": true
+    }
+  }
+}

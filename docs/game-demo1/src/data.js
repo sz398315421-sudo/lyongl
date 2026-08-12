@@ -4,7 +4,7 @@
   const DATA = {
     title: '星际外勤',
     subtitle: '本星球不在保险范围内',
-    version: '0.1.0-mvp',
+    version: '0.2.0-mvp',
     palette: {
       ink: '#090d10',
       panel: '#141a1d',
@@ -16,6 +16,16 @@
       danger: '#ff4057',
       rust: '#b9653e',
       spore: '#ad6ee8'
+    },
+    limits: {
+      skillLevel: 3,
+      moduleLevel: 3,
+      skillSlots: 6
+    },
+    extraction: {
+      requiredSeconds: 30,
+      spawnTimerMultiplier: 0.60,
+      extraEnemyChance: 0.50
     },
     classes: [
       {
@@ -119,18 +129,63 @@
         id: 'spore', name: '孢子沼泽', code: 'SP-09', color: '#30223d', floor: '#18151e', grid: '#3b2a48', accent: '#c780ff',
         description: '活体菌海。请勿舔舐任何会呼吸的地面。',
         elite: '母囊巡游者'
+      },
+      {
+        id: 'moon', name: '低重力月面', code: 'LM-22', color: '#263840', floor: '#171d21', grid: '#324b52', accent: '#8ee9e1',
+        description: '失重采样区。所有脚印都属于尚未登记的员工。',
+        elite: '棱镜监管节点'
       }
     ],
+    enemySets: {
+      rust: [
+        { id: 'swarm', asset: 'enemy.swarm', name: '废铁螨虫' },
+        { id: 'shooter', asset: 'enemy.shooter', name: '电浆观察者' },
+        { id: 'charger', asset: 'enemy.charger', name: '铆钉角兽' },
+        { id: 'bloater', asset: 'enemy.bloater', name: '泄压囊虫' }
+      ],
+      spore: [
+        { id: 'swarm', asset: 'enemy.spore_swarm', name: '菌丝爬虫' },
+        { id: 'shooter', asset: 'enemy.spore_shooter', name: '酸液眼荚' },
+        { id: 'charger', asset: 'enemy.spore_charger', name: '菌甲冲兽' },
+        { id: 'bloater', asset: 'enemy.spore_bloater', name: '爆孢囊体' }
+      ],
+      moon: [
+        { id: 'swarm', asset: 'enemy.moon_swarm', name: '静电晶虫' },
+        { id: 'shooter', asset: 'enemy.moon_shooter', name: '棱镜哨兵' },
+        { id: 'charger', asset: 'enemy.moon_charger', name: '月岩冲兽' },
+        { id: 'bloater', asset: 'enemy.moon_bloater', name: '虚空气囊' }
+      ]
+    },
     missions: [
       { id: 'nests', name: '摧毁巢穴', icon: '×', brief: '定位并注销 3 处未备案生命设施。', basePay: 82 },
       { id: 'beacons', name: '激活信标', icon: '◇', brief: '重新激活 3 座公司资产信标。', basePay: 78 },
       { id: 'drill', name: '守护钻机', icon: '▣', brief: '在资源钻机完成采样前保持在岗。', basePay: 88 }
     ],
     anomalies: [
-      { id: 'low_gravity', name: '低重力', effect: '移动略快，击退效果增强。' },
-      { id: 'meteor', name: '陨石雨', effect: '周期出现可躲避的坠落预警。' },
-      { id: 'spore_bloom', name: '孢子爆发', effect: '部分怪物死亡后留下短暂污染。' },
-      { id: 'energy_tide', name: '能源潮汐', effect: '周期性同时强化双方行动速度。' }
+      {
+        id: 'low_gravity',
+        name: '低重力',
+        effect: '移动略快，击退效果增强。',
+        tip: '利用击退拉开距离，避免被怪群贴身。'
+      },
+      {
+        id: 'meteor',
+        name: '陨石雨',
+        effect: '周期出现可躲避的坠落预警。',
+        tip: '看到地面落点预警后立即移开，预警结束再回到目标区域。'
+      },
+      {
+        id: 'spore_bloom',
+        name: '孢子爆发',
+        effect: '部分怪物死亡后留下短暂污染。',
+        tip: '怪物死亡会留下污染池，不要停留在尸体附近。'
+      },
+      {
+        id: 'energy_tide',
+        name: '能源潮汐',
+        effect: '周期性同时强化双方行动速度。',
+        tip: '潮汐期间双方都会加速，优先走位，抓住短暂窗口输出。'
+      }
     ],
     shipModules: [
       { id: 'scanner', name: '侦测阵列', icon: '⌁', desc: '提前揭示异常与奖励方位', costs: [90, 210, 420] },
@@ -138,7 +193,33 @@
       { id: 'cargo', name: '强化货舱', icon: '▤', desc: '失败时额外保留 10% 战利品', costs: [100, 230, 450] },
       { id: 'life_support', name: '生命维持舱', icon: '+', desc: '小幅提升生命与拾取范围', costs: [120, 280, 520] },
       { id: 'printer', name: '打印舱', icon: '◎', desc: '降低新宇航员打印成本', costs: [140, 320, 600] }
-    ]
+    ],
+    activityRewards: [8, 10, 12, 15, 18, 22, 40],
+    dailyTasks: [
+      { id: 'kill_units', label: '清除 120 个敌对单位', metric: 'kills', target: 120, reward: 16, points: 1 },
+      { id: 'complete_contract', label: '完成 1 次主任务', metric: 'missions', target: 1, reward: 24, points: 1 },
+      { id: 'extract_success', label: '成功撤离 1 次', metric: 'extractions', target: 1, reward: 35, points: 1 }
+    ],
+    activityMilestones: [
+      { id: 'active_2', points: 2, reward: 20 },
+      { id: 'active_3', points: 3, reward: 45 }
+    ],
+    music: {
+      cockpit: { bpm: 88, root: 110, waveform: 'triangle', pattern: [0, 4, 7, 12, 7, 4, 2, 7] },
+      explore: { bpm: 104, root: 123.47, waveform: 'sawtooth', pattern: [0, 3, 7, 10, 7, 3, 5, 10] },
+      extract: { bpm: 136, root: 146.83, waveform: 'square', pattern: [0, 7, 10, 12, 10, 7, 14, 17] }
+    },
+    comboFeedback: {
+      piercing_star: { vfx: 'piercing_star_burst', trigger: 'gunner_attack_hit', layer: 'over', scale: 1, cooldown: 0.18, eventUnit: 'first_pierce_or_explosion' },
+      hunt_barrage: { vfx: 'hunt_barrage_lock', trigger: 'gunner_attack_cycle', layer: 'over', scale: 1, cooldown: 0.22, eventUnit: 'initial_lock_and_first_ricochet' },
+      zero_storm: { vfx: 'zero_storm_burst', trigger: 'ring_release', layer: 'over', scale: 1, cooldown: 0.50, eventUnit: 'ring_release' },
+      rift_slash: { vfx: 'sword_wave', trigger: 'melee_swing', layer: 'over', scale: 1, cooldown: 0.18, eventUnit: 'melee_swing' },
+      star_ring: { vfx: 'star_ring', trigger: 'orbit_pulse', layer: 'over', scale: 0.9, cooldown: 0.45, eventUnit: 'orbit_pulse' },
+      phantom_counter: { vfx: 'phantom_counter', trigger: 'successful_dodge', layer: 'over', scale: 1, cooldown: 0.35, eventUnit: 'successful_dodge' },
+      swarm_protocol: { vfx: 'swarm_protocol', trigger: 'drone_volley', layer: 'over', scale: 0.95, cooldown: 0.30, eventUnit: 'drone_volley' },
+      mobile_fortress: { vfx: 'mobile_fortress', trigger: 'fortress_volley', layer: 'over', scale: 0.95, cooldown: 0.30, eventUnit: 'fortress_volley' },
+      infinite_recycle: { vfx: 'recycle_burst', trigger: 'recycle_event', layer: 'over', scale: 1, cooldown: 0.50, eventUnit: 'self_destruct_rebuild' }
+    }
   };
 
   DATA.classById = Object.fromEntries(DATA.classes.map((item) => [item.id, item]));

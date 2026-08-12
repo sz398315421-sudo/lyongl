@@ -1,0 +1,116 @@
+{
+  "version": 12,
+  "installedAt": "20260812_000951",
+  "sourceReview": "assets/concepts/v12_meteor_sequence_review",
+  "backup": "assets/concepts/v12_runtime_backup/20260812_000951",
+  "vfx": {
+    "meteor_warning": {
+      "id": "meteor_warning",
+      "sourceReviewId": "meteor_warning_v4",
+      "sourceReviewPath": "assets/concepts/v12_meteor_sequence_review/vfx/meteor_warning_v4",
+      "path": "assets/game/skills/gunner/vfx/meteor_warning/meteor_warning.png",
+      "frameWidth": 96,
+      "frameHeight": 64,
+      "frameCount": 6,
+      "fps": 12,
+      "loop": true,
+      "anchor": {
+        "x": 48,
+        "y": 32
+      },
+      "blendMode": "source-over",
+      "files": {
+        "sheet": "assets/game/skills/gunner/vfx/meteor_warning/meteor_warning.png",
+        "gif": "assets/game/skills/gunner/vfx/meteor_warning/meteor_warning.gif",
+        "json": "assets/game/skills/gunner/vfx/meteor_warning/meteor_warning.json",
+        "frames": [
+          "assets/game/skills/gunner/vfx/meteor_warning/frame_00.png",
+          "assets/game/skills/gunner/vfx/meteor_warning/frame_01.png",
+          "assets/game/skills/gunner/vfx/meteor_warning/frame_02.png",
+          "assets/game/skills/gunner/vfx/meteor_warning/frame_03.png",
+          "assets/game/skills/gunner/vfx/meteor_warning/frame_04.png",
+          "assets/game/skills/gunner/vfx/meteor_warning/frame_05.png"
+        ]
+      },
+      "sha256": {
+        "sheet": "8f74b6aad58368ec0bf5c9563aef5034ac359bf6420df52faf9e1d01c11349fb",
+        "gif": "4e34a5e8a3f3f52ba69650a72093a437e3099935308ccf9b39fab88bf306ed69",
+        "json": "e4eceba203168bf0108bb0e3e32003d9ebd63a3ff304319d396a8e18d2225a45",
+        "frames": [
+          "5f5d9230ddde6462acafa1a1ca9db96f5f7d9706913df0c3288130086f360bb6",
+          "01e31a76ec286d2422539a6b1e1e336cc32f64ac2d43f9c9aec4a44f905dad37",
+          "f3194cd2663a9d754b95e51353d5951d76fdd8d76ebbdcb965c3ad4e7037b83f",
+          "360801d99dfd7e3370fa0c4d4c2afce059d83a3a9c51759fc33b0b44e296a7c0",
+          "924d300a792c355edfde6e61d25baf69118dd5e2f1a18fc9d8cae842ad796293",
+          "60637a5df8ebbb690caa6e3ca2b0116d5ee667682893657309268584f63ed892"
+        ]
+      },
+      "imageSmoothingEnabled": false
+    },
+    "meteor_impact": {
+      "id": "meteor_impact",
+      "sourceReviewId": "meteor_impact_v3",
+      "sourceReviewPath": "assets/concepts/v12_meteor_sequence_review/vfx/meteor_impact_v3",
+      "path": "assets/game/skills/gunner/vfx/meteor_impact/meteor_impact.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "frameCount": 10,
+      "fps": 18,
+      "loop": false,
+      "anchor": {
+        "x": 64,
+        "y": 64
+      },
+      "blendMode": "source-over",
+      "files": {
+        "sheet": "assets/game/skills/gunner/vfx/meteor_impact/meteor_impact.png",
+        "gif": "assets/game/skills/gunner/vfx/meteor_impact/meteor_impact.gif",
+        "json": "assets/game/skills/gunner/vfx/meteor_impact/meteor_impact.json",
+        "frames": [
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_00.png",
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_01.png",
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_02.png",
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_03.png",
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_04.png",
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_05.png",
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_06.png",
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_07.png",
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_08.png",
+          "assets/game/skills/gunner/vfx/meteor_impact/frame_09.png"
+        ]
+      },
+      "sha256": {
+        "sheet": "508487b4892b7bd8add21fb7ae91faecb7a0fd3eefaf55f1c05ad84dd952c2b1",
+        "gif": "f476b6b5e5ce5d28c397b151287ae29738ce96fe7463369c5cbe1ef5c266b221",
+        "json": "b77db56adacdab241b0d579f2e440d3efa9c8c615933efc9996d6c4fe7e5a841",
+        "frames": [
+          "17804c8ab6b0baf7d900bc489ea31c073764fa91ae5ebefb923de14e0ec7edbf",
+          "d98f719074d6893e051e4e13c86c9c44f1679e37a01653dc58363a121da9e058",
+          "0701f48da9c9055fb7f6e8bf2dd01112d62d2b9e351fd46d12015e454b29fa34",
+          "a588de875e0c8e8edda45bccc2e0d42e6012875765b347fb9d8fbf7f594a7334",
+          "db98f0be5ad9b11898ecd3e6c24a2dbb31491ee53f7d6e4dfd133bfc12e2d55c",
+          "3500282c643b8febca12742e1e2e7805bde12984c8acf699d440db8025ce2188",
+          "f3226ade2bb9d545cf6f64bcd3bf223bb1dd5d8cd480038eeaa91efa2f12b1d3",
+          "47b35ef2bf9eb48bc32f9dd2b2f0939da44d7bd7104e3b04cb61081beddf069f",
+          "789529be783100ef563aea3430ef2d683f2f2d9f0a11d43093c8f665e92a558d",
+          "542012fc10ed64dba4ef6e1f2ac017a8a90c55fe65d71abe2dceb92ece25eec6"
+        ]
+      },
+      "imageSmoothingEnabled": false
+    }
+  },
+  "transition": {
+    "warningLastFrame": "meteor_warning/frame_05.png",
+    "impactFirstFrame": "meteor_impact/frame_00.png",
+    "warningPlacement": {
+      "x": 16,
+      "y": 32
+    },
+    "sharedAnchor": {
+      "x": 64,
+      "y": 64
+    },
+    "impactFrameZeroSharedWithWarning": true
+  },
+  "runtimeContractUnchanged": true
+}

@@ -1,0 +1,28 @@
+{
+  "id": "v13_meteor_warning_v6_generation",
+  "model": "gpt-image-2",
+  "provider": "codex",
+  "quality": "medium",
+  "size": "2K",
+  "source": "tmp/imagegen/v13_meteor_warning_v6/meteor_warning_storyboard_alpha.png",
+  "grid": {
+    "columns": 2,
+    "rows": 3
+  },
+  "transparentExtraction": {
+    "method": "chroma",
+    "matteColor": "auto",
+    "material": "sticker",
+    "strict": true
+  },
+  "pixelization": "nearest-neighbor",
+  "safeBounds": {
+    "xMin": 8,
+    "xMax": 87,
+    "yMin": 8,
+    "yMax": 55
+  },
+  "impactReference": "assets/concepts/v13_meteor_sequence_review/vfx/meteor_impact_v4/frames/frame_00.png",
+  "sourceSha256": "618b08cff8c1ed441fe392ae42236f5f57128be8aff1ab6fe2bef72f695c3704",
+  "runtimeChanged": false
+}

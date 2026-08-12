@@ -1,0 +1,145 @@
+{
+  "id": "v15_moon_nest_runtime",
+  "sourceReviewId": "moon_nest_v2",
+  "sourceReviewPath": "assets/concepts/v15_moon_nest_review/objects/moon_nest_v2",
+  "installedAt": "20260812_004424",
+  "backupPath": null,
+  "targetPath": "assets/game/objects/moon/moon_nest",
+  "runtime": {
+    "id": "moon_nest",
+    "planet": "moon",
+    "image": "moon_nest.png",
+    "frameWidth": 64,
+    "frameHeight": 64,
+    "frameCount": 4,
+    "anchor": {
+      "x": 32,
+      "y": 56
+    },
+    "states": {
+      "idle": {
+        "startFrame": 0,
+        "frameCount": 4,
+        "fps": 7,
+        "loop": true
+      }
+    },
+    "frames": [
+      "idle_00.png",
+      "idle_01.png",
+      "idle_02.png",
+      "idle_03.png"
+    ],
+    "previewGif": "moon_nest.gif",
+    "interactionRadius": 34,
+    "blendMode": "source-over",
+    "imageSmoothingEnabled": false,
+    "sourceReviewId": "moon_nest_v2",
+    "sourceReviewPath": "assets/concepts/v15_moon_nest_review/objects/moon_nest_v2",
+    "generationModel": "gpt-image-2",
+    "generationProvider": "codex",
+    "pixelization": "nearest-neighbor",
+    "alphaMethod": "chroma-key auto matte + hard-alpha threshold"
+  },
+  "files": {
+    "assets/game/objects/moon/moon_nest/frames/frame_00.png": {
+      "bytes": 4486,
+      "sha256": "54285e5ec6c9b9c489075c024279734fa34ce2f6f12ca48c25b6ac32101125ae"
+    },
+    "assets/game/objects/moon/moon_nest/frames/frame_01.png": {
+      "bytes": 4522,
+      "sha256": "7bcb08ca6d759762ce755e531582ce6f6e044666f3f10f6e28af68ca7b888e0d"
+    },
+    "assets/game/objects/moon/moon_nest/frames/frame_02.png": {
+      "bytes": 4637,
+      "sha256": "aee4db872659e2143b308ffd88d83180070a838e6306ff3b15150f9bd5ea9e99"
+    },
+    "assets/game/objects/moon/moon_nest/frames/frame_03.png": {
+      "bytes": 4534,
+      "sha256": "bf412c6466b1ada812e2519b425abbda02a91fcdeacf414ebfa6b09efb6edc4e"
+    },
+    "assets/game/objects/moon/moon_nest/idle_00.png": {
+      "bytes": 4486,
+      "sha256": "54285e5ec6c9b9c489075c024279734fa34ce2f6f12ca48c25b6ac32101125ae"
+    },
+    "assets/game/objects/moon/moon_nest/idle_01.png": {
+      "bytes": 4522,
+      "sha256": "7bcb08ca6d759762ce755e531582ce6f6e044666f3f10f6e28af68ca7b888e0d"
+    },
+    "assets/game/objects/moon/moon_nest/idle_02.png": {
+      "bytes": 4637,
+      "sha256": "aee4db872659e2143b308ffd88d83180070a838e6306ff3b15150f9bd5ea9e99"
+    },
+    "assets/game/objects/moon/moon_nest/idle_03.png": {
+      "bytes": 4534,
+      "sha256": "bf412c6466b1ada812e2519b425abbda02a91fcdeacf414ebfa6b09efb6edc4e"
+    },
+    "assets/game/objects/moon/moon_nest/moon_nest.gif": {
+      "bytes": 5323,
+      "sha256": "cf1f9611d3104640f0dc5cafcde163499d26a7c1127a7fec8cbefe34cef95980"
+    },
+    "assets/game/objects/moon/moon_nest/moon_nest.json": {
+      "bytes": 841,
+      "sha256": "3e38ac876ae6ff6367f61bf14421081defbc35cb3cacbdd4f5f7721e6e56ef1a"
+    },
+    "assets/game/objects/moon/moon_nest/moon_nest.png": {
+      "bytes": 17010,
+      "sha256": "6b808d52bf2c82835d908941651cb1131dca91723315f98ce9a5b8ee8ddc424f"
+    }
+  },
+  "reviewValidation": {
+    "passed": true,
+    "frames": [
+      {
+        "frame": 0,
+        "size": [
+          64,
+          64
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "hasContent": true
+      },
+      {
+        "frame": 1,
+        "size": [
+          64,
+          64
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "hasContent": true
+      },
+      {
+        "frame": 2,
+        "size": [
+          64,
+          64
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "hasContent": true
+      },
+      {
+        "frame": 3,
+        "size": [
+          64,
+          64
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentBorder": true,
+        "hasContent": true
+      }
+    ],
+    "sheet": [
+      256,
+      64
+    ],
+    "gifFrames": 4
+  },
+  "runtimeChanged": true
+}

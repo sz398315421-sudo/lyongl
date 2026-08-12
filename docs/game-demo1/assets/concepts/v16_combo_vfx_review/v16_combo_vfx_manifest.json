@@ -1,0 +1,1429 @@
+{
+  "id": "v16_combo_vfx_review",
+  "generationModel": "gpt-image-2",
+  "provider": "codex",
+  "quality": "medium",
+  "sourceDirectory": "tmp/imagegen/v16_combo_vfx",
+  "outputDirectory": "assets/concepts/v16_combo_vfx_review",
+  "alphaMethod": "chroma-key",
+  "pixelization": "nearest-neighbor",
+  "assetCount": 9,
+  "assets": [
+    {
+      "id": "piercing_star_burst",
+      "classId": "gunner",
+      "comboId": "piercing_star",
+      "frameCount": 8,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "fps": 16,
+      "loop": false,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "source-over",
+      "json": "vfx/piercing_star_burst/piercing_star_burst.json",
+      "sheet": "vfx/piercing_star_burst/piercing_star_burst.png"
+    },
+    {
+      "id": "hunt_barrage_lock",
+      "classId": "gunner",
+      "comboId": "hunt_barrage",
+      "frameCount": 8,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "fps": 12,
+      "loop": false,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      },
+      "blendMode": "source-over",
+      "json": "vfx/hunt_barrage_lock/hunt_barrage_lock.json",
+      "sheet": "vfx/hunt_barrage_lock/hunt_barrage_lock.png"
+    },
+    {
+      "id": "zero_storm_burst",
+      "classId": "gunner",
+      "comboId": "zero_storm",
+      "frameCount": 8,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "fps": 15,
+      "loop": false,
+      "anchor": {
+        "x": 64,
+        "y": 64
+      },
+      "blendMode": "source-over",
+      "json": "vfx/zero_storm_burst/zero_storm_burst.json",
+      "sheet": "vfx/zero_storm_burst/zero_storm_burst.png"
+    },
+    {
+      "id": "sword_wave",
+      "classId": "warrior",
+      "comboId": "rift_slash",
+      "frameCount": 8,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "fps": 15,
+      "loop": false,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "lighter",
+      "json": "vfx/sword_wave/sword_wave.json",
+      "sheet": "vfx/sword_wave/sword_wave.png"
+    },
+    {
+      "id": "star_ring",
+      "classId": "warrior",
+      "comboId": "star_ring",
+      "frameCount": 8,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "fps": 12,
+      "loop": true,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "lighter",
+      "json": "vfx/star_ring/star_ring.json",
+      "sheet": "vfx/star_ring/star_ring.png"
+    },
+    {
+      "id": "phantom_counter",
+      "classId": "warrior",
+      "comboId": "phantom_counter",
+      "frameCount": 8,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "fps": 15,
+      "loop": false,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "lighter",
+      "json": "vfx/phantom_counter/phantom_counter.json",
+      "sheet": "vfx/phantom_counter/phantom_counter.png"
+    },
+    {
+      "id": "swarm_protocol",
+      "classId": "mechanic",
+      "comboId": "swarm_protocol",
+      "frameCount": 8,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "fps": 15,
+      "loop": false,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "lighter",
+      "json": "vfx/swarm_protocol/swarm_protocol.json",
+      "sheet": "vfx/swarm_protocol/swarm_protocol.png"
+    },
+    {
+      "id": "mobile_fortress",
+      "classId": "mechanic",
+      "comboId": "mobile_fortress",
+      "frameCount": 8,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "fps": 12,
+      "loop": true,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "lighter",
+      "json": "vfx/mobile_fortress/mobile_fortress.json",
+      "sheet": "vfx/mobile_fortress/mobile_fortress.png"
+    },
+    {
+      "id": "recycle_burst",
+      "classId": "mechanic",
+      "comboId": "infinite_recycle",
+      "frameCount": 8,
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "fps": 15,
+      "loop": false,
+      "anchor": {
+        "x": 64,
+        "y": 64
+      },
+      "blendMode": "lighter",
+      "json": "vfx/recycle_burst/recycle_burst.json",
+      "sheet": "vfx/recycle_burst/recycle_burst.png"
+    }
+  ],
+  "checks": [
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\frames\\frame_00.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "297a375ade1951903f3f3e3f0b8f914c1dba63764ac2112248942a1f9baee44b",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\frames\\frame_01.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "25be47431f1369809d1f46560cc08c5e0420f068cbcdebf0203d1f711bce1fba",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\frames\\frame_02.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "06d589c04def20707f23ea0bcbb471cc946efab24ea77f4e500ac9a0dd2ee295",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\frames\\frame_03.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "20e4f8c515a41eb7f43d5c09bb486d3d68d2a3d8b8f9efb6d36707df947efcb2",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\frames\\frame_04.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "aaf1828a0f1b459c0ea12d5cd3fec586d907a2e0b713070aca0c3137e6262afe",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\frames\\frame_05.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "c66e7e737e9a5ed062d2e50418246298c1d9cea247501b2ea0c245f72ef425f7",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\frames\\frame_06.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "1bbab76c28c8f325a5b5dbe95ca122851ce0bfe2c65edee3b2b946463b7a852b",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\frames\\frame_07.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "950970477cd27d0722cd513b2ebf5f07d2f1ec81e3ed0ef6401b68767ed079c4",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\piercing_star_burst.png",
+      "size": [
+        768,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "9ec52da6311ed1a78d1c5e55390a969f9416d4a176f511b45b3715e8a5e1b09a",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\piercing_star_burst\\piercing_star_burst_4x.png",
+      "size": [
+        3072,
+        384
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "5da9547717c3e3be92b3b63775004118a1242c1189b0b2a938569410516aca5f",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\frames\\frame_00.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "c082d95f2f2b79c4418c1d044e1e16bf87eb141da11b7cbb92d162de7b4671a5",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\frames\\frame_01.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "3dbcb913eb4fd406f92e4bc5ba1f20d61cb49a0639ff94b10c883caaff93b820",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\frames\\frame_02.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "749dc6f7d2b855e6007c3cd2f4a513748580238974ae2a6443ba31c4acce6299",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\frames\\frame_03.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "9a42ba431fc0fcce34deb7558096d3f9075d44d4ced9ddd4afc87683f10f29c2",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\frames\\frame_04.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "65401932ff7ceff2526e5ea9eb4c5cbaccc7f57ba9bf1e553ddf7b2ed002dabc",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\frames\\frame_05.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "2c0fb4bf56405beef7f336678b21565243281b021459fb69008bc0d31552da9a",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\frames\\frame_06.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "24a1002dd911dfbc1d91f2a12f911347dd70c34edcff7596e8f67dd4592ab661",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\frames\\frame_07.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "e999f738ef70a2636be6b9a344344a78fbb8dc15ae628528bbda9ad20328f878",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\hunt_barrage_lock.png",
+      "size": [
+        512,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "46914f93c79bf602c13e52a772a4519f720533c01b85a32012a5b398c59297a2",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\hunt_barrage_lock\\hunt_barrage_lock_4x.png",
+      "size": [
+        2048,
+        256
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "285e9f6c03fb61319eba065284aab940df79d69a5a95478198f552ba7fb44924",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\frames\\frame_00.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "bd97286f02ba1a159c39d115fa85d83bdcec59f385745adb9075086bbad7f29d",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\frames\\frame_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "f660494abb2403cc376aee6cd1235a51a6af4e470683e8b38f48df500dc3d13b",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\frames\\frame_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "89e3776b8c8f9aeac37fe2d8c0c7a1afdcb216149a3e9000bc0dc02962776fe1",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\frames\\frame_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "4da9c0f2233a357fc39c08f15423d7fbf995a3edc0394d51ab8f01b3ac2ebfa8",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\frames\\frame_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "3574cb68d9b96ce02e9788eaeece76760d07cd340748834b0d0e5204ea5f6251",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\frames\\frame_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "a715f38985f41f3718b9e8ef9e6a265373f17e7aa4c6bba72403e1166fd70f61",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\frames\\frame_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "bb4a0bcf2bc55bed15c3d6d3ae02eb10a9e7e27e36e205af179a2626c4df5245",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\frames\\frame_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "a79ae30cab0e2a8c7d5b938e2c7c20fcf0d4296cc68d454823b623bc885b3bdd",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\zero_storm_burst.png",
+      "size": [
+        1024,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "73516ece7cb61da13534ee4825b209ee76b92f4259aff463950fdc3f2123453b",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\zero_storm_burst\\zero_storm_burst_4x.png",
+      "size": [
+        4096,
+        512
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "aba37f15ca665a012847ab5dacde28d9c4fe992f1d1ec4efc04305c58f0b3376",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\frames\\frame_00.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "a8a1b359f393392ed61c857d33a78de8d25a20fe120bcde2eef1042aaa45d4dd",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\frames\\frame_01.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "a6c5074d56d5186eb7267aa9dafc121f82b4b16473ae07ac25134c33633fc396",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\frames\\frame_02.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "95734d9138ba19f65366231adf9ae2d72860887fd3c5f3cb6649836dff82e820",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\frames\\frame_03.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "88405c896ae08eae33fe85fb11931039ef5432b1096a77d27ec2b2614afabcf5",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\frames\\frame_04.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "fc6f4b0a3fd61ecf2c623a489ebfe0c879682b206dc0373dd3bd1da298670b40",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\frames\\frame_05.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "618ff11f142abdc7840436538b3a487b306566625104bf635b3c56a7f0383757",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\frames\\frame_06.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "15070e38509a509d3ce7b7b32d2546abd7a5b8080b6a78e0226644b339ade843",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\frames\\frame_07.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "e07ca206ead5ab28ee2a4ddd9056363a47837ffb79d4a55e2fc6eb4393b8388d",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\sword_wave.png",
+      "size": [
+        768,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "8c6503711bc65a88abb849b79ce542a244cc8afcefcdc8d36fe12979d5afa9fb",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\sword_wave\\sword_wave_4x.png",
+      "size": [
+        3072,
+        384
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "8641baebd8123de48a7ea47edc2e952ccacd1c77f0843f282b59f17cca7dd167",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\frames\\frame_00.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "2280c85529cc1a12dffef6da02312e5d6a2f64712186890efbbf6bd29d8b628a",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\frames\\frame_01.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "3d9901befbdad1b16fe673a4d5928cc63da5dd2e6c1abb7b568680ff88de2702",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\frames\\frame_02.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "7c2a66739486dd24b107066149f2b462726b8607435bc8bfad4307a54902569a",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\frames\\frame_03.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "30b50c533c03a6495f68f45eb505786f5cb5624bacb96a7bb47e80d2c1769b59",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\frames\\frame_04.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "9b0731fac9625dc0418962be1a5ab7b449263208366f9cd05c8c92478c0e9cd9",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\frames\\frame_05.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "f10ac082c586eaafd57f242dfce2e8022cf7d13dd25ff009677f763f780fa8c4",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\frames\\frame_06.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "1f0ec481dde5f78834d46be61270cbf85e9ee424fa0c539cceaf1e89b8f6775d",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\frames\\frame_07.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "f98ca63570c6af2a3c8bd8777a069849fadb6996e6d5fc5f04ee119af76b7fd8",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\star_ring.png",
+      "size": [
+        768,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "5514d10f12b6062ff5c6f4a7fab09e9d4d75e2716c9fabd83470f63b5cb0bfaf",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\star_ring\\star_ring_4x.png",
+      "size": [
+        3072,
+        384
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "7cabfdb9ec1ca85185e051fadda17fd3b813e56779ccc7fed6900b70ea08bb62",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\frames\\frame_00.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "c3e210a415f9de1b426d1ee077d9f1c9659aa1fabca4063bf6c70e3aab04e3f5",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\frames\\frame_01.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "36455ecd2f537508291ed6ccda72906b5619f201a3f06dd8490e2291ef295392",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\frames\\frame_02.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "99755f70f21f00518d2c4cec7a1f9acc37e7e09eaeb0e2bd65748e2d0ab6538d",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\frames\\frame_03.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "6859b63f1fbbe28ced2609158336cde316c32cc57e9a4d4d245f94188cd60256",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\frames\\frame_04.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "7a108b4bfd573ec331d1983b005fba218f763a5eb5cdc51c498db64c79eec6d3",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\frames\\frame_05.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "e81df6d60b3b5810e13921ab6c19c4107c5ef30b292df4e71d83b585b5bf6bf2",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\frames\\frame_06.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "42ab1d0192ae1221dacc55e33c73ca9b718143f2ebd5cbbaffc5322727d68256",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\frames\\frame_07.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "46450a80203edeac8ccd297ce36fb6cf1dd0f597b8302096e3aa1528a56f0efd",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\phantom_counter.png",
+      "size": [
+        768,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "0ab0330a72945e0f3e1e963800e83a5d3557384e8728cea5e5bf28cf3c030661",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\phantom_counter\\phantom_counter_4x.png",
+      "size": [
+        3072,
+        384
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "b285c80ae2f6b03902e9b42e8baa7cbfbdde416fea9fb215239d0af80b33b567",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\frames\\frame_00.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "d6595e8817afdcd0bdd9349afb44f79eb9dd773a933417b682a9854ca7f37ec0",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\frames\\frame_01.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "18de6304a6b7455f7a06b40a76579ab2f247eb81c0157beca6dd99951c117988",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\frames\\frame_02.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "153438dbe903cbb175f89682c147dd37daa06f6bc4682b8497f3c4622bd02a92",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\frames\\frame_03.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "0c42ef36492e755a20e69ab15dc0b87e937c27bbce57a33e69fad764a6d79cb1",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\frames\\frame_04.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "f61835140c20f11c8154672fde2e5301f5ea7797fc3dfcd00ffa07ef2d270afe",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\frames\\frame_05.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "84ddb15e91a005c8b1038f0e456fc78ead6952c66e8930fa38f0f983372aed9e",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\frames\\frame_06.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "a5d9b80a8140965231454306f8ebceeb446d93059dc3cc24cb9f28014500196c",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\frames\\frame_07.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "be7e0070d200ede7619e5e48486dd4d95b05c17cba042384ef2d035999fa5bbc",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\swarm_protocol.png",
+      "size": [
+        768,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "fc4185ac2f2d74ee5421ea6ef17122975a35aef3f44dcef98cbe92425097b12d",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\swarm_protocol\\swarm_protocol_4x.png",
+      "size": [
+        3072,
+        384
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "dc75248344af3f9cd22b56d41d4c23aee506683341e9de8b85642f0330b76fcf",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\frames\\frame_00.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "6d85dc9ebfc7100d6b5f58ddf412519983709b84a0740fcca109e551e7d922e5",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\frames\\frame_01.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "4bd65542800ef52d442a15ae4f8bbfd51f891120ea7dbe25cf0a3ec47d26e3e1",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\frames\\frame_02.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "c6a0d766297737b27a005823f19576fd1cd7130677ea0f14160707475bc98d71",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\frames\\frame_03.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "6cb782fc55b860705f39c2aef9af5297f5d4f33ac7636d2b528ebca3d524024f",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\frames\\frame_04.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "220352bc6cb2f98fae32ed9a913229ec17ae1ac2034aeea0d08eaa52e998272a",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\frames\\frame_05.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "f4d8f1836991797d5ec9a6d99796b7dafb88b0909cedded4d7020d20ad35a4b3",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\frames\\frame_06.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "66ff10bf6d2221790be0345d8878c72851d15985aadf120f849706927d97d048",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\frames\\frame_07.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "9c148adab4a335bb44034bbc6ddd3e15f1898aa46769cfb3fbc58780bf11b442",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\mobile_fortress.png",
+      "size": [
+        768,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "ffe7def335bd757edc7824b18bfa5cfef774a5730af004f1e88735d22da7f04b",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\mobile_fortress\\mobile_fortress_4x.png",
+      "size": [
+        3072,
+        384
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "d42d7bba8bf9c0e63d39c1bafbbe3fcdab8d06e2fe3d545354d2370315445591",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\frames\\frame_00.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "bc38d49717f343dfa01b0249514f19028b1c222402f002d00056a5e32aaf1346",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\frames\\frame_01.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "7ed808918bb0cb9bcc0a026a60dd3fb5421ffdd68d1c9cad9ab5b7a603604a39",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\frames\\frame_02.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "0bb765fd5c79b2803b9978cea1b015a130920a6091090a0c866f9e54db9196c2",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\frames\\frame_03.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "d550e4a33907915ff656ccd4919213760b12f5aa0e9cff7e0e02d4a9bad0826c",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\frames\\frame_04.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "2e579de944ab6cf8e1a7b8e0dc6df785400c6783f936815bf8cd7cddfcde0356",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\frames\\frame_05.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "a97da0d1ac7f387363b7decfc04dea4dee17cdb56f23929bd2bd4419cf78495f",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\frames\\frame_06.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "fc2b672059e6269b174ab6e82a6ea68d0f1664b8ca1d75b8af7da1e132cc94b5",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\frames\\frame_07.png",
+      "size": [
+        128,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "b806e9fcdbedd672070d312feb6a7112c2e8066338c56d06d8c213153e373743",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\recycle_burst.png",
+      "size": [
+        1024,
+        128
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "365c18147ecd3f2f98f7182757752ede94f73a7080437920b14a6b7c246f481e",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v16_combo_vfx_review\\vfx\\recycle_burst\\recycle_burst_4x.png",
+      "size": [
+        4096,
+        512
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "3c3059859b4fc47e1fc5da4ad03fc99f67916f2d70252369f893d376cf4a1ca5",
+      "errors": []
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,60 @@
+{
+  "id": "mycelium_skitter.hit",
+  "assetType": "enemy_action",
+  "assetId": "mycelium_skitter",
+  "planet": "spore",
+  "enemyType": "swarm",
+  "state": "hit",
+  "sheet": "mycelium_skitter_hit_4dir.png",
+  "sheetLayout": "rows-by-direction",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "frameCount": 2,
+  "directionOrder": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "directions": {
+    "front": {
+      "row": 0
+    },
+    "right": {
+      "row": 1
+    },
+    "back": {
+      "row": 2
+    },
+    "left": {
+      "row": 3
+    }
+  },
+  "frames": {
+    "front": [
+      "front_00.png",
+      "front_01.png"
+    ],
+    "right": [
+      "right_00.png",
+      "right_01.png"
+    ],
+    "back": [
+      "back_00.png",
+      "back_01.png"
+    ],
+    "left": [
+      "left_00.png",
+      "left_01.png"
+    ]
+  },
+  "anchor": {
+    "x": 32,
+    "y": 56
+  },
+  "fps": 14,
+  "loop": false,
+  "blendMode": "source-over",
+  "previewGif": "mycelium_skitter_hit.gif",
+  "imageSmoothingEnabled": false
+}

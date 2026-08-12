@@ -1,0 +1,54 @@
+{
+  "id": "v14_meteor_sequence_review",
+  "outputDirectory": "assets/concepts/v14_meteor_sequence_review",
+  "runtimeChanged": false,
+  "assets": [
+    {
+      "id": "meteor_warning",
+      "reviewId": "meteor_warning_v7",
+      "frameCount": 6,
+      "frameSize": [
+        96,
+        64
+      ],
+      "fps": 12,
+      "loop": true,
+      "anchor": {
+        "x": 48,
+        "y": 32
+      }
+    },
+    {
+      "id": "meteor_impact",
+      "reviewId": "meteor_impact_v5",
+      "frameCount": 10,
+      "frameSize": [
+        128,
+        128
+      ],
+      "fps": 18,
+      "loop": false,
+      "anchor": {
+        "x": 64,
+        "y": 64
+      }
+    }
+  ],
+  "transition": {
+    "warningPlacement": {
+      "x": 16,
+      "y": 32
+    },
+    "sharedCenter": {
+      "x": 64,
+      "y": 64
+    },
+    "meteorAppearsAt": "meteor_impact_v5.frame_00"
+  },
+  "safeBounds": {
+    "xMin": 8,
+    "xMax": 87,
+    "yMin": 8,
+    "yMax": 55
+  }
+}

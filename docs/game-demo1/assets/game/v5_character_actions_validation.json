@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "walkCount": 3,
+  "skillCount": 45,
+  "roles": {
+    "gunner_mia": 15,
+    "warrior_kade": 15,
+    "mechanic_locke": 15
+  },
+  "errors": []
+}

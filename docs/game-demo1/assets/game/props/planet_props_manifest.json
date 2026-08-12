@@ -1,0 +1,50 @@
+{
+  "instanceCount": 24,
+  "collisionShape": "circle",
+  "allActivePropsSolid": true,
+  "radiusIsScaledByInstanceSize": true,
+  "planets": {
+    "rust": {
+      "sourceReview": "assets/concepts/v10_planet_props_review",
+      "ids": ["scrap_plate", "cable_coil", "pipe_junction", "power_pylon", "scorch_mark", "oil_stain", "metal_seam", "cable_run"],
+      "props": {
+        "scrap_plate": {"path": "rust/objects/scrap_plate.png", "size": [32, 32], "anchor": [16, 28], "collision": true, "collisionShape": "circle", "collisionRadius": 10},
+        "cable_coil": {"path": "rust/objects/cable_coil.png", "size": [32, 32], "anchor": [16, 28], "collision": true, "collisionShape": "circle", "collisionRadius": 10},
+        "pipe_junction": {"path": "rust/objects/pipe_junction.png", "size": [64, 64], "anchor": [32, 56], "collision": true, "collisionShape": "circle", "collisionRadius": 20},
+        "power_pylon": {"path": "rust/objects/power_pylon.png", "size": [64, 64], "anchor": [32, 56], "collision": true, "collisionShape": "circle", "collisionRadius": 20},
+        "scorch_mark": {"path": "rust/decals/scorch_mark.png", "size": [64, 64], "anchor": [32, 32], "collision": true, "collisionShape": "circle", "collisionRadius": 8},
+        "oil_stain": {"path": "rust/decals/oil_stain.png", "size": [64, 64], "anchor": [32, 32], "collision": true, "collisionShape": "circle", "collisionRadius": 8},
+        "metal_seam": {"path": "rust/decals/metal_seam.png", "size": [64, 64], "anchor": [32, 32], "collision": true, "collisionShape": "circle", "collisionRadius": 8},
+        "cable_run": {"path": "rust/decals/cable_run.png", "size": [64, 64], "anchor": [32, 32], "collision": true, "collisionShape": "circle", "collisionRadius": 8}
+      }
+    },
+    "spore": {
+      "sourceReview": "assets/concepts/v10_planet_props_review",
+      "ids": ["spore_pod_cluster", "mycelium_stump", "fungal_mound", "husk_remains", "spore_pool_decal", "mycelium_rift", "acid_stain", "root_trail"],
+      "props": {
+        "spore_pod_cluster": {"path": "spore/objects/spore_pod_cluster.png", "size": [32, 32], "anchor": [16, 28], "collision": true, "collisionShape": "circle", "collisionRadius": 10},
+        "mycelium_stump": {"path": "spore/objects/mycelium_stump.png", "size": [32, 32], "anchor": [16, 28], "collision": true, "collisionShape": "circle", "collisionRadius": 10},
+        "fungal_mound": {"path": "spore/objects/fungal_mound.png", "size": [64, 64], "anchor": [32, 56], "collision": true, "collisionShape": "circle", "collisionRadius": 20},
+        "husk_remains": {"path": "spore/objects/husk_remains.png", "size": [64, 64], "anchor": [32, 56], "collision": true, "collisionShape": "circle", "collisionRadius": 20},
+        "spore_pool_decal": {"path": "spore/decals/spore_pool_decal.png", "size": [64, 64], "anchor": [32, 32], "collision": true, "collisionShape": "circle", "collisionRadius": 8},
+        "mycelium_rift": {"path": "spore/decals/mycelium_rift.png", "size": [64, 64], "anchor": [32, 32], "collision": true, "collisionShape": "circle", "collisionRadius": 8},
+        "acid_stain": {"path": "spore/decals/acid_stain.png", "size": [64, 64], "anchor": [32, 32], "collision": true, "collisionShape": "circle", "collisionRadius": 8},
+        "root_trail": {"path": "spore/decals/root_trail.png", "size": [64, 64], "anchor": [32, 32], "collision": true, "collisionShape": "circle", "collisionRadius": 8}
+      }
+    },
+    "moon": {
+      "sourceReview": "assets/concepts/v9_moon_props_review",
+      "ids": ["moon_shallow_crater", "moon_regolith_chunk", "moon_crystal_cluster", "moon_energy_seam", "moon_probe_wreck", "moon_antenna_fragment", "moon_lander_panel", "moon_dust_ridge"],
+      "props": {
+        "moon_shallow_crater": {"path": "moon/moon_shallow_crater.png", "size": [64, 32], "anchor": [32, 24], "collision": true, "collisionShape": "circle", "collisionRadius": 10},
+        "moon_regolith_chunk": {"path": "moon/moon_regolith_chunk.png", "size": [48, 48], "anchor": [24, 40], "collision": true, "collisionShape": "circle", "collisionRadius": 16},
+        "moon_crystal_cluster": {"path": "moon/moon_crystal_cluster.png", "size": [64, 64], "anchor": [32, 56], "collision": true, "collisionShape": "circle", "collisionRadius": 21},
+        "moon_energy_seam": {"path": "moon/moon_energy_seam.png", "size": [64, 32], "anchor": [32, 24], "collision": true, "collisionShape": "circle", "collisionRadius": 10},
+        "moon_probe_wreck": {"path": "moon/moon_probe_wreck.png", "size": [96, 64], "anchor": [48, 56], "collision": true, "collisionShape": "circle", "collisionRadius": 21},
+        "moon_antenna_fragment": {"path": "moon/moon_antenna_fragment.png", "size": [64, 96], "anchor": [32, 88], "collision": true, "collisionShape": "circle", "collisionRadius": 21},
+        "moon_lander_panel": {"path": "moon/moon_lander_panel.png", "size": [96, 64], "anchor": [48, 56], "collision": true, "collisionShape": "circle", "collisionRadius": 21},
+        "moon_dust_ridge": {"path": "moon/moon_dust_ridge.png", "size": [96, 48], "anchor": [48, 40], "collision": true, "collisionShape": "circle", "collisionRadius": 16}
+      }
+    }
+  }
+}

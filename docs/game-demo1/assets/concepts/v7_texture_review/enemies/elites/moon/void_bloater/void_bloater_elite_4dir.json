@@ -1,0 +1,25 @@
+{
+  "id": "void_bloater.elite",
+  "assetType": "elite_enemy",
+  "planet": "moon",
+  "enemyId": "void_bloater",
+  "enemyType": "bloater",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 4,
+  "anchor": {
+    "x": 48,
+    "y": 82
+  },
+  "order": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "sheet": "void_bloater_elite_4dir.png",
+  "imageSmoothingEnabled": false,
+  "badge": null,
+  "crown": false,
+  "triangleMarker": false
+}

@@ -1,0 +1,284 @@
+{
+  "id": "meteor_warning_impact_combo",
+  "assetType": "vfx-preview",
+  "frameWidth": 128,
+  "frameHeight": 128,
+  "frameCount": 16,
+  "loop": false,
+  "sequence": [
+    {
+      "asset": "meteor_warning_v3",
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "fps": 12
+    },
+    {
+      "asset": "meteor_impact",
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "fps": 18
+    }
+  ],
+  "durationsMs": [
+    83,
+    83,
+    83,
+    83,
+    83,
+    83,
+    56,
+    56,
+    56,
+    56,
+    56,
+    56,
+    56,
+    56,
+    56,
+    56
+  ],
+  "anchor": {
+    "x": 64,
+    "y": 64
+  },
+  "placements": {
+    "meteor_warning_v3": {
+      "x": 16,
+      "y": 32,
+      "sourceAnchor": {
+        "x": 48,
+        "y": 32
+      }
+    },
+    "meteor_impact": {
+      "x": 0,
+      "y": 0,
+      "sourceAnchor": {
+        "x": 64,
+        "y": 64
+      }
+    }
+  },
+  "sheet": "meteor_warning_impact_combo.png",
+  "gif": "meteor_warning_impact_combo.gif",
+  "gif4x": "meteor_warning_impact_combo_4x.gif",
+  "imageSmoothingEnabled": false,
+  "transition": {
+    "warningLastFrame": "meteor_warning_v3/frame_05.png",
+    "impactFirstFrame": "meteor_impact/frame_00.png",
+    "sharedWorldAnchor": {
+      "x": 64,
+      "y": 64
+    }
+  },
+  "validation": {
+    "passed": true,
+    "frameCount": 16,
+    "frameChecks": [
+      {
+        "frame": 0,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 1,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 2,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 3,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 4,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 5,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 6,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 7,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 8,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 9,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 10,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 11,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 12,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 13,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 14,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      },
+      {
+        "frame": 15,
+        "size": [
+          128,
+          128
+        ],
+        "mode": "RGBA",
+        "alphaBinary": true,
+        "transparentCorners": true,
+        "hasOpaquePixels": true
+      }
+    ],
+    "warningFrameCount": 6,
+    "impactFrameCount": 10,
+    "warningOffset": {
+      "x": 16,
+      "y": 32
+    },
+    "impactOffset": {
+      "x": 0,
+      "y": 0
+    },
+    "loop": false,
+    "notes": "Review-only composite; source and runtime assets remain unchanged."
+  }
+}

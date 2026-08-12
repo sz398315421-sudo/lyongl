@@ -1,0 +1,172 @@
+{
+  "version": 2,
+  "codeModified": false,
+  "logicalSize": [
+    360,
+    640
+  ],
+  "previewSize": [
+    720,
+    1280
+  ],
+  "uiScreens": [
+    "ui/home_mia.png",
+    "ui/home_kade.png",
+    "ui/home_locke.png",
+    "ui/archive_mia.png",
+    "ui/archive_kade.png",
+    "ui/archive_locke.png",
+    "ui/activity_checkin.png",
+    "ui/daily_tasks.png",
+    "ui/ship_modules.png",
+    "ui/beacon_rust.png",
+    "ui/beacon_spore.png",
+    "ui/beacon_moon.png"
+  ],
+  "characters": {
+    "mia": {
+      "front": "characters/mia_front.png",
+      "board": "characters/mia_motion_board.png",
+      "gif": "motion/character_mia_walk.gif",
+      "frameSize": [
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        56
+      ],
+      "directions": [
+        "front",
+        "right",
+        "back",
+        "left"
+      ],
+      "moveFrames": 6,
+      "idleFramesPlanned": 4,
+      "reviewOnly": true
+    },
+    "kade": {
+      "front": "characters/kade_front.png",
+      "board": "characters/kade_motion_board.png",
+      "gif": "motion/character_kade_walk.gif",
+      "frameSize": [
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        56
+      ],
+      "directions": [
+        "front",
+        "right",
+        "back",
+        "left"
+      ],
+      "moveFrames": 6,
+      "idleFramesPlanned": 4,
+      "reviewOnly": true
+    },
+    "locke": {
+      "front": "characters/locke_front.png",
+      "board": "characters/locke_motion_board.png",
+      "gif": "motion/character_locke_walk.gif",
+      "frameSize": [
+        64,
+        64
+      ],
+      "anchor": [
+        32,
+        56
+      ],
+      "directions": [
+        "front",
+        "right",
+        "back",
+        "left"
+      ],
+      "moveFrames": 6,
+      "idleFramesPlanned": 4,
+      "reviewOnly": true
+    }
+  },
+  "ecologies": {
+    "rust": {
+      "board": "enemies/rust_enemy_motion_board.png",
+      "enemies": [
+        {
+          "id": "scrap_mite",
+          "behavior": "swarm",
+          "gif": "motion/rust_scrap_mite.gif"
+        },
+        {
+          "id": "plasma_watcher",
+          "behavior": "shooter",
+          "gif": "motion/rust_plasma_watcher.gif"
+        },
+        {
+          "id": "rivethorn_ram",
+          "behavior": "charger",
+          "gif": "motion/rust_rivethorn_ram.gif"
+        },
+        {
+          "id": "pressure_bloater",
+          "behavior": "bloater",
+          "gif": "motion/rust_pressure_bloater.gif"
+        }
+      ]
+    },
+    "spore": {
+      "board": "enemies/spore_enemy_motion_board.png",
+      "enemies": [
+        {
+          "id": "mycelium_skitter",
+          "behavior": "swarm",
+          "gif": "motion/spore_mycelium_skitter.gif"
+        },
+        {
+          "id": "acid_eye_pod",
+          "behavior": "shooter",
+          "gif": "motion/spore_acid_eye_pod.gif"
+        },
+        {
+          "id": "fungal_ram",
+          "behavior": "charger",
+          "gif": "motion/spore_fungal_ram.gif"
+        },
+        {
+          "id": "spore_bloater",
+          "behavior": "bloater",
+          "gif": "motion/spore_spore_bloater.gif"
+        }
+      ]
+    },
+    "moon": {
+      "board": "enemies/moon_enemy_motion_board.png",
+      "enemies": [
+        {
+          "id": "static_crawler",
+          "behavior": "swarm",
+          "gif": "motion/moon_static_crawler.gif"
+        },
+        {
+          "id": "prism_sentry",
+          "behavior": "shooter",
+          "gif": "motion/moon_prism_sentry.gif"
+        },
+        {
+          "id": "crater_ram",
+          "behavior": "charger",
+          "gif": "motion/moon_crater_ram.gif"
+        },
+        {
+          "id": "void_bloater",
+          "behavior": "bloater",
+          "gif": "motion/moon_void_bloater.gif"
+        }
+      ]
+    }
+  },
+  "musicDirection": "music_direction.md"
+}

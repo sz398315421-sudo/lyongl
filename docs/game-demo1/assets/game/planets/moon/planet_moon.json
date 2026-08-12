@@ -1,0 +1,13 @@
+{
+  "id": "planet_moon",
+  "assetType": "planet_mark",
+  "width": 32,
+  "height": 32,
+  "anchor": {
+    "x": 16,
+    "y": 16
+  },
+  "planet": "moon",
+  "styleReference": "assets/game/ui/icons/planet_rust.png",
+  "imageSmoothingEnabled": false
+}

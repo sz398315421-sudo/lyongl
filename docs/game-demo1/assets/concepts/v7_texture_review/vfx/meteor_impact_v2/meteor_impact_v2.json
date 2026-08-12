@@ -1,0 +1,17 @@
+{
+  "id": "meteor_impact_v2",
+  "assetType": "vfx",
+  "event": "meteor_impact",
+  "frameWidth": 128,
+  "frameHeight": 128,
+  "frameCount": 10,
+  "fps": 18,
+  "loop": false,
+  "anchor": {
+    "x": 64,
+    "y": 64
+  },
+  "blendMode": "source-over",
+  "sheet": "meteor_impact_v2.png",
+  "imageSmoothingEnabled": false
+}

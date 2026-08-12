@@ -1,0 +1,32 @@
+{
+  "id": "meteor_warning",
+  "reviewId": "meteor_warning_v4",
+  "assetType": "vfx",
+  "frameWidth": 96,
+  "frameHeight": 64,
+  "frameCount": 6,
+  "fps": 12,
+  "loop": true,
+  "anchor": {
+    "x": 48,
+    "y": 32
+  },
+  "blendMode": "source-over",
+  "sheet": "meteor_warning_v4.png",
+  "frames": [
+    "frames/frame_00.png",
+    "frames/frame_01.png",
+    "frames/frame_02.png",
+    "frames/frame_03.png",
+    "frames/frame_04.png",
+    "frames/frame_05.png"
+  ],
+  "previewGif": "meteor_warning_v4.gif",
+  "imageSmoothingEnabled": false,
+  "generationModel": "gpt-image-2",
+  "generationProvider": "Codex image_gen",
+  "sourceStoryboard": "raw/warning_storyboard_magenta_v12.png",
+  "alphaMethod": "chroma-key + hard-alpha threshold",
+  "pixelization": "nearest-neighbor",
+  "transitionTarget": "meteor_impact_v3/frame_00.png"
+}

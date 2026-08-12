@@ -1,0 +1,40 @@
+{
+  "id": "swarm_protocol",
+  "comboId": "swarm_protocol",
+  "classId": "mechanic",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 8,
+  "fps": 15,
+  "loop": false,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "lighter",
+  "eventUnit": "drone_volley",
+  "sheet": "swarm_protocol.png",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png",
+    "frame_06.png",
+    "frame_07.png"
+  ],
+  "previewGif": "swarm_protocol.gif",
+  "imageSmoothingEnabled": false,
+  "generationModel": "gpt-image-2",
+  "generationProvider": "codex",
+  "generationQuality": "medium",
+  "alphaMethod": "chroma-key",
+  "pixelization": "nearest-neighbor",
+  "palette": "acid-green drones and cyan branching arc",
+  "role": "mechanic",
+  "previewImage": "swarm_protocol_preview.png",
+  "sourceReviewId": "v16_swarm_protocol",
+  "sourceReviewPath": "assets/concepts/v16_combo_vfx_review/vfx/swarm_protocol",
+  "runtimePath": "assets/game/skills/mechanic/vfx/swarm_protocol/swarm_protocol.png"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "moon_antenna_fragment",
+  "planet": "moon",
+  "assetType": "prop",
+  "width": 64,
+  "height": 96,
+  "anchor": {
+    "x": 32,
+    "y": 88
+  },
+  "sizeClass": "medium",
+  "suggestedScale": [
+    0.72,
+    1.15
+  ],
+  "occupancyRadius": 21,
+  "weight": 1,
+  "hasShadow": true,
+  "imageSmoothingEnabled": false,
+  "generationModel": "gpt-image-2",
+  "sourceReference": "assets/game/props/moon/moon_antenna_fragment.png",
+  "alphaMethod": "chroma-key",
+  "pixelization": "nearest-neighbor"
+}

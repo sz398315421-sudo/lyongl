@@ -1,0 +1,22 @@
+{
+  "id": "spore_bloater.elite_attack_danger",
+  "assetType": "elite_attack_danger",
+  "planet": "spore",
+  "enemyId": "spore_bloater",
+  "enemyType": "bloater",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 4,
+  "anchor": {
+    "x": 48,
+    "y": 82
+  },
+  "order": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "sheet": "spore_bloater_elite_attack_danger_4dir.png",
+  "imageSmoothingEnabled": false
+}

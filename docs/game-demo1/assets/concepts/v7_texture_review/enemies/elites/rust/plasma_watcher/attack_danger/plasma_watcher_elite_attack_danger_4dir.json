@@ -1,0 +1,22 @@
+{
+  "id": "plasma_watcher.elite_attack_danger",
+  "assetType": "elite_attack_danger",
+  "planet": "rust",
+  "enemyId": "plasma_watcher",
+  "enemyType": "shooter",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 4,
+  "anchor": {
+    "x": 48,
+    "y": 82
+  },
+  "order": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "sheet": "plasma_watcher_elite_attack_danger_4dir.png",
+  "imageSmoothingEnabled": false
+}

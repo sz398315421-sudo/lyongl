@@ -1,0 +1,137 @@
+{
+  "id": "v16_combo_vfx_generation",
+  "model": "gpt-image-2",
+  "provider": "codex",
+  "quality": "medium",
+  "cli": "scripts/gpt_image_2_skill.cjs",
+  "command": "images generate",
+  "size": "2K",
+  "format": "png",
+  "transparentExtraction": {
+    "command": "transparent extract",
+    "method": "chroma",
+    "matteColor": "auto",
+    "profile": "effect",
+    "strict": true
+  },
+  "pixelization": "nearest-neighbor",
+  "jobs": [
+    {
+      "id": "piercing_star_burst",
+      "classId": "gunner",
+      "comboId": "piercing_star",
+      "source": "tmp\\imagegen\\v16_combo_vfx\\piercing_star_burst_source.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "b9f1c1c364d3c236f9479387353e9ac07386c6f05438604fd6e74a2e2581330b",
+      "promptBrief": "gunner piercing_star combo VFX; cyan-white with orange-hot core; exactly eight sequential hard-edge 8-bit panels on a flat magenta matte"
+    },
+    {
+      "id": "hunt_barrage_lock",
+      "classId": "gunner",
+      "comboId": "hunt_barrage",
+      "source": "tmp\\imagegen\\v16_combo_vfx\\hunt_barrage_lock_source.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "45ad366ae0ad4d177d9da99ad8dbb6f319a5780404a21d0e72ec2ae2fda90487",
+      "promptBrief": "gunner hunt_barrage combo VFX; cyan targeting lattice with yellow lock spark; exactly eight sequential hard-edge 8-bit panels on a flat magenta matte"
+    },
+    {
+      "id": "zero_storm_burst",
+      "classId": "gunner",
+      "comboId": "zero_storm",
+      "source": "tmp\\imagegen\\v16_combo_vfx\\zero_storm_burst_source.png",
+      "sourceSize": [
+        887,
+        1774
+      ],
+      "storyboardLayout": "2x4",
+      "sha256": "2e612ef6c0aebefb4c88acef3959290e6e70d9cb81616cd2abb4575db5770f1c",
+      "promptBrief": "gunner zero_storm combo VFX; cyan-white radial shotgun burst with orange heat points; exactly eight sequential hard-edge 8-bit panels on a flat magenta matte"
+    },
+    {
+      "id": "sword_wave",
+      "classId": "warrior",
+      "comboId": "rift_slash",
+      "source": "tmp\\imagegen\\v16_combo_vfx\\sword_wave_source.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "79e84e5b89cb507c9a2a0b14233dc095d7916ca2831653b3c84f0e9dbb67d2b3",
+      "promptBrief": "warrior rift_slash combo VFX; white-cyan blade with orange-red edge; exactly eight sequential hard-edge 8-bit panels on a flat magenta matte"
+    },
+    {
+      "id": "star_ring",
+      "classId": "warrior",
+      "comboId": "star_ring",
+      "source": "tmp\\imagegen\\v16_combo_vfx\\star_ring_source.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "e9a73615569415398b1bb578096e42a85803c41318bdbdc208bcf42fe50ae28c",
+      "promptBrief": "warrior star_ring combo VFX; orange-gold ring with cyan blade glints; exactly eight sequential hard-edge 8-bit panels on a flat magenta matte"
+    },
+    {
+      "id": "phantom_counter",
+      "classId": "warrior",
+      "comboId": "phantom_counter",
+      "source": "tmp\\imagegen\\v16_combo_vfx\\phantom_counter_source.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "e235d95a84e9b5459f872e0831a924b24bf57cb788928ba031fbe97236d13612",
+      "promptBrief": "warrior phantom_counter combo VFX; acid-green phantom slash with orange counter spark; exactly eight sequential hard-edge 8-bit panels on a flat magenta matte"
+    },
+    {
+      "id": "swarm_protocol",
+      "classId": "mechanic",
+      "comboId": "swarm_protocol",
+      "source": "tmp\\imagegen\\v16_combo_vfx\\swarm_protocol_source.png",
+      "sourceSize": [
+        1369,
+        1149
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "3c3c13a11b8abd28c831f267d9192619202c4a4130b1dcf257c22d5b8f6fb51d",
+      "promptBrief": "mechanic swarm_protocol combo VFX; acid-green drones and cyan branching arc; exactly eight sequential hard-edge 8-bit panels on a flat magenta matte"
+    },
+    {
+      "id": "mobile_fortress",
+      "classId": "mechanic",
+      "comboId": "mobile_fortress",
+      "source": "tmp\\imagegen\\v16_combo_vfx\\mobile_fortress_source.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "4c40af5f710496c063fc71404664137d9728026f29fc80e6ba93e1fc49290d15",
+      "promptBrief": "mechanic mobile_fortress combo VFX; acid-green shield plates with cyan turret pulses; exactly eight sequential hard-edge 8-bit panels on a flat magenta matte"
+    },
+    {
+      "id": "recycle_burst",
+      "classId": "mechanic",
+      "comboId": "infinite_recycle",
+      "source": "tmp\\imagegen\\v16_combo_vfx\\recycle_burst_source.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "a1b33267c88a1b9946f166d95a94d5470ac869378489e9e283f9ff9de466f1ba",
+      "promptBrief": "mechanic infinite_recycle combo VFX; acid-green mechanical fragments with cyan repair core; exactly eight sequential hard-edge 8-bit panels on a flat magenta matte"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "phantom_counter",
+  "comboId": "phantom_counter",
+  "classId": "warrior",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 8,
+  "fps": 15,
+  "loop": false,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "lighter",
+  "eventUnit": "successful_dodge",
+  "sheet": "phantom_counter.png",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png",
+    "frame_06.png",
+    "frame_07.png"
+  ],
+  "previewGif": "phantom_counter.gif",
+  "imageSmoothingEnabled": false,
+  "generationModel": "gpt-image-2",
+  "generationProvider": "codex",
+  "generationQuality": "medium",
+  "alphaMethod": "chroma-key",
+  "pixelization": "nearest-neighbor",
+  "palette": "acid-green phantom slash with orange counter spark",
+  "role": "warrior",
+  "previewImage": "phantom_counter_preview.png",
+  "sourceReviewId": "v16_phantom_counter",
+  "sourceReviewPath": "assets/concepts/v16_combo_vfx_review/vfx/phantom_counter",
+  "runtimePath": "assets/game/skills/warrior/vfx/phantom_counter/phantom_counter.png"
+}

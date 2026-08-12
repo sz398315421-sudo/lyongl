@@ -5,12 +5,27 @@
   const images = {
     'ground.rust': `${prefix}planets/rust_ground.png`,
     'ground.spore': `${prefix}planets/spore_ground.png`,
+    'ground.moon': `${prefix}planets/moon_ground.png`,
+    'planet.moon.icon': `${prefix}planets/moon/planet_moon.png`,
+    'planet.moon.cover': `${prefix}planets/moon/moon_cover.png`,
     'character.gunner_mia': `${prefix}characters/gunner_mia/gunner_mia_4dir.png`,
+    'character.warrior_kade': `${prefix}characters/warrior_kade/warrior_kade_4dir.png`,
+    'character.mechanic_locke': `${prefix}characters/mechanic_locke/mechanic_locke_4dir.png`,
     'enemy.swarm': `${prefix}enemies/rust/scrap_mite/scrap_mite_4dir.png`,
     'enemy.shooter': `${prefix}enemies/rust/plasma_watcher/plasma_watcher_4dir.png`,
     'enemy.charger': `${prefix}enemies/rust/rivethorn_ram/rivethorn_ram_4dir.png`,
     'enemy.bloater': `${prefix}enemies/rust/pressure_bloater/pressure_bloater_4dir.png`,
+    'enemy.spore_swarm': `${prefix}enemies/spore/mycelium_skitter/mycelium_skitter_4dir.png`,
+    'enemy.spore_shooter': `${prefix}enemies/spore/acid_eye_pod/acid_eye_pod_4dir.png`,
+    'enemy.spore_charger': `${prefix}enemies/spore/fungal_ram/fungal_ram_4dir.png`,
+    'enemy.spore_bloater': `${prefix}enemies/spore/spore_bloater/spore_bloater_4dir.png`,
+    'enemy.moon_swarm': `${prefix}enemies/moon/static_crawler/static_crawler_4dir.png`,
+    'enemy.moon_shooter': `${prefix}enemies/moon/prism_sentry/prism_sentry_4dir.png`,
+    'enemy.moon_charger': `${prefix}enemies/moon/crater_ram/crater_ram_4dir.png`,
+    'enemy.moon_bloater': `${prefix}enemies/moon/void_bloater/void_bloater_4dir.png`,
     'object.rust_nest': `${prefix}objects/rust/rust_nest/rust_nest.png`,
+    'object.spore_nest': `${prefix}objects/spore/spore_nest/spore_nest.png`,
+    'object.moon_nest': `${prefix}objects/moon/moon_nest/moon_nest.png`,
     'object.company_beacon': `${prefix}objects/rust/company_beacon/company_beacon.png`,
     'object.mining_drill': `${prefix}objects/rust/mining_drill/mining_drill.png`,
     'object.reward_cache': `${prefix}objects/rust/reward_cache/reward_cache.png`,
@@ -43,6 +58,14 @@
     'ui.joystick_knob': `${prefix}ui/controls/joystick_knob.png`,
     'ui.objective_arrow': `${prefix}ui/controls/objective_arrow_8dir.png`,
     'ui.cache_marker': `${prefix}ui/controls/cache_marker.png`,
+    'ui.exit.return_hq_normal': `${prefix}ui/exit_run/return_hq_button_normal.png`,
+    'ui.exit.return_hq_pressed': `${prefix}ui/exit_run/return_hq_button_pressed.png`,
+    'ui.exit.return_hq_disabled': `${prefix}ui/exit_run/return_hq_button_disabled.png`,
+    'ui.exit.danger_normal': `${prefix}ui/exit_run/exit_danger_button_normal.png`,
+    'ui.exit.danger_pressed': `${prefix}ui/exit_run/exit_danger_button_pressed.png`,
+    'ui.exit.danger_disabled': `${prefix}ui/exit_run/exit_danger_button_disabled.png`,
+    'ui.exit.warning_panel': `${prefix}ui/exit_run/exit_warning_panel.png`,
+    'ui.exit.loss_icon': `${prefix}ui/exit_run/loss_warning_icon.png`,
     'projectile.pulse_round': `${prefix}projectiles/player/pulse_round/pulse_round_8dir.png`,
     'projectile.scatter_pellet': `${prefix}projectiles/player/scatter_pellet/scatter_pellet_8dir.png`,
     'projectile.piercing_round': `${prefix}projectiles/player/piercing_round/piercing_round_8dir.png`,
@@ -53,36 +76,90 @@
     'projectile.plasma_bolt': `${prefix}projectiles/enemy/plasma_bolt/plasma_bolt_8dir.png`
   };
 
+  // Runtime decoration contract: exactly eight active assets per planet.
+  // The review packages remain the source of truth for the pixels; these
+  // entries add the dimensions and gameplay collision metadata used by the
+  // seeded prop placer and movement resolver.
   const propSpecs = {
-    rock_cluster: [32, 32, 16, 28, 'small'],
-    scrap_plate: [32, 32, 16, 28, 'small'],
-    cable_coil: [32, 32, 16, 28, 'small'],
-    gear_debris: [32, 32, 16, 28, 'small'],
-    broken_pipe: [32, 32, 16, 28, 'small'],
-    vent_grate: [32, 32, 16, 28, 'small'],
-    warning_sign: [32, 32, 16, 28, 'small'],
-    pipe_junction: [64, 64, 32, 56, 'medium'],
-    rust_barrels: [64, 64, 32, 56, 'medium'],
-    antenna_mast: [64, 64, 32, 56, 'medium'],
-    machine_carcass: [64, 64, 32, 56, 'medium'],
-    wrecked_rover: [64, 64, 32, 56, 'medium'],
-    collapsed_pump: [64, 64, 32, 56, 'medium'],
-    power_pylon: [64, 64, 32, 56, 'medium'],
-    broken_mining_crane: [128, 96, 64, 84, 'large'],
-    crashed_shuttle_hull: [128, 96, 64, 84, 'large'],
-    scorch_mark: [64, 64, 32, 32, 'decal'],
-    oil_stain: [64, 64, 32, 32, 'decal'],
-    rust_patch: [64, 64, 32, 32, 'decal'],
-    tire_track: [64, 64, 32, 32, 'decal'],
-    warning_stripe: [64, 64, 32, 32, 'decal'],
-    shallow_crater: [64, 64, 32, 32, 'decal'],
-    metal_seam: [64, 64, 32, 32, 'decal'],
-    cable_run: [64, 64, 32, 32, 'decal']
+    scrap_plate: { planet: 'rust', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/objects/scrap_plate.png' },
+    cable_coil: { planet: 'rust', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/objects/cable_coil.png' },
+    pipe_junction: { planet: 'rust', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/objects/pipe_junction.png' },
+    power_pylon: { planet: 'rust', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/objects/power_pylon.png' },
+    scorch_mark: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/decals/scorch_mark.png' },
+    oil_stain: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/decals/oil_stain.png' },
+    metal_seam: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/decals/metal_seam.png' },
+    cable_run: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/decals/cable_run.png' },
+
+    spore_pod_cluster: { planet: 'spore', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/objects/spore_pod_cluster.png' },
+    mycelium_stump: { planet: 'spore', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/objects/mycelium_stump.png' },
+    fungal_mound: { planet: 'spore', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/objects/fungal_mound.png' },
+    husk_remains: { planet: 'spore', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/objects/husk_remains.png' },
+    spore_pool_decal: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/decals/spore_pool_decal.png' },
+    mycelium_rift: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/decals/mycelium_rift.png' },
+    acid_stain: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/decals/acid_stain.png' },
+    root_trail: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/decals/root_trail.png' },
+
+    moon_shallow_crater: { planet: 'moon', group: null, width: 64, height: 32, anchor: [32, 24], sizeClass: 'decal', collisionRadius: 10, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_shallow_crater.png' },
+    moon_regolith_chunk: { planet: 'moon', group: null, width: 48, height: 48, anchor: [24, 40], sizeClass: 'small', collisionRadius: 16, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_regolith_chunk.png' },
+    moon_crystal_cluster: { planet: 'moon', group: null, width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 21, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_crystal_cluster.png' },
+    moon_energy_seam: { planet: 'moon', group: null, width: 64, height: 32, anchor: [32, 24], sizeClass: 'decal', collisionRadius: 10, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_energy_seam.png' },
+    moon_probe_wreck: { planet: 'moon', group: null, width: 96, height: 64, anchor: [48, 56], sizeClass: 'large', collisionRadius: 21, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_probe_wreck.png' },
+    moon_antenna_fragment: { planet: 'moon', group: null, width: 64, height: 96, anchor: [32, 88], sizeClass: 'medium', collisionRadius: 21, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_antenna_fragment.png' },
+    moon_lander_panel: { planet: 'moon', group: null, width: 96, height: 64, anchor: [48, 56], sizeClass: 'large', collisionRadius: 21, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_lander_panel.png' },
+    moon_dust_ridge: { planet: 'moon', group: null, width: 96, height: 48, anchor: [48, 40], sizeClass: 'decal', collisionRadius: 16, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_dust_ridge.png' }
   };
 
-  Object.keys(propSpecs).forEach((id) => {
-    const group = propSpecs[id][4] === 'decal' ? 'decals' : 'objects';
-    images[`prop.${id}`] = `${prefix}props/rust/${group}/${id}.png`;
+  const propSets = {
+    rust: ['scrap_plate', 'cable_coil', 'pipe_junction', 'power_pylon', 'scorch_mark', 'oil_stain', 'metal_seam', 'cable_run'],
+    spore: ['spore_pod_cluster', 'mycelium_stump', 'fungal_mound', 'husk_remains', 'spore_pool_decal', 'mycelium_rift', 'acid_stain', 'root_trail'],
+    moon: ['moon_shallow_crater', 'moon_regolith_chunk', 'moon_crystal_cluster', 'moon_energy_seam', 'moon_probe_wreck', 'moon_antenna_fragment', 'moon_lander_panel', 'moon_dust_ridge']
+  };
+
+  Object.entries(propSpecs).forEach(([id, spec]) => {
+    const path = spec.planet === 'moon'
+      ? `${prefix}props/moon/${id}.png`
+      : `${prefix}props/${spec.planet}/${spec.group}/${id}.png`;
+    images[`prop.${id}`] = path;
+  });
+
+  const enemyDefinitions = {
+    rust: {
+      scrap_mite: 'swarm', plasma_watcher: 'shooter', rivethorn_ram: 'charger', pressure_bloater: 'bloater'
+    },
+    spore: {
+      mycelium_skitter: 'swarm', acid_eye_pod: 'shooter', fungal_ram: 'charger', spore_bloater: 'bloater'
+    },
+    moon: {
+      static_crawler: 'swarm', prism_sentry: 'shooter', crater_ram: 'charger', void_bloater: 'bloater'
+    }
+  };
+  const dangerEnemyTypes = new Set(['shooter', 'charger', 'bloater']);
+  const enemyVariants = { danger: {}, elite: {}, eliteDanger: {} };
+  Object.entries(enemyDefinitions).forEach(([planet, entries]) => {
+    Object.entries(entries).forEach(([assetId, enemyType]) => {
+      if (dangerEnemyTypes.has(enemyType)) {
+        const dangerPath = `${prefix}enemies/${planet}/${assetId}/attack_danger/${assetId}_attack_danger_4dir.png`;
+        images[`enemy.danger.${planet}.${assetId}`] = dangerPath;
+        enemyVariants.danger[`${planet}.${assetId}`] = {
+          key: `enemy.danger.${planet}.${assetId}`, path: dangerPath, frameWidth: 64, frameHeight: 64,
+          frameCount: 4, anchor: { x: 32, y: 56 }, directionOrder: ['front', 'right', 'back', 'left']
+        };
+      }
+      const elitePath = `${prefix}enemies/${planet}/${assetId}/elite/${assetId}_elite_4dir.png`;
+      images[`enemy.elite.${planet}.${assetId}`] = elitePath;
+      enemyVariants.elite[`${planet}.${assetId}`] = {
+        key: `enemy.elite.${planet}.${assetId}`, path: elitePath, frameWidth: 96, frameHeight: 96,
+        frameCount: 4, anchor: { x: 48, y: 82 }, directionOrder: ['front', 'right', 'back', 'left']
+      };
+      if (dangerEnemyTypes.has(enemyType)) {
+        const eliteDangerPath = `${prefix}enemies/${planet}/${assetId}/elite/attack_danger/${assetId}_elite_attack_danger_4dir.png`;
+        images[`enemy.eliteDanger.${planet}.${assetId}`] = eliteDangerPath;
+        enemyVariants.eliteDanger[`${planet}.${assetId}`] = {
+          key: `enemy.eliteDanger.${planet}.${assetId}`, path: eliteDangerPath, frameWidth: 96, frameHeight: 96,
+          frameCount: 4, anchor: { x: 48, y: 82 }, directionOrder: ['front', 'right', 'back', 'left']
+        };
+      }
+    });
   });
 
   const gunnerSkills = [
@@ -91,6 +168,203 @@
   ];
   gunnerSkills.forEach((id) => {
     images[`skill.gunner.${id}`] = `${prefix}skills/gunner/icons/${id}.png`;
+  });
+  const warriorSkills = [
+    'cleave', 'double_slash', 'sword_wave', 'orbit_blade', 'strength', 'attack_speed', 'battle_fury',
+    'guard', 'dodge', 'counter', 'lifesteal', 'unyielding', 'rift_slash', 'star_ring', 'phantom_counter'
+  ];
+  const mechanicSkills = [
+    'drone', 'turret', 'repair_bot', 'mech_count', 'overclock', 'salvage', 'arc', 'self_destruct',
+    'shield', 'quick_deploy', 'recycle_heal', 'magnet', 'swarm_protocol', 'mobile_fortress', 'infinite_recycle'
+  ];
+  const skillIconSets = { gunner: gunnerSkills, warrior: warriorSkills, mechanic: mechanicSkills };
+  Object.entries({ warrior: warriorSkills, mechanic: mechanicSkills }).forEach(([classId, skillIds]) => {
+    skillIds.forEach((id) => {
+      images[`skill.${classId}.${id}`] = `${prefix}skills/${classId}/icons/${id}.png`;
+    });
+  });
+
+  // Runtime character actions are kept in one deterministic table so the
+  // browser build and the mini-game build use the same frame contract.  The
+  // action sheets are rows-by-direction (front, right, back, left), while
+  // individual frame PNGs remain available for tooling and fallback checks.
+  const characterRoleSpecs = {
+    gunner_mia: {
+      classId: 'gunner',
+      skills: gunnerSkills,
+      combos: ['piercing_star', 'hunt_barrage', 'zero_storm'],
+      weaponMuzzles: {
+        // Coordinates are relative to the 64x64 action-frame feet anchor.
+        // The projectile and its VFX both use this point as their origin.
+        front: { x: 16, y: -14 },
+        right: { x: 20, y: -13 },
+        back: { x: 15, y: -14 },
+        left: { x: -19, y: -13 }
+      },
+      vfx: {
+        burst: 'muzzle_flash', scatter: 'muzzle_flash', railgun: 'railgun_beam', reload: 'muzzle_flash',
+        piercing_star: 'piercing_star_burst', hunt_barrage: 'hunt_barrage_lock', zero_storm: 'zero_storm_burst',
+        weakspot: 'weakspot_lock', emergency_dash: 'emergency_dash'
+      }
+    },
+    warrior_kade: {
+      classId: 'warrior',
+      skills: warriorSkills,
+      combos: ['rift_slash', 'star_ring', 'phantom_counter'],
+      vfx: {
+        cleave: 'slash_arc', sword_wave: 'sword_wave', orbit_blade: 'orbit_blade', guard: 'guard', counter: 'counter',
+        rift_slash: 'sword_wave', star_ring: 'star_ring', phantom_counter: 'phantom_counter'
+      }
+    },
+    mechanic_locke: {
+      classId: 'mechanic',
+      skills: mechanicSkills,
+      combos: ['swarm_protocol', 'mobile_fortress', 'infinite_recycle'],
+      vfx: {
+        drone: 'drone_muzzle', turret: 'turret_deploy', repair_bot: 'repair_pulse', arc: 'drone_arc',
+        self_destruct: 'self_destruct_burst', shield: 'shield_pulse', swarm_protocol: 'swarm_protocol',
+        mobile_fortress: 'mobile_fortress', infinite_recycle: 'recycle_burst'
+      }
+    }
+  };
+  const characterActions = {};
+  Object.entries(characterRoleSpecs).forEach(([characterId, roleSpec]) => {
+    const base = `${prefix}characters/${characterId}/actions`;
+    const actions = {};
+    const addAction = (state, skillId, frameCount, fps, loop, vfx = null) => {
+      const folder = state === 'skill' ? `skills/${skillId}` : state;
+      const filename = `${characterId}_${state === 'skill' ? skillId : state}_4dir.png`;
+      const path = `${base}/${folder}/${filename}`;
+      const key = `character.action.${characterId}.${state}${skillId ? `.${skillId}` : ''}`;
+      images[key] = path;
+      const spec = {
+        key, path, state, skillId: skillId || null, frameWidth: 64, frameHeight: 64, frameCount,
+        fps, loop,
+        eventFrame: state === 'skill'
+          ? (frameCount === 6 ? 3 : 2)
+          : (state === 'attack' ? Math.min(1, frameCount - 1) : null),
+        anchor: { x: 32, y: 56 }, directionOrder: ['front', 'right', 'back', 'left'],
+        sheetLayout: 'rows-by-direction', imageSmoothingEnabled: false
+      };
+      if (vfx) spec.vfx = vfx;
+      if (state === 'skill') actions.skills[skillId] = spec;
+      else actions[state] = spec;
+    };
+    actions.skills = {};
+    addAction('walk', null, 6, 10, true);
+    addAction('attack', null, roleSpec.combos.includes(roleSpec.skills[0]) ? 6 : 5, 12, false, roleSpec.vfx[roleSpec.skills[0]] || null);
+    roleSpec.skills.forEach((skillId) => {
+      const frameCount = roleSpec.combos.includes(skillId) ? 6 : 5;
+      addAction('skill', skillId, frameCount, 12, false, roleSpec.vfx[skillId] || null);
+    });
+    characterActions[characterId] = actions;
+  });
+
+  // Spore and moon enemies use the same rows-by-direction action contract as
+  // the rust set.  The static four-direction sheet remains the safe fallback
+  // when an action sheet is unavailable or still loading.
+  const enemyActions = {};
+  const enemyActionDefinitions = {
+    rust: {
+      scrap_mite: 'swarm', plasma_watcher: 'shooter', rivethorn_ram: 'charger', pressure_bloater: 'bloater'
+    },
+    spore: {
+      mycelium_skitter: 'swarm', acid_eye_pod: 'shooter', fungal_ram: 'charger', spore_bloater: 'bloater'
+    },
+    moon: {
+      static_crawler: 'swarm', prism_sentry: 'shooter', crater_ram: 'charger', void_bloater: 'bloater'
+    }
+  };
+  const enemyActionFrames = { idle: 4, walk: 6, attack: 4, hit: 2, death: 6 };
+  Object.entries(enemyActionDefinitions).forEach(([planet, entries]) => {
+    Object.entries(entries).forEach(([assetId, enemyType]) => {
+      const states = {};
+      Object.entries(enemyActionFrames).forEach(([state, frameCount]) => {
+        const path = `${prefix}enemies/${planet}/${assetId}/actions/${state}/${assetId}_${state}_4dir.png`;
+        const key = `enemy.action.${planet}.${assetId}.${state}`;
+        images[key] = path;
+        states[state] = {
+          key, path, state, frameWidth: 64, frameHeight: 64, frameCount,
+          fps: state === 'walk' ? 10 : (state === 'idle' ? 6 : 14), loop: state === 'idle' || state === 'walk',
+          anchor: { x: 32, y: 56 }, directionOrder: ['front', 'right', 'back', 'left'],
+          sheetLayout: 'rows-by-direction', imageSmoothingEnabled: false
+        };
+      });
+      enemyActions[`${planet}.${assetId}`] = { planet, assetId, enemyType, states };
+    });
+  });
+
+  // Skill VFX sheets are an independent layer.  Loading the sheets here
+  // lets the action state machine trigger exact event-frame effects while
+  // preserving transparent character frames.
+  const vfxSpecs = {
+    counter: ['warrior', 96, 96, 6, 14, false, 'lighter'], drone_arc: ['mechanic', 64, 64, 5, 16, false, 'lighter'],
+    drone_muzzle: ['mechanic', 32, 32, 4, 18, false, 'lighter'], emergency_dash: ['gunner', 64, 64, 5, 16, false, 'lighter'],
+    guard: ['warrior', 64, 64, 4, 10, true, 'lighter'], hunt_barrage_lock: ['gunner', 64, 64, 8, 12, false, 'source-over'],
+    mobile_fortress: ['mechanic', 96, 96, 8, 12, true, 'lighter'], muzzle_flash: ['gunner', 32, 32, 4, 18, false, 'source-over'],
+    orbit_blade: ['warrior', 64, 64, 6, 14, true, 'lighter'], phantom_counter: ['warrior', 96, 96, 8, 15, false, 'lighter'],
+    piercing_star_burst: ['gunner', 96, 96, 8, 16, false, 'source-over'], railgun_beam: ['gunner', 128, 32, 4, 20, true, 'lighter'],
+    recycle_burst: ['mechanic', 128, 128, 8, 15, false, 'lighter'], repair_pulse: ['mechanic', 64, 64, 6, 12, true, 'lighter'],
+    self_destruct_burst: ['mechanic', 128, 128, 6, 15, false, 'source-over'], shield_pulse: ['mechanic', 96, 96, 6, 12, true, 'lighter'],
+    slash_arc: ['warrior', 64, 64, 5, 16, false, 'source-over'], star_ring: ['warrior', 96, 96, 8, 12, true, 'lighter'],
+    swarm_protocol: ['mechanic', 96, 96, 8, 15, false, 'lighter'], sword_wave: ['warrior', 96, 96, 8, 15, false, 'lighter'],
+    turret_deploy: ['mechanic', 64, 64, 5, 12, false, 'source-over'], weakspot_lock: ['gunner', 64, 64, 5, 10, true, 'source-over'],
+    zero_storm_burst: ['gunner', 128, 128, 8, 15, false, 'source-over']
+  };
+  Object.assign(vfxSpecs, {
+    explosive_impact: ['gunner', 96, 96, 8, 18, false, 'source-over'],
+    meteor_warning: ['gunner', 96, 64, 6, 12, true, 'source-over'],
+    meteor_impact: ['gunner', 128, 128, 10, 18, false, 'source-over'],
+    spore_pool: ['enemy', 96, 96, 6, 10, true, 'lighter']
+  });
+  const vfx = {};
+  Object.entries(vfxSpecs).forEach(([id, spec]) => {
+    const [role, frameWidth, frameHeight, frameCount, fps, loop, blendMode] = spec;
+    const path = id === 'spore_pool'
+      ? `${prefix}enemies/vfx/spore/spore_pool/${id}.png`
+      : `${prefix}skills/${role}/vfx/${id}/${id}.png`;
+    const key = `vfx.${id}`;
+    images[key] = path;
+    vfx[id] = {
+      key, path, frameWidth, frameHeight, frameCount, fps, loop, blendMode,
+      anchor: { x: frameWidth === 128 && frameHeight === 32 ? 0 : Math.floor(frameWidth / 2), y: Math.floor(frameHeight / 2) },
+      sheetLayout: 'horizontal', imageSmoothingEnabled: false
+    };
+  });
+
+  const enemyVfx = {};
+  const enemyVfxDefinitions = {
+    swarm_attack: [32, 32, 4, 18, false, 'source-over'],
+    swarm_hit: [32, 32, 4, 18, false, 'source-over'],
+    shooter_charge: [64, 64, 5, 12, true, 'lighter'],
+    shooter_fire: [32, 32, 4, 18, false, 'lighter'],
+    charger_charge: [64, 64, 5, 12, true, 'source-over'],
+    charger_impact: [96, 96, 6, 16, false, 'source-over'],
+    bloater_inflate: [64, 64, 5, 12, true, 'source-over'],
+    bloater_burst: [128, 128, 8, 16, false, 'source-over'],
+    bloater_pool: [96, 96, 6, 10, true, 'lighter']
+  };
+  // All three ecosystems share the same behavior vocabulary and explicit
+  // species lookup used by their action sheets.
+  Object.keys(enemyActionDefinitions).forEach((planet) => {
+    const entries = enemyActionDefinitions[planet] || null;
+    Object.entries(enemyVfxDefinitions).forEach(([effectId, spec]) => {
+      const [frameWidth, frameHeight, frameCount, fps, loop, blendMode] = spec;
+      const path = `${prefix}enemies/vfx/${planet}/${effectId}/${planet}_${effectId}.png`;
+      const key = `vfx.enemy.${planet}.${effectId}`;
+      images[key] = path;
+      enemyVfx[`${planet}.${effectId}`] = {
+        key, path, planet, effectId, enemyType: effectId.split('_')[0], frameWidth, frameHeight, frameCount, fps, loop, blendMode,
+        anchor: { x: Math.floor(frameWidth / 2), y: Math.floor(frameHeight / 2) },
+        sheetLayout: 'horizontal', imageSmoothingEnabled: false
+      };
+    });
+    if (!entries) return;
+    Object.entries(entries).forEach(([assetId, enemyType]) => {
+      // Keep the mapping explicit for callers that need to resolve the
+      // behavior-specific effect without inferring it from a species name.
+      enemyVfx[`${planet}.${assetId}`] = { enemyType, effects: enemyVfxDefinitions };
+    });
   });
 
   const iconIds = [
@@ -104,6 +378,8 @@
 
   const objects = {
     rust_nest: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { idle: [0, 4, 7], destroyed: [4, 1, 0] } },
+    spore_nest: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { idle: [0, 4, 7] } },
+    moon_nest: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { idle: [0, 4, 7] } },
     company_beacon: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { inactive: [0, 1, 0], charging: [1, 4, 8], completed: [5, 1, 0] } },
     mining_drill: { frameWidth: 96, frameHeight: 96, anchor: [48, 84], states: { idle: [0, 1, 0], running: [1, 4, 9], completed: [5, 1, 0] } },
     reward_cache: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { locked: [0, 1, 0], ready: [1, 4, 8], opened: [5, 1, 0] } },
@@ -113,7 +389,17 @@
 
   const props = {};
   Object.entries(propSpecs).forEach(([id, spec]) => {
-    props[id] = { width: spec[0], height: spec[1], anchor: [spec[2], spec[3]], sizeClass: spec[4] };
+    props[id] = {
+      width: spec.width,
+      height: spec.height,
+      anchor: spec.anchor,
+      sizeClass: spec.sizeClass,
+      planet: spec.planet,
+      collision: true,
+      collisionShape: 'circle',
+      collisionRadius: spec.collisionRadius,
+      sourceReference: spec.sourceReference
+    };
   });
 
   const manifest = {
@@ -122,6 +408,26 @@
     objects,
     props,
     gunnerSkills,
+    skillIconSets,
+    characterActions,
+    characterRoleSpecs,
+    vfx,
+    enemyActions,
+    enemyVfx,
+    enemyVariants,
+    propSets,
+    planetAssets: {
+      moon: { icon: 'planet.moon.icon', cover: 'planet.moon.cover' }
+    },
+    exitUi: {
+      returnHq: {
+        normal: 'ui.exit.return_hq_normal', pressed: 'ui.exit.return_hq_pressed', disabled: 'ui.exit.return_hq_disabled'
+      },
+      danger: {
+        normal: 'ui.exit.danger_normal', pressed: 'ui.exit.danger_pressed', disabled: 'ui.exit.danger_disabled'
+      },
+      warningPanel: 'ui.exit.warning_panel', lossIcon: 'ui.exit.loss_icon'
+    },
     enemyFrames: { front: 0, right: 1, back: 2, left: 3 },
     projectileDirections: ['right', 'down_right', 'down', 'down_left', 'left', 'up_left', 'up', 'up_right'],
     pickupRows: { xp: 0, coin: 1, scrap: 2, medical: 3 },

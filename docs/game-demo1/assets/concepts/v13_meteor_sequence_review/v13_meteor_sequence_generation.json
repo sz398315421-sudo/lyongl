@@ -1,0 +1,42 @@
+{
+  "id": "v13_meteor_sequence_generation",
+  "model": "gpt-image-2",
+  "provider": "codex",
+  "quality": "medium",
+  "size": "2K",
+  "command": "images generate",
+  "source": "tmp/imagegen/v13_meteor_sequence/meteor_sequence_storyboard_alpha.png",
+  "transparentExtraction": {
+    "command": "transparent extract",
+    "method": "chroma",
+    "matteColor": "auto",
+    "material": "sticker",
+    "strict": true
+  },
+  "pixelization": "nearest-neighbor",
+  "warningGuarantee": "frames 00-05 contain no meteor, rock silhouette or falling trajectory; visual review required",
+  "impactGuarantee": "meteor first appears at impact frame 00",
+  "storyboardPanelOrder": {
+    "warning": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      15
+    ],
+    "impact": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "sourceSha256": "c0ff4b7e20ca52150a99045eb1ca5aa4abc9ef3cc30fab93f2fd38f079c02f57"
+}

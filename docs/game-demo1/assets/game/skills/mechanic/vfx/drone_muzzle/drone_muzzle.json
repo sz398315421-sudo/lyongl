@@ -1,0 +1,26 @@
+{
+  "id": "drone_muzzle",
+  "category": "vfx",
+  "event": "drone_shot",
+  "paletteVariant": "mechanic",
+  "image": "drone_muzzle.png",
+  "sheetLayout": "horizontal",
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "frameCount": 4,
+  "fps": 18,
+  "loop": false,
+  "anchor": {
+    "x": 16,
+    "y": 16
+  },
+  "blendMode": "lighter",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png"
+  ],
+  "previewGif": "drone_muzzle.gif",
+  "imageSmoothingEnabled": false
+}

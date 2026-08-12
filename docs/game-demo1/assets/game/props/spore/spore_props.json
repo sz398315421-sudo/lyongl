@@ -1,0 +1,20 @@
+{
+  "planet": "spore",
+  "instanceCount": 24,
+  "activeIds": [
+    "spore_pod_cluster",
+    "mycelium_stump",
+    "fungal_mound",
+    "husk_remains",
+    "spore_pool_decal",
+    "mycelium_rift",
+    "acid_stain",
+    "root_trail"
+  ],
+  "collision": {
+    "shape": "circle",
+    "allActivePropsSolid": true,
+    "radiusIsScaledByInstanceSize": true
+  },
+  "sourceReview": "assets/concepts/v10_planet_props_review"
+}

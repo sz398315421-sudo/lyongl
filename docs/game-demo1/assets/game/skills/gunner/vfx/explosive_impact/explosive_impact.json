@@ -1,6 +1,30 @@
 {
-  "id": "explosive_impact", "image": "explosive_impact.png", "frameWidth": 64, "frameHeight": 64,
-  "frameCount": 6, "fps": 14, "loop": false, "anchor": { "x": 32, "y": 32 },
-  "blendMode": "source-over", "frames": ["frame_00.png", "frame_01.png", "frame_02.png", "frame_03.png", "frame_04.png", "frame_05.png"],
+  "id": "explosive_impact",
+  "category": "vfx",
+  "event": "explosive_hit",
+  "paletteVariant": "gunner",
+  "image": "explosive_impact.png",
+  "sheetLayout": "horizontal",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 8,
+  "fps": 18,
+  "loop": false,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "source-over",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png",
+    "frame_06.png",
+    "frame_07.png"
+  ],
+  "previewGif": "explosive_impact.gif",
   "imageSmoothingEnabled": false
 }

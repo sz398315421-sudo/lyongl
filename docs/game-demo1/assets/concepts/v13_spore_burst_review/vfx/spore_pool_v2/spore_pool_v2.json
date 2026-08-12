@@ -1,0 +1,35 @@
+{
+  "id": "spore_pool",
+  "reviewId": "spore_pool_v2",
+  "assetType": "vfx",
+  "planet": "spore",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 6,
+  "fps": 10,
+  "loop": true,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "lighter",
+  "sheet": "spore_pool_v2.png",
+  "frames": [
+    "frames/frame_00.png",
+    "frames/frame_01.png",
+    "frames/frame_02.png",
+    "frames/frame_03.png",
+    "frames/frame_04.png",
+    "frames/frame_05.png"
+  ],
+  "previewGif": "spore_pool_v2.gif",
+  "imageSmoothingEnabled": false,
+  "generationModel": "gpt-image-2",
+  "generationProvider": "Codex CLI / Codex image_generation",
+  "generationQuality": "medium",
+  "sourceStoryboard": "raw/spore_pool_storyboard_magenta_v13.png",
+  "alphaStoryboard": "raw/spore_pool_storyboard_alpha_v13.png",
+  "alphaMethod": "chroma-key auto matte + hard-alpha threshold",
+  "pixelization": "nearest-neighbor",
+  "runtimeChanged": false
+}

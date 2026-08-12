@@ -8,6 +8,12 @@
   const W = 360;
   const H = 640;
   const TAU = Math.PI * 2;
+  const LIMITS = DATA.limits || { skillLevel: 3, moduleLevel: 3, skillSlots: 6 };
+  const ENEMY_ASSET_IDS = {
+    rust: { swarm: 'scrap_mite', shooter: 'plasma_watcher', charger: 'rivethorn_ram', bloater: 'pressure_bloater' },
+    spore: { swarm: 'mycelium_skitter', shooter: 'acid_eye_pod', charger: 'fungal_ram', bloater: 'spore_bloater' },
+    moon: { swarm: 'static_crawler', shooter: 'prism_sentry', charger: 'crater_ram', bloater: 'void_bloater' }
+  };
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -15,6 +21,18 @@
   const pick = (items, random = Math.random) => items[Math.floor(random() * items.length)];
   const pad2 = (n) => String(n).padStart(2, '0');
   const formatTime = (seconds) => `${pad2(Math.floor(seconds / 60))}:${pad2(Math.floor(seconds % 60))}`;
+  const activityDayKey = (date = new Date()) => {
+    // The local day rolls over at 04:00 in Asia/Shanghai, regardless of the
+    // device/browser timezone. Convert the instant to UTC+8, then apply the
+    // four-hour business-day offset and read UTC fields to avoid local TZ drift.
+    const shifted = new Date(date.getTime() + (8 - 4) * 60 * 60 * 1000);
+    return `${shifted.getUTCFullYear()}-${pad2(shifted.getUTCMonth() + 1)}-${pad2(shifted.getUTCDate())}`;
+  };
+  const previousDayKey = (key) => {
+    const date = new Date(`${key}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() - 1);
+    return `${date.getUTCFullYear()}-${pad2(date.getUTCMonth() + 1)}-${pad2(date.getUTCDate())}`;
+  };
 
   function mulberry32(seed) {
     return function random() {
@@ -36,7 +54,7 @@
 
   function defaultSave() {
     return {
-      version: 1,
+      version: 2,
       credits: 0,
       selectedClass: 'gunner',
       unlocked: { gunner: true },
@@ -44,7 +62,20 @@
       completedMissions: {},
       modules: { scanner: 0, fabricator: 0, cargo: 0, life_support: 0, printer: 0 },
       firstRun: true,
-      bestKills: 0
+      bestKills: 0,
+      activity: {
+        cycleKey: activityDayKey(),
+        streak: 0,
+        lastClaimKey: null,
+        claimedDays: []
+      },
+      daily: {
+        cycleKey: activityDayKey(),
+        progress: { kills: 0, missions: 0, extractions: 0 },
+        claimedTasks: [],
+        claimedMilestones: []
+      },
+      settings: { musicEnabled: true, sfxEnabled: true }
     };
   }
 
@@ -55,7 +86,10 @@
       this.ctx.imageSmoothingEnabled = false;
       this.services = services;
       this.storage = services.storage || { get: () => null, set: () => {} };
-      this.audio = services.audio || { play: () => {}, intensity: () => {} };
+      this.audio = services.audio || {
+        play: () => {}, intensity: () => {}, setMusic: () => {}, stopMusic: () => {}, setMusicEnabled: () => {},
+        unlockMusic: () => false, resumeMusic: () => false, isMusicActive: () => false, pulseIntensity: () => {}
+      };
       this.assets = services.assets || null;
       this.fontFamily = services.fontFamily || 'FusionPixel12';
       this.raf = services.raf || ((callback) => requestAnimationFrame(callback));
@@ -68,6 +102,22 @@
       this.uiPress = null;
       this.pointer = { active: false, id: null, originX: 0, originY: 0, x: 0, y: 0 };
       this.save = this.loadSave();
+      if (this.save._needsPersist) {
+        delete this.save._needsPersist;
+        this.persist();
+      }
+      if (this.audio && typeof this.audio.setMusicEnabled === 'function') {
+        this.audio.setMusicEnabled(this.save.settings.musicEnabled !== false);
+      }
+      if (this.audio && typeof this.audio.play === 'function') {
+        const rawPlay = this.audio.play.bind(this.audio);
+        this.audio.play = (name, gap) => {
+          if (!this.save.settings || this.save.settings.sfxEnabled !== false) rawPlay(name, gap);
+        };
+      }
+      this.archiveClassId = this.save.selectedClass;
+      this._musicTrack = null;
+      this._musicPlanet = null;
       this.contract = null;
       this.world = null;
       this.player = null;
@@ -77,6 +127,7 @@
       this.notice = null;
       this.shake = 0;
       this.flash = 0;
+      this.exitModal = false;
       this.stars = Array.from({ length: 70 }, (_, index) => ({
         x: (index * 73 + 19) % W,
         y: (index * 131 + 47) % H,
@@ -93,13 +144,43 @@
         const saved = this.storage.get('star-duty-save');
         if (!saved) return base;
         const parsed = typeof saved === 'string' ? JSON.parse(saved) : saved;
-        return {
+        const merged = {
           ...base,
           ...parsed,
           unlocked: { ...base.unlocked, ...(parsed.unlocked || {}) },
           completedMissions: { ...(parsed.completedMissions || {}) },
-          modules: { ...base.modules, ...(parsed.modules || {}) }
+          modules: { ...base.modules, ...(parsed.modules || {}) },
+          activity: {
+            ...base.activity,
+            ...(parsed.activity || {}),
+            claimedDays: Array.isArray(parsed.activity && parsed.activity.claimedDays) ? parsed.activity.claimedDays : []
+          },
+          daily: {
+            ...base.daily,
+            ...(parsed.daily || {}),
+            progress: { ...base.daily.progress, ...((parsed.daily && parsed.daily.progress) || {}) },
+            claimedTasks: Array.isArray(parsed.daily && parsed.daily.claimedTasks) ? parsed.daily.claimedTasks : [],
+            claimedMilestones: Array.isArray(parsed.daily && parsed.daily.claimedMilestones) ? parsed.daily.claimedMilestones : []
+          },
+          settings: { ...base.settings, ...(parsed.settings || {}) },
+          version: 2
         };
+        let normalizedModules = false;
+        Object.keys(base.modules).forEach((moduleId) => {
+          const rawLevel = Number(merged.modules[moduleId]);
+          const normalizedLevel = Number.isFinite(rawLevel)
+            ? clamp(Math.floor(rawLevel), 0, LIMITS.moduleLevel)
+            : 0;
+          if (merged.modules[moduleId] !== normalizedLevel) normalizedModules = true;
+          merged.modules[moduleId] = normalizedLevel;
+        });
+        if (normalizedModules) merged._needsPersist = true;
+        if (typeof this.resetDailyState === 'function') this.resetDailyState(merged);
+        if (merged.activity.cycleKey !== activityDayKey()) {
+          merged.activity.cycleKey = activityDayKey();
+          merged.activity.claimedDays = [];
+        }
+        return merged;
       } catch (error) {
         return base;
       }
@@ -107,6 +188,125 @@
 
     persist() {
       this.storage.set('star-duty-save', JSON.stringify(this.save));
+    }
+
+    resetDailyState(save = this.save) {
+      const key = activityDayKey();
+      if (!save.daily || save.daily.cycleKey !== key) {
+        save.daily = {
+          cycleKey: key,
+          progress: { kills: 0, missions: 0, extractions: 0 },
+          claimedTasks: [],
+          claimedMilestones: []
+        };
+      }
+      if (!save.activity || save.activity.cycleKey !== key) {
+        save.activity = {
+          cycleKey: key,
+          streak: save.activity && save.activity.lastClaimKey === previousDayKey(key) ? save.activity.streak : 0,
+          lastClaimKey: save.activity ? save.activity.lastClaimKey : null,
+          claimedDays: []
+        };
+      }
+      return key;
+    }
+
+    ensureDailyState() {
+      const beforeDaily = this.save.daily && this.save.daily.cycleKey;
+      const beforeActivity = this.save.activity && this.save.activity.cycleKey;
+      this.resetDailyState(this.save);
+      if (beforeDaily !== this.save.daily.cycleKey || beforeActivity !== this.save.activity.cycleKey) this.persist();
+      return this.save.daily;
+    }
+
+    addDailyProgress(metric, amount = 1) {
+      const daily = this.ensureDailyState();
+      if (!Object.prototype.hasOwnProperty.call(daily.progress, metric)) return;
+      daily.progress[metric] += amount;
+      this.persist();
+    }
+
+    dailyActivePoints() {
+      const daily = this.ensureDailyState();
+      return DATA.dailyTasks.reduce((sum, task) => sum + (daily.claimedTasks.includes(task.id) ? task.points : 0), 0);
+    }
+
+    claimCheckIn() {
+      const key = this.ensureDailyState().cycleKey;
+      const activity = this.save.activity;
+      if (activity.lastClaimKey === key) {
+        this.notify('今日已签到', '下一次刷新时间 04:00', DATA.palette.muted, 2);
+        return false;
+      }
+      const wasYesterday = activity.lastClaimKey === previousDayKey(key);
+      activity.streak = wasYesterday ? activity.streak + 1 : 1;
+      const dayIndex = (activity.streak - 1) % DATA.activityRewards.length;
+      const reward = DATA.activityRewards[dayIndex];
+      activity.lastClaimKey = key;
+      activity.claimedDays = [...(activity.claimedDays || []), key];
+      this.save.credits += reward;
+      this.persist();
+      this.audio.play('loot');
+      this.notify('签到成功', `连续第 ${dayIndex + 1} 天 // +${reward} 金币`, DATA.palette.acid, 2.4);
+      return true;
+    }
+
+    claimDailyTask(taskId) {
+      const daily = this.ensureDailyState();
+      const task = DATA.dailyTasks.find((item) => item.id === taskId);
+      if (!task || daily.claimedTasks.includes(taskId) || (daily.progress[task.metric] || 0) < task.target) return false;
+      daily.claimedTasks.push(taskId);
+      this.save.credits += task.reward;
+      this.persist();
+      this.audio.play('loot');
+      this.notify('任务奖励已入账', `+${task.reward} 金币`, DATA.palette.acid, 2.2);
+      return true;
+    }
+
+    claimActivityMilestone(milestoneId) {
+      const daily = this.ensureDailyState();
+      const milestone = DATA.activityMilestones.find((item) => item.id === milestoneId);
+      if (!milestone || daily.claimedMilestones.includes(milestoneId) || this.dailyActivePoints() < milestone.points) return false;
+      daily.claimedMilestones.push(milestoneId);
+      this.save.credits += milestone.reward;
+      this.persist();
+      this.audio.play('loot');
+      this.notify('活跃奖励已领取', `+${milestone.reward} 金币`, DATA.palette.acid, 2.2);
+      return true;
+    }
+
+    setMusicEnabled(value) {
+      this.save.settings.musicEnabled = Boolean(value);
+      this.persist();
+      if (this.audio.setMusicEnabled) this.audio.setMusicEnabled(this.save.settings.musicEnabled);
+      if (this.save.settings.musicEnabled) {
+        this.syncMusic(true);
+      } else if (this.audio.stopMusic) {
+        this.audio.stopMusic();
+        this._musicTrack = null;
+        this._musicPlanet = null;
+      }
+    }
+
+    syncMusic(force = false) {
+      if (!this.save.settings.musicEnabled || !this.audio.setMusic) return;
+      let track = 'cockpit';
+      let options = { intensity: 0.18 };
+      if (this.state === 'playing' && this.contract) {
+        track = this.world && this.world.missionComplete ? 'extract' : 'explore';
+        options = { planet: this.contract.planet.id, intensity: this.world && this.world.missionComplete ? 0.9 : 0.42 };
+      }
+      const trackChanged = this._musicTrack !== track || this._musicPlanet !== (options.planet || '');
+      if (force || trackChanged) {
+        this._musicTrack = track;
+        this._musicPlanet = options.planet || '';
+        this.audio.setMusic(track, options);
+      } else if (typeof this.audio.isMusicActive === 'function' && !this.audio.isMusicActive()) {
+        if (typeof this.audio.resumeMusic === 'function') this.audio.resumeMusic();
+        else this.audio.setMusic(track, options);
+      } else if (this.audio.pulseIntensity) {
+        this.audio.pulseIntensity(options.intensity);
+      }
     }
 
     loop(timestamp) {
@@ -129,7 +329,9 @@
     }
 
     pointerDown(x, y, id = 0) {
-      this.audio.play('confirm', 0.01);
+      if (this.audio && typeof this.audio.unlockMusic === 'function') this.audio.unlockMusic();
+      if (!this.save.settings || this.save.settings.sfxEnabled !== false) this.audio.play('confirm', 0.01);
+      this.syncMusic(true);
       for (let index = this.buttons.length - 1; index >= 0; index -= 1) {
         const button = this.buttons[index];
         if (!button.disabled && x >= button.x && x <= button.x + button.w && y >= button.y && y <= button.y + button.h) {
@@ -138,6 +340,7 @@
           return;
         }
       }
+      if (this.exitModal) return;
       if (this.state === 'playing' && !this.paused) {
         this.pointer = { active: true, id, originX: x, originY: y, x, y };
         if (this.save.firstRun) {
@@ -162,6 +365,21 @@
       this.notice = { title, detail, color, time: duration, max: duration };
     }
 
+    anomalyDetails(anomaly) {
+      const source = anomaly || {};
+      const fallback = {
+        name: '未知异常',
+        effect: '规则影响待确认。',
+        tip: '观察场地预警并保持移动。'
+      };
+      return {
+        id: source.id || 'lock',
+        name: source.name || fallback.name,
+        effect: source.effect || fallback.effect,
+        tip: source.tip || fallback.tip
+      };
+    }
+
     prepareContract() {
       if (!this.contract) {
         const seed = (Date.now() ^ Math.floor(Math.random() * 0x7fffffff)) >>> 0;
@@ -176,6 +394,165 @@
       }
       this.state = 'briefing';
       this.audio.play('terminal');
+      this.syncMusic(true);
+    }
+
+    returnToHQ() {
+      this.state = 'hq';
+      this.hqPage = 'main';
+      this.pointer.active = false;
+      this.exitModal = false;
+      // Keep the pending contract so the cockpit can resume the same brief.
+      this.syncMusic(true);
+    }
+
+    openExitConfirm() {
+      if (this.state !== 'playing' || !this.world || this.exitModal) return false;
+      this.pointer.active = false;
+      this.exitModal = true;
+      this.uiPress = null;
+      return true;
+    }
+
+    cancelExitConfirm() {
+      this.exitModal = false;
+      this.pointer.active = false;
+      this.audio.play('cancel');
+    }
+
+    confirmExitToHQ() {
+      if (!this.exitModal) return false;
+      this.exitModal = false;
+      this.pointer.active = false;
+      this.finishRun(false, '主动退出外勤');
+      return true;
+    }
+
+    propSpec(assetId) {
+      const manifest = this.assets && this.assets.manifest;
+      return manifest && manifest.props ? manifest.props[assetId] : null;
+    }
+
+    propCollisionRadius(prop) {
+      if (!prop || prop.collisionActive === false) return 0;
+      const spec = this.propSpec(prop.assetId);
+      if (!spec || spec.collision !== true) return 0;
+      const baseRadius = Number(spec.collisionRadius);
+      return Number.isFinite(baseRadius) && baseRadius > 0
+        ? baseRadius * (Number(prop.size) || 1)
+        : 0;
+    }
+
+    propPlacementBlocked(props, x, y, radius, forbidden = [], spacing = 12) {
+      for (const zone of forbidden) {
+        if (Math.hypot(x - zone.x, y - zone.y) < radius + zone.radius) return true;
+      }
+      for (const prop of props) {
+        const otherRadius = this.propCollisionRadius(prop);
+        if (otherRadius && Math.hypot(x - prop.x, y - prop.y) < radius + otherRadius + spacing) return true;
+      }
+      return false;
+    }
+
+    isPropBlocked(x, y, radius, ignore = null) {
+      if (!this.world || !Array.isArray(this.world.props)) return false;
+      for (const prop of this.world.props) {
+        if (prop === ignore) continue;
+        const otherRadius = this.propCollisionRadius(prop);
+        if (otherRadius && Math.hypot(x - prop.x, y - prop.y) < radius + otherRadius) return true;
+      }
+      return false;
+    }
+
+    moveActorWithPropCollision(actor, dx, dy, radius, bounds = {}) {
+      if (!actor || !this.world) return;
+      const minX = bounds.minX === undefined ? 24 : bounds.minX;
+      const maxX = bounds.maxX === undefined ? this.world.width - 24 : bounds.maxX;
+      const minY = bounds.minY === undefined ? 24 : bounds.minY;
+      const maxY = bounds.maxY === undefined ? this.world.height - 24 : bounds.maxY;
+      const nextX = clamp(actor.x + dx, minX, maxX);
+      if (!this.isPropBlocked(nextX, actor.y, radius, actor)) actor.x = nextX;
+      const nextY = clamp(actor.y + dy, minY, maxY);
+      if (!this.isPropBlocked(actor.x, nextY, radius, actor)) actor.y = nextY;
+
+      // Push actors out if a spawn point or knockback placed them inside a
+      // prop. Four short passes keep the response deterministic.
+      for (let pass = 0; pass < 4; pass += 1) {
+        let moved = false;
+        for (const prop of this.world.props) {
+          if (prop === actor) continue;
+          const otherRadius = this.propCollisionRadius(prop);
+          if (!otherRadius) continue;
+          let offsetX = actor.x - prop.x;
+          let offsetY = actor.y - prop.y;
+          let distance = Math.hypot(offsetX, offsetY);
+          const minimum = radius + otherRadius;
+          if (distance >= minimum) continue;
+          if (distance < 0.001) {
+            offsetX = 1;
+            offsetY = 0;
+            distance = 1;
+          }
+          const push = minimum - distance + 0.5;
+          actor.x = clamp(actor.x + offsetX / distance * push, minX, maxX);
+          actor.y = clamp(actor.y + offsetY / distance * push, minY, maxY);
+          moved = true;
+        }
+        if (!moved) break;
+      }
+    }
+
+    createPropInstances(planetId, random, objective, cache, extraction) {
+      const manifest = this.assets && this.assets.manifest;
+      const ids = manifest && manifest.propSets && manifest.propSets[planetId];
+      if (!Array.isArray(ids) || ids.length !== 8) return [];
+      const worldWidth = this.world ? this.world.width : 1500;
+      const worldHeight = this.world ? this.world.height : 1900;
+      const orderedIds = shuffled(ids, random).flatMap((assetId) => [assetId, assetId, assetId]);
+      const props = [];
+      const forbidden = [
+        { x: this.player.x, y: this.player.y, radius: 110 },
+        { x: cache.x, y: cache.y, radius: cache.pickupRadius + 58 },
+        { x: extraction.x, y: extraction.y, radius: extraction.radius + 42 }
+      ];
+      (objective.items || (objective.item ? [objective.item] : [])).forEach((item) => {
+        forbidden.push({ x: item.x, y: item.y, radius: (item.radius || 72) + 38 });
+      });
+
+      for (const assetId of orderedIds) {
+        const spec = this.propSpec(assetId);
+        if (!spec) continue;
+        const size = spec.sizeClass === 'small'
+          ? 0.9 + random() * 0.16
+          : (spec.sizeClass === 'medium' ? 0.84 + random() * 0.18
+            : (spec.sizeClass === 'large' ? 0.8 + random() * 0.16 : 0.9 + random() * 0.18));
+        const radius = (Number(spec.collisionRadius) || 8) * size;
+        let candidate = null;
+        for (let attempt = 0; attempt < 80 && !candidate; attempt += 1) {
+          const x = 82 + random() * (worldWidth - 164);
+          const y = 106 + random() * (worldHeight - 212);
+          if (!this.propPlacementBlocked(props, x, y, radius, forbidden)) candidate = { x, y };
+        }
+        if (!candidate) {
+          for (let attempt = 0; attempt < 80 && !candidate; attempt += 1) {
+            const x = 82 + random() * (worldWidth - 164);
+            const y = 106 + random() * (worldHeight - 212);
+            if (!this.propPlacementBlocked(props, x, y, radius, forbidden, 2)) candidate = { x, y };
+          }
+        }
+        if (!candidate) continue;
+        props.push({
+          x: candidate.x,
+          y: candidate.y,
+          kind: Math.floor(random() * 4),
+          assetId,
+          planet: planetId,
+          size,
+          tone: random(),
+          collisionActive: Boolean(this.assetImage(`prop.${assetId}`))
+        });
+      }
+      return props;
     }
 
     beginRun() {
@@ -198,6 +575,7 @@
         cards: {},
         evolutions: {},
         overflow: { damage: 0, speed: 0, guard: 0 },
+        overflowUsed: false,
         rerolls: this.save.modules.fabricator || 0,
         attackTimer: 0.1,
         railTimer: 4,
@@ -206,6 +584,7 @@
         reloadTimer: 0,
         ammo: 6,
         attackCount: 0,
+        attackCycleId: 0,
         invuln: 0,
         boostTimer: 0,
         boostCooldown: 0,
@@ -215,7 +594,20 @@
         scrap: 0,
         scrapHeal: 0,
         kills: 0,
-        loot: 0
+        loot: 0,
+        animTime: 0,
+        movePhase: 0,
+        moving: false,
+        actionState: 'idle',
+        actionSkill: null,
+        actionElapsed: 0,
+        actionEventFired: false,
+        actionOrigin: null,
+        actionDirection: null,
+        actionVfxOrigins: null,
+        actionVfxDisabled: false,
+        lastActionAt: -Infinity,
+        activeVfx: null
       };
 
       const objectivePositions = [
@@ -224,49 +616,35 @@
         { x: 430 + random() * 650, y: 370 + random() * 120 }
       ];
       const objective = this.createObjective(this.contract.mission.id, objectivePositions);
-      const props = [];
-      const rustPropGroups = {
-        small: ['rock_cluster', 'scrap_plate', 'cable_coil', 'gear_debris', 'broken_pipe', 'vent_grate', 'warning_sign'],
-        medium: ['pipe_junction', 'rust_barrels', 'antenna_mast', 'machine_carcass', 'wrecked_rover', 'collapsed_pump', 'power_pylon'],
-        large: ['broken_mining_crane', 'crashed_shuttle_hull'],
-        decal: ['scorch_mark', 'oil_stain', 'rust_patch', 'tire_track', 'warning_stripe', 'shallow_crater', 'metal_seam', 'cable_run']
-      };
-      for (let index = 0; index < 95; index += 1) {
-        let assetId = null;
-        let size = 0.6 + random() * 0.9;
-        if (this.contract.planet.id === 'rust' && this.assets) {
-          const roll = random();
-          const group = roll < 0.46 ? 'small' : (roll < 0.69 ? 'decal' : (roll < 0.96 ? 'medium' : 'large'));
-          assetId = pick(rustPropGroups[group], random);
-          size = group === 'small' ? 0.78 + random() * 0.42
-            : (group === 'medium' ? 0.68 + random() * 0.34
-              : (group === 'large' ? 0.68 + random() * 0.2 : 0.8 + random() * 0.45));
-        }
-        props.push({
-          x: 70 + random() * 1360,
-          y: 100 + random() * 1700,
-          kind: Math.floor(random() * 4),
-          assetId,
-          size,
-          tone: random()
-        });
-      }
       const cacheSide = random() > 0.5 ? 1 : -1;
+      const extractionConfig = DATA.extraction || {};
+      const extraction = {
+        x: 750,
+        y: 1715,
+        radius: 82,
+        progress: 0,
+        required: Number.isFinite(extractionConfig.requiredSeconds) ? extractionConfig.requiredSeconds : 30
+      };
+      const cache = { x: 750 + cacheSide * 510, y: 630, found: false, collected: false, pickupRadius: 42, eliteSpawned: false, eliteDefeated: false };
+      const props = this.createPropInstances(this.contract.planet.id, random, objective, cache, extraction);
       this.world = {
         random,
         width: 1500,
         height: 1900,
         time: 0,
+        animTime: 0,
         missionComplete: false,
         objective,
-        extraction: { x: 750, y: 1715, radius: 82, progress: 0, required: 50 },
-        cache: { x: 750 + cacheSide * 510, y: 630, found: false, collected: false, eliteSpawned: false, eliteDefeated: false },
+        extraction,
+        cache,
         props,
         enemies: [],
         projectiles: [],
         enemyProjectiles: [],
         pickups: [],
         hazards: [],
+        effects: [],
+        comboFeedbackState: {},
         particles: [],
         turrets: [],
         spawnTimer: 0.35,
@@ -275,12 +653,15 @@
         camera: { x: this.player.x - W / 2, y: this.player.y - H / 2 },
         basePay: 0
       };
+      this.exitModal = false;
       this.contract.started = true;
       this.pendingLevelUps = 0;
       this.state = 'playing';
       this.audio.play('deploy');
       this.audio.intensity(0.08);
-      this.notify('打印体已上线', `${selected.employee} // ${this.contract.planet.code}`, selected.color, 2.8);
+      this.syncMusic(true);
+      const anomaly = this.anomalyDetails(this.contract.anomaly);
+      this.notify(`异常规则 // ${anomaly.name}`, anomaly.effect, this.contract.planet.accent, 3.2);
     }
 
     createObjective(id, positions) {
@@ -294,7 +675,7 @@
         return {
           id,
           current: 0,
-          items: positions.map((position, index) => ({ ...position, index, charge: 0, required: 18, active: false }))
+          items: positions.map((position, index) => ({ ...position, index, charge: 0, required: 18, active: false, radius: 72 }))
         };
       }
       return {
@@ -364,11 +745,231 @@
       return this.world && this.world.time % 14 > 10;
     }
 
+    characterIdForClass(classId) {
+      return classId === 'gunner' ? 'gunner_mia' : (classId === 'warrior' ? 'warrior_kade' : 'mechanic_locke');
+    }
+
+    characterActionSpec(classId, state = 'walk', skillId = null) {
+      const manifest = this.assets && this.assets.manifest;
+      const characterId = this.characterIdForClass(classId);
+      const roleActions = manifest && manifest.characterActions && manifest.characterActions[characterId];
+      if (!roleActions) return null;
+      return state === 'skill' ? (roleActions.skills && roleActions.skills[skillId]) : roleActions[state];
+    }
+
+    getWeaponMuzzle(actor = this.player, dirX = null, dirY = null, facingOverride = null) {
+      const target = actor || this.player;
+      if (!target) return { x: 0, y: 0, dirX: 1, dirY: 0, facing: 1 };
+      const fallbackX = Number.isFinite(target.dirX) && Math.abs(target.dirX) > 0.001 ? target.dirX : 1;
+      const fallbackY = Number.isFinite(target.dirY) ? target.dirY : 0;
+      const rawX = Number.isFinite(dirX) && Math.abs(dirX) + Math.abs(dirY || 0) > 0.001 ? dirX : fallbackX;
+      const rawY = Number.isFinite(dirX) && Math.abs(dirX) + Math.abs(dirY || 0) > 0.001 ? (dirY || 0) : fallbackY;
+      const length = Math.hypot(rawX, rawY) || 1;
+      const facing = Number.isInteger(facingOverride) && facingOverride >= 0 && facingOverride <= 3
+        ? facingOverride
+        : this.direction4(rawX, rawY);
+      const order = ['front', 'right', 'back', 'left'];
+      const manifest = this.assets && this.assets.manifest;
+      const characterId = this.characterIdForClass(target.classId);
+      const roleSpec = manifest && manifest.characterRoleSpecs && manifest.characterRoleSpecs[characterId];
+      const mount = roleSpec && roleSpec.weaponMuzzles && roleSpec.weaponMuzzles[order[facing]];
+      return {
+        x: target.x + (mount ? mount.x : 0),
+        y: target.y + (mount ? mount.y : 0),
+        dirX: rawX / length,
+        dirY: rawY / length,
+        facing
+      };
+    }
+
+    getWeaponShot(target, actor = this.player) {
+      const shooter = actor || this.player;
+      const reference = target && target.ref ? target.ref : target;
+      if (!shooter || !reference || !Number.isFinite(reference.x) || !Number.isFinite(reference.y)) return null;
+
+      const targetDx = reference.x - shooter.x;
+      const targetDy = reference.y - shooter.y;
+      const targetLength = Math.hypot(targetDx, targetDy);
+      const fallbackX = Number.isFinite(shooter.dirX) && Math.abs(shooter.dirX) > 0.001 ? shooter.dirX : 1;
+      const fallbackY = Number.isFinite(shooter.dirY) ? shooter.dirY : 0;
+      const desiredX = targetLength > 0.001 ? targetDx / targetLength : fallbackX;
+      const desiredY = targetLength > 0.001 ? targetDy / targetLength : fallbackY;
+      // Keep the mount selected from the actor-to-target direction while the
+      // final projectile angle is calculated from the actual muzzle point.
+      const facing = this.direction4(desiredX, desiredY);
+      const muzzle = this.getWeaponMuzzle(shooter, desiredX, desiredY, facing);
+      const muzzleDx = reference.x - muzzle.x;
+      const muzzleDy = reference.y - muzzle.y;
+      const muzzleLength = Math.hypot(muzzleDx, muzzleDy);
+      const dirX = muzzleLength > 0.001 ? muzzleDx / muzzleLength : desiredX;
+      const dirY = muzzleLength > 0.001 ? muzzleDy / muzzleLength : desiredY;
+      return {
+        origin: { x: muzzle.x, y: muzzle.y, facing, dirX, dirY },
+        dirX,
+        dirY,
+        angle: Math.atan2(dirY, dirX),
+        facing,
+        target: reference
+      };
+    }
+
+    setActionOrigin(options = {}) {
+      const player = this.player;
+      if (!player) return;
+      const hasOrigin = options.origin && Number.isFinite(options.origin.x) && Number.isFinite(options.origin.y);
+      const origins = Array.isArray(options.origins)
+        ? options.origins.filter((origin) => origin && Number.isFinite(origin.x) && Number.isFinite(origin.y))
+        : (hasOrigin ? [options.origin] : null);
+      player.actionOrigin = hasOrigin ? { x: options.origin.x, y: options.origin.y } : null;
+      player.actionDirection = Number.isFinite(options.dirX) || Number.isFinite(options.dirY)
+        ? { x: Number.isFinite(options.dirX) ? options.dirX : player.dirX, y: Number.isFinite(options.dirY) ? options.dirY : player.dirY }
+        : null;
+      player.actionVfxOrigins = origins && origins.length
+        ? origins.map((origin) => ({
+          x: origin.x,
+          y: origin.y,
+          dirX: Number.isFinite(origin.dirX) ? origin.dirX : (player.actionDirection ? player.actionDirection.x : player.dirX),
+          dirY: Number.isFinite(origin.dirY) ? origin.dirY : (player.actionDirection ? player.actionDirection.y : player.dirY)
+        }))
+        : null;
+    }
+
+    clearActionOrigin() {
+      if (!this.player) return;
+      this.player.actionOrigin = null;
+      this.player.actionDirection = null;
+      this.player.actionVfxOrigins = null;
+      this.player.actionVfxDisabled = false;
+    }
+
+    triggerCharacterSkill(skillId, options = {}) {
+      const player = this.player;
+      if (!player || !skillId) return false;
+      const spec = this.characterActionSpec(player.classId, 'skill', skillId);
+      if (!spec || !this.assetImage(spec.key)) return false;
+      const force = Boolean(options.force);
+      const minGap = options.minGap === undefined ? 0.08 : options.minGap;
+      if (!force && this.now - (player.lastActionAt || -Infinity) < minGap) return false;
+      if (!force && player.actionState === 'skill' && player.actionElapsed < 0.14) return false;
+      player.actionState = 'skill';
+      player.actionSkill = skillId;
+      player.actionElapsed = 0;
+      player.actionEventFired = false;
+      player.actionVfxDisabled = Boolean(options.suppressVfx);
+      player.lastActionAt = this.now;
+      this.setActionOrigin(options);
+      return true;
+    }
+
+    triggerCharacterAttack(options = {}) {
+      const player = this.player;
+      if (!player) return false;
+      const spec = this.characterActionSpec(player.classId, 'attack');
+      if (!spec || !this.assetImage(spec.key)) return false;
+      const force = Boolean(options.force);
+      const minGap = options.minGap === undefined ? 0.04 : options.minGap;
+      if (!force && this.now - (player.lastActionAt || -Infinity) < minGap) return false;
+      // A special skill keeps its own pose until it finishes. Ordinary attacks
+      // should not replace a visible skill action halfway through.
+      if (!force && player.actionState === 'skill') return false;
+      player.actionState = 'attack';
+      player.actionSkill = null;
+      player.actionElapsed = 0;
+      player.actionEventFired = false;
+      player.actionVfxDisabled = false;
+      player.lastActionAt = this.now;
+      this.setActionOrigin(options);
+      return true;
+    }
+
+    emitCharacterVfx(vfxId, options = {}) {
+      if (!vfxId || !this.player) return false;
+      const spec = this.assets && this.assets.manifest && this.assets.manifest.vfx && this.assets.manifest.vfx[vfxId];
+      if (!spec) return false;
+      const dirX = Number.isFinite(options.dirX) ? options.dirX : (this.player.actionDirection ? this.player.actionDirection.x : (this.player.dirX || 1));
+      const dirY = Number.isFinite(options.dirY) ? options.dirY : (this.player.actionDirection ? this.player.actionDirection.y : (this.player.dirY || 0));
+      let origins = Array.isArray(options.origins)
+        ? options.origins.filter((origin) => origin && Number.isFinite(origin.x) && Number.isFinite(origin.y))
+        : [];
+      if (!origins.length && options.origin && Number.isFinite(options.origin.x) && Number.isFinite(options.origin.y)) origins = [options.origin];
+      if (!origins.length && (vfxId === 'muzzle_flash' || vfxId === 'railgun_beam')) {
+        origins = [this.getWeaponMuzzle(this.player, dirX, dirY)];
+      }
+      if (!origins.length) origins = [{ x: this.player.x, y: this.player.y, dirX, dirY }];
+      origins = origins.map((origin) => ({
+        x: origin.x,
+        y: origin.y,
+        dirX: Number.isFinite(origin.dirX) ? origin.dirX : dirX,
+        dirY: Number.isFinite(origin.dirY) ? origin.dirY : dirY
+      }));
+      this.player.activeVfx = {
+        id: vfxId,
+        elapsed: 0,
+        duration: spec.loop ? Math.max(0.32, spec.frameCount / spec.fps) : spec.frameCount / spec.fps,
+        dirX,
+        dirY,
+        origins
+      };
+      return true;
+    }
+
+    updateCharacterAnimation(dt) {
+      const player = this.player;
+      if (!player) return;
+      if (player.activeVfx) {
+        player.activeVfx.elapsed += dt;
+        const vfxSpec = this.assets && this.assets.manifest && this.assets.manifest.vfx && this.assets.manifest.vfx[player.activeVfx.id];
+        if (!vfxSpec || player.activeVfx.elapsed >= player.activeVfx.duration) player.activeVfx = null;
+      }
+      if (player.actionState === 'skill' || player.actionState === 'attack') {
+        const actionState = player.actionState;
+        const spec = actionState === 'skill'
+          ? this.characterActionSpec(player.classId, 'skill', player.actionSkill)
+          : this.characterActionSpec(player.classId, 'attack');
+        const frameCount = spec ? spec.frameCount : 5;
+        const fps = spec ? spec.fps : 12;
+        const eventFrame = spec && spec.eventFrame !== null && spec.eventFrame !== undefined ? spec.eventFrame : Math.floor(frameCount * 0.45);
+        player.actionElapsed += dt;
+        if (!player.actionEventFired && player.actionElapsed >= eventFrame / fps) {
+          player.actionEventFired = true;
+          if (spec && !player.actionVfxDisabled) {
+            const fallbackVfx = player.classId === 'gunner' ? 'muzzle_flash' : (player.classId === 'warrior' ? 'slash_arc' : 'drone_muzzle');
+            this.emitCharacterVfx(spec.vfx || fallbackVfx, {
+              origin: player.actionOrigin,
+              origins: player.actionVfxOrigins,
+              dirX: player.actionDirection && player.actionDirection.x,
+              dirY: player.actionDirection && player.actionDirection.y
+            });
+          }
+        }
+        const fullDuration = frameCount / fps;
+        const duration = actionState === 'attack' && player.moving ? Math.min(fullDuration, 0.16) : fullDuration;
+        if (player.actionElapsed >= duration) {
+          player.actionState = player.moving ? 'walk' : 'idle';
+          player.actionSkill = null;
+          player.actionElapsed = 0;
+          player.actionEventFired = false;
+          this.clearActionOrigin();
+        }
+      } else if (player.moving) {
+        player.actionState = 'walk';
+        player.actionSkill = null;
+        player.actionElapsed += dt;
+        this.clearActionOrigin();
+      } else {
+        player.actionState = 'idle';
+        player.actionSkill = null;
+        player.actionElapsed = 0;
+        this.clearActionOrigin();
+      }
+    }
+
     update(dt) {
       const world = this.world;
       const player = this.player;
-      if (this.save.firstRun) return;
+      if (!world || !player || this.exitModal || this.save.firstRun) return;
       world.time += dt;
+      world.animTime += dt;
       if (this.notice) {
         this.notice.time -= dt;
         if (this.notice.time <= 0) this.notice = null;
@@ -383,6 +984,9 @@
 
       const stats = this.currentStats();
       this.updateMovement(dt, stats);
+      player.animTime += dt;
+      player.movePhase += dt * (player.moving ? 8 : 2);
+      this.updateCharacterAnimation(dt);
       this.updateMission(dt);
       this.updateSpawning(dt);
       this.updateEnemies(dt);
@@ -390,11 +994,13 @@
       this.updateProjectiles(dt);
       this.updatePickups(dt, stats.pickupRange);
       this.updateHazards(dt);
+      this.updateWorldVfx(dt);
       this.updateCache();
       this.updateExtraction(dt);
       this.updateParticles(dt);
       const extractionPressure = world.missionComplete && dist(player, world.extraction) < 140;
       this.audio.intensity(extractionPressure ? 1 : clamp(world.enemies.length / 42 + world.time / 1200, 0.08, 0.82));
+      this.syncMusic();
 
       world.camera.x = lerp(world.camera.x, clamp(player.x - W / 2, 0, world.width - W), 1 - Math.pow(0.001, dt));
       world.camera.y = lerp(world.camera.y, clamp(player.y - H / 2, 0, world.height - H), 1 - Math.pow(0.001, dt));
@@ -417,13 +1023,20 @@
           this.player.dirY = vy;
         }
       }
-      this.player.x = clamp(this.player.x + vx * stats.speed * dt, 28, this.world.width - 28);
-      this.player.y = clamp(this.player.y + vy * stats.speed * dt, 40, this.world.height - 28);
+      this.player.moving = Math.hypot(vx, vy) > 0.05;
+      this.moveActorWithPropCollision(
+        this.player,
+        vx * stats.speed * dt,
+        vy * stats.speed * dt,
+        10,
+        { minX: 28, maxX: this.world.width - 28, minY: 40, maxY: this.world.height - 28 }
+      );
       if (this.player.classId === 'gunner' && this.getCardLevel('emergency_dash') > 0 && this.player.boostCooldown <= 0) {
         const nearby = this.world.enemies.filter((enemy) => !enemy.dead && dist(enemy, this.player) < 110).length;
         if (nearby >= 7) {
           this.player.boostTimer = 0.8 + this.getCardLevel('emergency_dash') * 0.2;
           this.player.boostCooldown = 8 - this.getCardLevel('emergency_dash') * 1.2;
+          this.triggerCharacterSkill('emergency_dash');
           this.notify('紧急推进', '检测到不健康的同事密度', DATA.palette.cyan, 1.2);
           this.audio.play('dash');
         }
@@ -435,7 +1048,7 @@
       if (this.world.missionComplete) return;
       if (objective.id === 'beacons') {
         const target = objective.items[objective.current];
-        if (target && dist(target, this.player) < 72) {
+        if (target && dist(target, this.player) < (target.radius || 72)) {
           target.charge += dt;
           target.active = true;
           if (target.charge >= target.required) {
@@ -468,6 +1081,7 @@
       if (this.world.missionComplete) return;
       this.world.missionComplete = true;
       this.world.basePay = this.contract.mission.basePay;
+      this.addDailyProgress('missions');
       this.notify('主任务完成', '撤离许可已生成 // 加班自愿', DATA.palette.acid, 3.2);
       this.audio.play('mission_complete');
       this.flash = 0.5;
@@ -479,10 +1093,16 @@
       if (world.spawnTimer > 0 || world.enemies.length >= 145) return;
       const pressure = clamp(world.time / 420, 0, 1);
       const extracting = world.missionComplete && dist(this.player, world.extraction) < 130;
-      const count = extracting ? 2 : (world.random() < pressure * 0.3 ? 2 : 1);
+      const extractionConfig = DATA.extraction || {};
+      const count = extracting
+        ? (world.random() < (Number.isFinite(extractionConfig.extraEnemyChance) ? extractionConfig.extraEnemyChance : 0.5) ? 2 : 1)
+        : (world.random() < pressure * 0.3 ? 2 : 1);
       for (let index = 0; index < count; index += 1) this.spawnEnemy();
       const onboardingPace = world.time < 25 ? 1.22 : 0.85;
-      world.spawnTimer = Math.max(0.2, onboardingPace - pressure * 0.5) * (extracting ? 0.56 : 1);
+      const extractionMultiplier = Number.isFinite(extractionConfig.spawnTimerMultiplier)
+        ? extractionConfig.spawnTimerMultiplier
+        : 0.60;
+      world.spawnTimer = Math.max(0.2, onboardingPace - pressure * 0.5) * (extracting ? extractionMultiplier : 1);
     }
 
     spawnEnemy(options = {}) {
@@ -506,6 +1126,10 @@
       };
       const base = templates[type];
       const elite = Boolean(options.elite);
+      const enemySet = DATA.enemySets[this.contract.planet.id] || DATA.enemySets.rust;
+      const visual = enemySet.find((entry) => entry.id === type);
+      const planetId = this.contract.planet.id;
+      const speciesId = (ENEMY_ASSET_IDS[planetId] && ENEMY_ASSET_IDS[planetId][type]) || null;
       const enemy = {
         id: `e-${Math.floor(world.random() * 1e9)}`,
         x: options.x || x,
@@ -513,6 +1137,15 @@
         vx: 0,
         vy: 0,
         type: elite ? 'elite' : type,
+        // 精英沿用当前生态对应行为的基础贴图放大显示；皇冠仅作为
+        // “高收益目标”标记，避免运行时只剩一个占位图形。
+        visual: visual ? visual.asset : null,
+        visual: visual ? visual.asset : null,
+        visualId: speciesId || (visual ? visual.id : null),
+        dangerVisual: speciesId ? `enemy.danger.${planetId}.${speciesId}` : null,
+        eliteVisual: speciesId ? `enemy.elite.${planetId}.${speciesId}` : null,
+        eliteDangerVisual: speciesId ? `enemy.eliteDanger.${planetId}.${speciesId}` : null,
+        visualType: type,
         elite,
         hp: elite ? 1450 : Math.round(base.hp * scale),
         maxHp: elite ? 1450 : Math.round(base.hp * scale),
@@ -524,22 +1157,64 @@
         chargeTimer: 2 + world.random() * 2,
         orbitCd: 0,
         hitFlash: 0,
+        dangerPulse: 0,
+        contactVfxCooldown: 0,
+        attackVfxCooldown: 0,
+        actionState: 'idle',
+        actionElapsed: 0,
+        actionEventFired: false,
+        chargeTelegraph: false,
+        shootTelegraph: false,
+        bloaterTelegraph: false,
+        bloaterTimer: 2.8 + world.random() * 1.2,
+        animTime: world.random() * TAU,
         dead: false
       };
+      // Explicit elite/cache positions can still land beside a prop; resolve
+      // the spawn once before the enemy enters the simulation.
+      this.moveActorWithPropCollision(enemy, 0, 0, enemy.radius);
       world.enemies.push(enemy);
       if (elite) {
         world.eliteId = enemy.id;
         this.notify(this.contract.planet.elite, '可选高收益目标已进入工位', this.contract.planet.accent, 2.6);
         this.audio.play('elite');
       }
+      return enemy;
     }
 
     updateEnemies(dt) {
       const world = this.world;
       const stats = this.currentStats();
       for (const enemy of world.enemies) {
-        if (enemy.dead) continue;
+        if (enemy.dead) {
+          // Keep defeated enemies around for the short death sheet so the
+          // newly-authored death silhouettes are actually visible.  They are
+          // already excluded from targeting/collision by `dead`.
+          enemy.actionState = 'death';
+          enemy.actionElapsed = (enemy.actionElapsed || 0) + dt;
+          const deathSpec = this.enemyActionSpec(enemy, 'death');
+          const deathDuration = deathSpec ? deathSpec.frameCount / deathSpec.fps : 0.35;
+          if (enemy.actionElapsed >= deathDuration) enemy.removeAt = true;
+          continue;
+        }
+        const behavior = enemy.visualType || enemy.type;
+        const planet = this.contract.planet.id;
+        enemy.animTime += dt * (behavior === 'swarm' ? 10 : (behavior === 'bloater' ? 3 : 6));
         enemy.hitFlash = Math.max(0, enemy.hitFlash - dt * 8);
+        enemy.dangerPulse = Math.max(0, (enemy.dangerPulse || 0) - dt);
+        enemy.contactVfxCooldown = Math.max(0, (enemy.contactVfxCooldown || 0) - dt);
+        enemy.attackVfxCooldown = Math.max(0, (enemy.attackVfxCooldown || 0) - dt);
+        enemy.actionElapsed += dt;
+        const actionSpec = this.enemyActionSpec(enemy, enemy.actionState || 'idle');
+        const actionDuration = actionSpec ? actionSpec.frameCount / actionSpec.fps : 0.25;
+        if (enemy.actionState === 'attack' || enemy.actionState === 'hit' || enemy.actionState === 'death') {
+          if (enemy.actionElapsed >= actionDuration) {
+            enemy.actionState = 'walk';
+            enemy.actionElapsed = 0;
+          }
+        } else if (enemy.actionState !== 'idle') {
+          enemy.actionState = 'walk';
+        }
         enemy.orbitCd = Math.max(0, enemy.orbitCd - dt);
         const dx = this.player.x - enemy.x;
         const dy = this.player.y - enemy.y;
@@ -547,22 +1222,45 @@
         let speed = enemy.speed;
         if (this.contract.anomaly.id === 'energy_tide' && this.energyTideActive()) speed *= 1.2;
 
-        if (enemy.type === 'shooter' && length < 230) speed *= -0.25;
-        if (enemy.type === 'charger' || enemy.elite) {
+        if (behavior === 'shooter' && length < 230) speed *= -0.25;
+        if (behavior === 'charger' || enemy.elite) {
           enemy.chargeTimer -= dt;
-          if (enemy.chargeTimer < 0.55 && enemy.chargeTimer > 0) speed *= 0.12;
+          if (enemy.chargeTimer < 0.55 && enemy.chargeTimer > 0) {
+            speed *= 0.12;
+            if (!enemy.chargeTelegraph) {
+              enemy.chargeTelegraph = true;
+              this.triggerEnemyAction(enemy, 'attack', 'charger_charge', { layer: 'under', dangerDuration: 0.7, duration: 0.55 });
+            }
+          }
           if (enemy.chargeTimer <= 0) {
             speed *= enemy.elite ? 4.5 : 5.2;
-            if (enemy.chargeTimer < -0.42) enemy.chargeTimer = enemy.elite ? 2.7 : 3.8;
+            if (enemy.chargeTimer < -0.42) {
+              enemy.chargeTimer = enemy.elite ? 2.7 : 3.8;
+              enemy.chargeTelegraph = false;
+            }
           }
+        }
+        if (behavior === 'bloater') {
+          enemy.bloaterTimer -= dt;
+          if (enemy.bloaterTimer <= 0 && length < 175 && !enemy.bloaterTelegraph) {
+            enemy.bloaterTelegraph = true;
+            this.triggerEnemyAction(enemy, 'attack', 'bloater_inflate', { layer: 'under', dangerDuration: 0.7, duration: 1.1 });
+            enemy.bloaterTimer = 4.6;
+          }
+          if (enemy.bloaterTelegraph && enemy.bloaterTimer < 3.3) enemy.bloaterTelegraph = false;
         }
         enemy.vx = lerp(enemy.vx, dx / length * speed, 1 - Math.pow(0.02, dt));
         enemy.vy = lerp(enemy.vy, dy / length * speed, 1 - Math.pow(0.02, dt));
-        enemy.x += enemy.vx * dt;
-        enemy.y += enemy.vy * dt;
+        this.moveActorWithPropCollision(enemy, enemy.vx * dt, enemy.vy * dt, enemy.radius);
+        if (enemy.actionState === 'idle' && Math.hypot(enemy.vx, enemy.vy) > 4) enemy.actionState = 'walk';
+        if (enemy.actionState === 'walk' && Math.hypot(enemy.vx, enemy.vy) <= 4) enemy.actionState = 'idle';
 
-        if ((enemy.type === 'shooter' || enemy.elite) && length < 310) {
+        if ((behavior === 'shooter' || enemy.elite) && length < 310) {
           enemy.shootTimer -= dt;
+          if (enemy.shootTimer < 0.48 && enemy.shootTimer > 0 && !enemy.shootTelegraph) {
+            enemy.shootTelegraph = true;
+            this.triggerEnemyAction(enemy, 'attack', 'shooter_charge', { layer: 'under', dangerDuration: 0.5, duration: 0.48 });
+          }
           if (enemy.shootTimer <= 0) {
             const bulletSpeed = enemy.elite ? 105 : 86;
             const shots = enemy.elite ? 3 : 1;
@@ -578,13 +1276,23 @@
                 color: this.contract.planet.accent
               });
             }
+            this.triggerEnemyAction(enemy, 'attack', 'shooter_fire', { layer: 'over', dangerDuration: 0.24, duration: 0.22 });
+            enemy.shootTelegraph = false;
             enemy.shootTimer = enemy.elite ? 1.4 : 2.1;
           }
         }
 
-        if (length < enemy.radius + 13 && this.player.invuln <= 0) this.hurtPlayer(enemy.damage, enemy.x, enemy.y, stats);
+        if (length < enemy.radius + 13) {
+          if (enemy.contactVfxCooldown <= 0) {
+            const contactEffect = behavior === 'charger' || enemy.elite ? 'charger_impact'
+              : (behavior === 'bloater' ? 'bloater_burst' : 'swarm_attack');
+            this.triggerEnemyAction(enemy, 'attack', contactEffect, { layer: 'over', dangerDuration: 0.3, duration: 0.35 });
+            enemy.contactVfxCooldown = 0.7;
+          }
+          if (this.player.invuln <= 0) this.hurtPlayer(enemy.damage, enemy.x, enemy.y, stats);
+        }
       }
-      world.enemies = world.enemies.filter((enemy) => !enemy.dead);
+      world.enemies = world.enemies.filter((enemy) => !enemy.removeAt);
 
       for (const bullet of world.enemyProjectiles) {
         bullet.x += bullet.vx * dt;
@@ -603,7 +1311,11 @@
         this.player.invuln = 0.25;
         this.spawnText(this.player.x, this.player.y - 25, '闪避', DATA.palette.acid);
         this.audio.play('dodge');
-        if (this.hasEvolution('phantom_counter')) this.radialDamage(this.player.x, this.player.y, 95, stats.damage * 1.6, DATA.palette.acid);
+        if (this.hasEvolution('phantom_counter')) {
+          this.triggerCharacterSkill('phantom_counter', { suppressVfx: true, minGap: 0.12 });
+          this.emitComboFeedback('phantom_counter', this.player.x, this.player.y);
+          this.radialDamage(this.player.x, this.player.y, 95, stats.damage * 1.6, DATA.palette.acid);
+        }
         return;
       }
       const dealt = Math.max(1, amount * (1 - stats.reduction));
@@ -626,8 +1338,9 @@
       const dx = this.player.x - sourceX;
       const dy = this.player.y - sourceY;
       const length = Math.max(1, Math.hypot(dx, dy));
-      this.player.x += dx / length * 12;
-      this.player.y += dy / length * 12;
+      this.moveActorWithPropCollision(this.player, dx / length * 12, dy / length * 12, 10, {
+        minX: 28, maxX: this.world.width - 28, minY: 40, maxY: this.world.height - 28
+      });
     }
 
     updateCombat(dt, stats) {
@@ -669,6 +1382,7 @@
         if (player.reloadTimer <= 0) {
           player.ammo = 6 + this.getCardLevel('magazine') * 2;
           this.audio.play('reload');
+          this.triggerCharacterSkill('reload');
         }
       }
       const target = this.nearestTarget(player.x, player.y, DATA.classById.gunner.base.range);
@@ -676,30 +1390,56 @@
         const burst = this.getCardLevel('burst');
         const scatter = this.getCardLevel('scatter');
         const count = Math.min(8, 1 + burst + scatter * 2);
-        const baseAngle = Math.atan2(target.ref.y - player.y, target.ref.x - player.x);
+        const shot = this.getWeaponShot(target);
+        const baseAngle = shot ? shot.angle : Math.atan2(target.ref.y - player.y, target.ref.x - player.x);
+        const muzzle = shot ? shot.origin : this.getWeaponMuzzle(player, player.dirX, player.dirY);
+        const comboIds = [];
+        if (this.hasEvolution('piercing_star')) comboIds.push('piercing_star');
+        if (this.hasEvolution('hunt_barrage')) comboIds.push('hunt_barrage');
+        const comboCycleId = ++player.attackCycleId;
+        player.dirX = shot ? shot.dirX : Math.cos(baseAngle);
+        player.dirY = shot ? shot.dirY : Math.sin(baseAngle);
         const spread = scatter > 0 ? 0.12 + scatter * 0.035 : 0.035;
         for (let index = 0; index < count; index += 1) {
           const angle = baseAngle + (index - (count - 1) / 2) * spread;
-          this.spawnPlayerProjectile(player.x, player.y - 3, angle, stats.damage / (1 + Math.max(0, count - 1) * 0.08), 'gun');
+          this.spawnPlayerProjectile(
+            muzzle.x,
+            muzzle.y,
+            angle,
+            stats.damage / (1 + Math.max(0, count - 1) * 0.08),
+            'gun',
+            { comboIds, comboCycleId }
+          );
         }
-        player.dirX = Math.cos(baseAngle);
-        player.dirY = Math.sin(baseAngle);
         player.ammo -= 1;
         player.attackTimer = stats.interval;
         this.audio.play('shot');
+        this.triggerCharacterAttack({ origin: muzzle, dirX: player.dirX, dirY: player.dirY });
+        if (this.hasEvolution('hunt_barrage')) {
+          this.emitComboFeedback('hunt_barrage', target.ref.x, target.ref.y, {
+            cycleId: comboCycleId,
+            dirX: player.dirX,
+            dirY: player.dirY
+          });
+        }
         if (player.ammo <= 0) {
           const reloadLevel = this.getCardLevel('reload');
           player.reloadTimer = 1.18 * (1 - reloadLevel * 0.13);
+          this.triggerCharacterSkill('reload');
         }
       }
       const railLevel = this.getCardLevel('railgun');
       if (railLevel > 0) {
         player.railTimer -= dt;
         if (player.railTimer <= 0 && target) {
-          const angle = Math.atan2(target.ref.y - player.y, target.ref.x - player.x);
-          this.lineDamage(player.x, player.y, angle, 520, 12 + railLevel * 3, stats.damage * (2.2 + railLevel * 0.55));
+          const shot = this.getWeaponShot(target);
+          const angle = shot ? shot.angle : Math.atan2(target.ref.y - player.y, target.ref.x - player.x);
+          const muzzle = shot ? shot.origin : this.getWeaponMuzzle(player, player.dirX, player.dirY);
+          player.dirX = shot ? shot.dirX : Math.cos(angle);
+          player.dirY = shot ? shot.dirY : Math.sin(angle);
+          this.lineDamage(muzzle.x, muzzle.y, angle, 520, 12 + railLevel * 3, stats.damage * (2.2 + railLevel * 0.55));
           player.railTimer = 6.2 - railLevel * 0.85;
-          this.world.particles.push({ type: 'rail', x: player.x, y: player.y, angle, life: 0.22, max: 0.22, color: DATA.palette.cyan });
+          this.triggerCharacterSkill('railgun', { origin: muzzle, dirX: player.dirX, dirY: player.dirY });
           this.audio.play('rail');
           this.shake = 3;
         }
@@ -710,12 +1450,14 @@
         if (near && player.zeroStormTimer <= 0) {
           for (let index = 0; index < 12; index += 1) this.spawnPlayerProjectile(player.x, player.y, index / 12 * TAU, stats.damage * 0.9, 'gun');
           player.zeroStormTimer = 2.6;
+          this.triggerCharacterSkill('zero_storm', { suppressVfx: true });
+          this.emitComboFeedback('zero_storm', player.x, player.y, { dirX: player.dirX, dirY: player.dirY });
           this.audio.play('blast');
         }
       }
     }
 
-    spawnPlayerProjectile(x, y, angle, damage, source) {
+    spawnPlayerProjectile(x, y, angle, damage, source, options = {}) {
       const piercing = this.getCardLevel('piercing');
       const ricochet = this.getCardLevel('ricochet');
       this.world.projectiles.push({
@@ -732,6 +1474,8 @@
         chain: source === 'drone' ? this.getCardLevel('arc') : 0,
         explosion: source === 'gun' ? this.getCardLevel('explosive') : 0,
         knockback: source === 'gun' ? this.getCardLevel('knockback') : 0,
+        comboIds: Array.isArray(options.comboIds) ? options.comboIds.slice() : [],
+        comboCycleId: options.comboCycleId === undefined ? null : options.comboCycleId,
         hitIds: []
       });
     }
@@ -749,13 +1493,19 @@
         player.dirY = Math.sin(angle);
         player.attackCount += 1;
         this.world.particles.push({ type: 'slash', x: player.x, y: player.y, angle, range, life: 0.18, max: 0.18, color: DATA.classById.warrior.color });
+        if (this.hasEvolution('rift_slash')) {
+          this.triggerCharacterSkill('rift_slash', { suppressVfx: true });
+          this.emitComboFeedback('rift_slash', player.x, player.y, { dirX: Math.cos(angle), dirY: Math.sin(angle) });
+        } else this.triggerCharacterAttack();
         const doubleLevel = this.getCardLevel('double_slash');
         if (doubleLevel > 0 && Math.random() < 0.2 + doubleLevel * 0.16) {
           this.arcDamage(player.x, player.y, angle + 0.18, range, arc, stats.damage * (0.55 + doubleLevel * 0.13));
+          this.triggerCharacterSkill('double_slash');
         }
         const waveLevel = this.getCardLevel('sword_wave');
         const every = waveLevel >= 2 ? 3 : 4;
         if (waveLevel > 0 && player.attackCount % every === 0) {
+          if (!this.hasEvolution('rift_slash')) this.triggerCharacterSkill('sword_wave');
           const waveCount = this.hasEvolution('rift_slash') ? 3 : 1;
           for (let index = 0; index < waveCount; index += 1) {
             const waveAngle = angle + (index - (waveCount - 1) / 2) * 0.22;
@@ -777,6 +1527,11 @@
 
       const orbitLevel = this.getCardLevel('orbit_blade');
       if (orbitLevel > 0) {
+        if (Math.floor(this.world.time * 2) % 8 === 0) {
+          const orbitSkill = this.hasEvolution('star_ring') ? 'star_ring' : 'orbit_blade';
+          this.triggerCharacterSkill(orbitSkill, { minGap: 0.4, suppressVfx: this.hasEvolution('star_ring') });
+          if (this.hasEvolution('star_ring')) this.emitComboFeedback('star_ring', player.x, player.y);
+        }
         const count = Math.min(7, orbitLevel + (this.hasEvolution('star_ring') ? 3 : 0));
         const radius = this.hasEvolution('star_ring') ? 70 : 54;
         for (let index = 0; index < count; index += 1) {
@@ -800,15 +1555,22 @@
       const droneCount = Math.min(7, 1 + (droneLevel >= 2 ? 1 : 0) + mechCount + (this.hasEvolution('swarm_protocol') ? 2 : 0));
       const target = this.nearestTarget(player.x, player.y, DATA.classById.mechanic.base.range + droneLevel * 16);
       if (player.attackTimer <= 0 && target) {
+        const shotOrigins = [];
         for (let index = 0; index < droneCount; index += 1) {
           const orbitAngle = this.world.time * 1.2 + index / droneCount * TAU;
           const x = player.x + Math.cos(orbitAngle) * 38;
           const y = player.y + Math.sin(orbitAngle) * 25;
           const angle = Math.atan2(target.ref.y - y, target.ref.x - x);
           this.spawnPlayerProjectile(x, y, angle, stats.damage * (1 + droneLevel * 0.16), 'drone');
+          shotOrigins.push({ x, y, dirX: Math.cos(angle), dirY: Math.sin(angle) });
         }
         player.attackTimer = stats.interval;
         this.audio.play('drone');
+        if (this.hasEvolution('swarm_protocol')) {
+          this.triggerCharacterSkill('swarm_protocol', { suppressVfx: true });
+          this.emitComboFeedback('swarm_protocol', player.x, player.y);
+        }
+        else this.triggerCharacterAttack({ origins: shotOrigins, dirX: shotOrigins[0].dirX, dirY: shotOrigins[0].dirY });
       }
 
       const turretLevel = this.getCardLevel('turret');
@@ -821,6 +1583,7 @@
           player.turretTimer = Math.max(4, 12 - this.getCardLevel('quick_deploy') * 2.2);
           if (this.getCardLevel('quick_deploy') >= 3) this.radialDamage(player.x, player.y, 65, stats.damage * 0.8, DATA.palette.cyan);
           this.audio.play('deploy_turret');
+          this.triggerCharacterSkill(this.hasEvolution('mobile_fortress') ? 'mobile_fortress' : 'turret');
         }
       }
 
@@ -832,6 +1595,8 @@
             this.spawnPlayerProjectile(player.x, player.y, angle, stats.damage * 1.4, 'drone');
           }
           player.fortressTimer = 0.42;
+          this.triggerCharacterSkill('mobile_fortress', { minGap: 0.35, suppressVfx: true });
+          this.emitComboFeedback('mobile_fortress', player.x, player.y);
         }
       }
 
@@ -842,13 +1607,23 @@
         if (turret.shot <= 0 && turretTarget) {
           const angle = Math.atan2(turretTarget.ref.y - turret.y, turretTarget.ref.x - turret.x);
           this.spawnPlayerProjectile(turret.x, turret.y, angle, stats.damage * (0.7 + turret.level * 0.18), 'drone');
+          this.emitWorldVfx(null, 'drone_muzzle', turret.x, turret.y, {
+            layer: 'over',
+            duration: 0.22,
+            scale: 0.9,
+            dirX: Math.cos(angle),
+            dirY: Math.sin(angle)
+          });
           turret.shot = 0.8 - this.getCardLevel('overclock') * 0.08;
         }
       }
       this.world.turrets = this.world.turrets.filter((turret) => turret.life > 0);
 
       const repair = this.getCardLevel('repair_bot');
-      if (repair > 0 && player.hp < player.maxHp) player.hp = Math.min(player.maxHp, player.hp + dt * repair * 0.34);
+      if (repair > 0 && player.hp < player.maxHp) {
+        player.hp = Math.min(player.maxHp, player.hp + dt * repair * 0.34);
+        if (Math.floor(this.world.time * 2) % 12 === 0) this.triggerCharacterSkill('repair_bot', { minGap: 0.5 });
+      }
 
       const selfDestruct = this.getCardLevel('self_destruct');
       if (selfDestruct > 0) {
@@ -860,32 +1635,58 @@
           this.radialDamage(x, y, 58 + selfDestruct * 10, stats.damage * (1.5 + selfDestruct * 0.45), DATA.palette.acid);
           if (this.hasEvolution('infinite_recycle')) player.hp = Math.min(player.maxHp, player.hp + 4);
           player.selfDestructTimer = this.hasEvolution('infinite_recycle') ? 4.2 : 12 - selfDestruct * 1.5;
+          if (this.hasEvolution('infinite_recycle')) {
+            this.triggerCharacterSkill('infinite_recycle', { suppressVfx: true });
+            this.emitComboFeedback('infinite_recycle', x, y);
+          } else this.triggerCharacterSkill('self_destruct');
           this.audio.play('blast');
         }
       }
     }
 
+    segmentCircleHit(startX, startY, endX, endY, centerX, centerY, radius) {
+      const dx = endX - startX;
+      const dy = endY - startY;
+      const lengthSquared = dx * dx + dy * dy;
+      const projection = lengthSquared > 0.000001
+        ? clamp(((centerX - startX) * dx + (centerY - startY) * dy) / lengthSquared, 0, 1)
+        : 0;
+      const closestX = startX + dx * projection;
+      const closestY = startY + dy * projection;
+      const offsetX = centerX - closestX;
+      const offsetY = centerY - closestY;
+      const hitRadius = Math.max(0, radius);
+      if (offsetX * offsetX + offsetY * offsetY > hitRadius * hitRadius) return null;
+      return { t: projection, x: closestX, y: closestY };
+    }
+
     updateProjectiles(dt) {
       const world = this.world;
       for (const projectile of world.projectiles) {
-        projectile.x += projectile.vx * dt;
-        projectile.y += projectile.vy * dt;
+        const startX = projectile.x;
+        const startY = projectile.y;
+        const endX = startX + projectile.vx * dt;
+        const endY = startY + projectile.vy * dt;
+        projectile.x = endX;
+        projectile.y = endY;
         projectile.life -= dt;
         if (projectile.life <= 0) continue;
         let hit = null;
+        let hitT = Infinity;
+        const considerHit = (kind, ref, radius) => {
+          const result = this.segmentCircleHit(startX, startY, endX, endY, ref.x, ref.y, radius);
+          if (result && result.t < hitT) {
+            hit = { kind, ref };
+            hitT = result.t;
+          }
+        };
         for (const enemy of world.enemies) {
           if (enemy.dead || projectile.hitIds.includes(enemy.id)) continue;
-          if (Math.hypot(enemy.x - projectile.x, enemy.y - projectile.y) < enemy.radius + projectile.radius) {
-            hit = { kind: 'enemy', ref: enemy };
-            break;
-          }
+          considerHit('enemy', enemy, enemy.radius + projectile.radius);
         }
         if (!hit && world.objective.id === 'nests' && !world.missionComplete) {
           for (const objective of world.objective.items) {
-            if (!objective.dead && Math.hypot(objective.x - projectile.x, objective.y - projectile.y) < objective.radius + projectile.radius) {
-              hit = { kind: 'objective', ref: objective };
-              break;
-            }
+            if (!objective.dead) considerHit('objective', objective, objective.radius + projectile.radius);
           }
         }
         if (!hit) continue;
@@ -896,13 +1697,27 @@
         if (hit.kind === 'enemy') {
           this.damageEnemy(hit.ref, damage, { crit, projectile });
           projectile.hitIds.push(hit.ref.id);
+          if (Array.isArray(projectile.comboIds) && projectile.comboIds.includes('piercing_star') && !projectile.piercingStarFeedback) {
+            projectile.piercingStarFeedback = this.emitComboFeedback('piercing_star', hit.ref.x, hit.ref.y, {
+              cycleId: projectile.comboCycleId,
+              dirX: projectile.vx,
+              dirY: projectile.vy
+            });
+          }
           if (projectile.knockback > 0) {
             const length = Math.max(1, Math.hypot(projectile.vx, projectile.vy));
             const multiplier = this.contract.anomaly.id === 'low_gravity' ? 1.55 : 1;
-            hit.ref.x += projectile.vx / length * projectile.knockback * 7 * multiplier;
-            hit.ref.y += projectile.vy / length * projectile.knockback * 7 * multiplier;
+            this.moveActorWithPropCollision(
+              hit.ref,
+              projectile.vx / length * projectile.knockback * 7 * multiplier,
+              projectile.vy / length * projectile.knockback * 7 * multiplier,
+              hit.ref.radius
+            );
           }
-          if (projectile.explosion > 0) this.radialDamage(hit.ref.x, hit.ref.y, 20 + projectile.explosion * 6, damage * 0.25, DATA.palette.orange, hit.ref.id);
+          if (projectile.explosion > 0) {
+            this.emitWorldVfx(null, 'explosive_impact', hit.ref.x, hit.ref.y, { layer: 'over', scale: 0.82 });
+            this.radialDamage(hit.ref.x, hit.ref.y, 20 + projectile.explosion * 6, damage * 0.25, DATA.palette.orange, hit.ref.id);
+          }
           if (projectile.chain > 0) this.chainDamage(hit.ref, damage * 0.55, projectile.chain);
         } else {
           this.damageObjective(hit.ref, damage);
@@ -916,6 +1731,14 @@
             projectile.vx = Math.cos(angle) * speed;
             projectile.vy = Math.sin(angle) * speed;
             projectile.bounce -= 1;
+            if (Array.isArray(projectile.comboIds) && projectile.comboIds.includes('hunt_barrage')) {
+              this.emitComboFeedback('hunt_barrage', next.ref.x, next.ref.y, {
+                cycleId: projectile.comboCycleId,
+                secondary: true,
+                dirX: projectile.vx,
+                dirY: projectile.vy
+              });
+            }
             continue;
           }
         }
@@ -944,10 +1767,16 @@
       if (enemy.dead) return;
       enemy.hp -= amount;
       enemy.hitFlash = 1;
+      enemy.actionState = 'hit';
+      enemy.actionElapsed = 0;
       this.spawnText(enemy.x, enemy.y - enemy.radius - 8, `${options.crit ? '!' : ''}${Math.round(amount)}`, options.crit ? DATA.palette.acid : DATA.palette.paper);
       if (enemy.hp > 0) return;
       enemy.dead = true;
+      enemy.removeAt = false;
+      enemy.actionState = 'death';
+      enemy.actionElapsed = 0;
       this.player.kills += 1;
+      this.addDailyProgress('kills');
       this.player.loot += enemy.elite ? 42 : (Math.random() < 0.06 ? 2 : 0);
       const gemCount = enemy.elite ? 8 : 1;
       for (let index = 0; index < gemCount; index += 1) {
@@ -961,7 +1790,11 @@
         });
       }
       if (this.contract.anomaly.id === 'spore_bloom' && Math.random() < 0.16) {
-        this.world.hazards.push({ type: 'pool', x: enemy.x, y: enemy.y, radius: 27, warmup: 0.7, life: 5.5, tick: 0 });
+        const pool = { type: 'pool', x: enemy.x, y: enemy.y, radius: 27, warmup: 0.7, life: 5.5, tick: 0 };
+        const poolFx = this.emitWorldVfx('spore', 'spore_pool', pool.x, pool.y, { layer: 'under', duration: pool.life, scale: 0.9 });
+        pool.vfxToken = poolFx && poolFx.token;
+        pool.visualOnly = Boolean(poolFx);
+        this.world.hazards.push(pool);
       }
       if (this.player.classId === 'warrior') {
         const lifesteal = this.getCardLevel('lifesteal');
@@ -991,6 +1824,9 @@
         this.notify('精英目标已清算', '+80 未申报战利品', DATA.palette.acid, 2.8);
         this.audio.play('elite_down');
       }
+      const behavior = enemy.visualType || enemy.type;
+      const deathEffect = behavior === 'bloater' ? 'bloater_burst' : (behavior === 'charger' ? 'charger_impact' : 'swarm_hit');
+      this.emitWorldVfx(this.contract.planet.id, deathEffect, enemy.x, enemy.y, { layer: 'over', scale: enemy.elite ? 1.2 : 1 });
       this.radialBurst(enemy.x, enemy.y, this.contract.planet.accent, enemy.elite ? 24 : 7);
     }
 
@@ -1076,18 +1912,28 @@
     }
 
     openLevelUp() {
-      this.pendingLevelUps -= 1;
-      this.levelChoices = this.generateChoices();
-      this.state = 'levelup';
+      while (this.pendingLevelUps > 0) {
+        this.pendingLevelUps -= 1;
+        this.levelChoices = this.generateChoices();
+        if (this.levelChoices.length) {
+          this.state = 'levelup';
+          this.pointer.active = false;
+          this.audio.play('level');
+          return true;
+        }
+      }
+      this.levelChoices = [];
+      this.state = 'playing';
       this.pointer.active = false;
-      this.audio.play('level');
+      this.notify('技能池已满', '后续经验不再提供升级选项', DATA.palette.muted, 1.6);
+      return false;
     }
 
     generateChoices() {
       const classData = DATA.classById[this.player.classId];
       const readyEvolutions = classData.evolutions.filter((evolution) => (
         !this.player.evolutions[evolution.id]
-        && evolution.requires.every((id) => this.player.cards[id] >= 3)
+        && evolution.requires.every((id) => this.player.cards[id] >= LIMITS.skillLevel)
       ));
       const consumedCards = classData.evolutions
         .filter((evolution) => this.player.evolutions[evolution.id])
@@ -1096,7 +1942,7 @@
       const cardCandidates = classData.cards.filter((card) => {
         if (consumedCards.includes(card.id)) return false;
         const level = this.player.cards[card.id] || 0;
-        return level > 0 ? level < 3 : slots < 6;
+        return level > 0 ? level < LIMITS.skillLevel : slots < LIMITS.skillSlots;
       });
       const random = this.world.random;
       const choices = [];
@@ -1109,7 +1955,7 @@
         if (choices.length >= 3) break;
         if (!choices.some((choice) => choice.data.id === card.id)) choices.push({ type: 'card', data: card });
       }
-      if (!choices.length) {
+      if (!choices.length && !this.player.overflowUsed) {
         choices.push(
           { type: 'overflow', data: { id: 'damage', name: `${classData.name}火力超载`, kind: 'OVERLOAD', desc: '本局伤害永久提升 6%。' } },
           { type: 'overflow', data: { id: 'speed', name: `${classData.name}机动超载`, kind: 'OVERLOAD', desc: '本局移动速度永久提升 4%。' } },
@@ -1120,21 +1966,34 @@
     }
 
     chooseUpgrade(choice) {
-      if (!choice) return;
+      if (!choice) return false;
       if (choice.type === 'evolution') {
+        if (this.player.evolutions[choice.data.id]) return false;
         for (const required of choice.data.requires) delete this.player.cards[required];
         this.player.evolutions[choice.data.id] = true;
+        this.triggerCharacterSkill(choice.data.id, { force: true });
         this.notify(`组合进化：${choice.data.name}`, choice.data.desc, DATA.palette.acid, 3);
         this.audio.play('evolution');
       } else if (choice.type === 'overflow') {
+        if (this.player.overflowUsed) return false;
+        this.player.overflowUsed = true;
         this.player.overflow[choice.data.id] += 1;
         this.notify(choice.data.name, choice.data.desc, DATA.classById[this.player.classId].color, 1.5);
       } else {
-        this.player.cards[choice.data.id] = (this.player.cards[choice.data.id] || 0) + 1;
-        this.notify(`${choice.data.name} Lv.${this.player.cards[choice.data.id]}`, choice.data.desc[this.player.cards[choice.data.id] - 1], DATA.classById[this.player.classId].color, 1.5);
+        const currentLevel = this.player.cards[choice.data.id] || 0;
+        if (currentLevel >= LIMITS.skillLevel) {
+          this.levelChoices = this.generateChoices();
+          this.notify('技能已满级', `${choice.data.name} 已达到 Lv.${LIMITS.skillLevel}`, DATA.palette.muted, 1.5);
+          return false;
+        }
+        const nextLevel = Math.min(LIMITS.skillLevel, currentLevel + 1);
+        this.player.cards[choice.data.id] = nextLevel;
+        this.triggerCharacterSkill(choice.data.id, { force: true });
+        this.notify(`${choice.data.name} Lv.${nextLevel}`, choice.data.desc[nextLevel - 1], DATA.classById[this.player.classId].color, 1.5);
       }
       this.state = 'playing';
       if (this.pendingLevelUps > 0) this.openLevelUp();
+      return true;
     }
 
     rerollChoices() {
@@ -1149,7 +2008,7 @@
       if (this.contract.anomaly.id === 'meteor') {
         world.hazardTimer -= dt;
         if (world.hazardTimer <= 0) {
-          world.hazards.push({
+          const hazard = {
             type: 'meteor',
             x: clamp(this.player.x + this.player.dirX * 38 + (world.random() - 0.5) * 70, 40, world.width - 40),
             y: clamp(this.player.y + this.player.dirY * 38 + (world.random() - 0.5) * 70, 50, world.height - 40),
@@ -1157,7 +2016,11 @@
             warmup: 1.05,
             life: 1.4,
             exploded: false
-          });
+          };
+          const warning = this.emitWorldVfx(null, 'meteor_warning', hazard.x, hazard.y, { layer: 'under', duration: hazard.warmup });
+          hazard.vfxToken = warning && warning.token;
+          hazard.visualOnly = Boolean(warning);
+          world.hazards.push(hazard);
           world.hazardTimer = 4.4;
         }
       }
@@ -1167,6 +2030,9 @@
         hazard.tick = (hazard.tick || 0) - dt;
         if (hazard.type === 'meteor' && hazard.warmup <= 0 && !hazard.exploded) {
           hazard.exploded = true;
+          const impact = this.emitWorldVfx(null, 'meteor_impact', hazard.x, hazard.y, { layer: 'over', scale: 1.05 });
+          hazard.vfxToken = impact && impact.token;
+          hazard.visualOnly = Boolean(impact) || hazard.visualOnly;
           if (dist(hazard, this.player) < hazard.radius + 9) this.hurtPlayer(17, hazard.x, hazard.y);
           this.radialDamage(hazard.x, hazard.y, hazard.radius, 42, DATA.palette.orange);
           this.audio.play('blast');
@@ -1187,10 +2053,11 @@
         cache.found = true;
         this.spawnEnemy({ elite: true, x: cache.x, y: cache.y - 64 });
       }
-      if (cache.eliteDefeated && !cache.collected && dist(cache, this.player) < 42) {
+      if (!cache.collected && dist(cache, this.player) < (cache.pickupRadius || 42)) {
+        cache.found = true;
         cache.collected = true;
         this.player.loot += 35;
-        this.notify('遗失货柜已回收', '+35 未申报战利品', DATA.palette.acid);
+        this.notify('奖励资源箱已领取', '+35 额外战利品', DATA.palette.acid);
         this.audio.play('loot');
       }
     }
@@ -1239,6 +2106,7 @@
       if (success) {
         this.save.successes += 1;
         this.save.completedMissions[this.contract.mission.id] = true;
+        this.addDailyProgress('extractions');
       }
       this.persist();
       this.result = {
@@ -1255,7 +2123,9 @@
       };
       this.state = 'result';
       this.pointer.active = false;
+      this.exitModal = false;
       this.audio.intensity(-1);
+      if (this.audio.stopMusic) this.audio.stopMusic();
       this.audio.play(success ? 'success' : 'failure');
       this.contract = null;
     }
@@ -1281,14 +2151,22 @@
     }
 
     upgradeModule(moduleData) {
-      const level = this.save.modules[moduleData.id] || 0;
-      if (level >= 3) return;
+      const level = clamp(Math.floor(Number(this.save.modules[moduleData.id]) || 0), 0, LIMITS.moduleLevel);
+      this.save.modules[moduleData.id] = level;
+      if (level >= LIMITS.moduleLevel) {
+        this.notify('模块已满级', `${moduleData.name} 已达到 Lv.${LIMITS.moduleLevel}`, DATA.palette.muted, 1.4);
+        return false;
+      }
       const cost = moduleData.costs[level];
-      if (this.save.credits < cost) return;
+      if (!Number.isFinite(cost) || this.save.credits < cost) {
+        this.notify('金币不足', `升级 ${moduleData.name} 需要 ${cost || 0} 金币`, DATA.palette.orange, 1.4);
+        return false;
+      }
       this.save.credits -= cost;
-      this.save.modules[moduleData.id] = level + 1;
+      this.save.modules[moduleData.id] = Math.min(LIMITS.moduleLevel, level + 1);
       this.persist();
       this.audio.play('upgrade');
+      return true;
     }
 
     render() {
@@ -1309,6 +2187,7 @@
         this.drawPlaying();
         this.drawLevelUp();
       } else if (this.state === 'result') this.drawResult();
+      if (this.exitModal && (this.state === 'playing' || this.state === 'levelup')) this.drawExitModal();
       this.drawScanlines();
     }
 
@@ -1325,6 +2204,258 @@
       const sx = (frameIndex % columns) * frameWidth;
       const sy = Math.floor(frameIndex / columns) * frameHeight;
       this.ctx.drawImage(image, sx, sy, frameWidth, frameHeight, Math.round(x), Math.round(y), Math.round(width), Math.round(height));
+      return true;
+    }
+
+    enemyActionSpec(enemy, state = 'walk') {
+      const manifest = this.assets && this.assets.manifest;
+      if (!manifest || !manifest.enemyActions || !enemy) return null;
+      const planet = this.contract && this.contract.planet && this.contract.planet.id;
+      const assetId = enemy.visualId;
+      let entry = planet && assetId ? manifest.enemyActions[`${planet}.${assetId}`] : null;
+      if (!entry && planet) {
+        const behavior = enemy.visualType || enemy.type;
+        entry = Object.values(manifest.enemyActions).find((candidate) => candidate.planet === planet && candidate.enemyType === behavior);
+      }
+      return entry && entry.states ? entry.states[state] : null;
+    }
+
+    triggerEnemyAction(enemy, state, effectId = null, options = {}) {
+      if (!enemy) return null;
+      enemy.actionState = state;
+      enemy.actionElapsed = 0;
+      enemy.actionEventFired = false;
+      enemy.dangerPulse = Math.max(enemy.dangerPulse || 0, options.dangerDuration || (state === 'attack' ? 0.28 : 0));
+      if (!effectId) return null;
+      const planet = this.contract && this.contract.planet && this.contract.planet.id;
+      return this.emitWorldVfx(planet, effectId, enemy.x, enemy.y, {
+        layer: options.layer || 'over',
+        duration: options.duration,
+        dirX: enemy.vx || 1,
+        dirY: enemy.vy || 0,
+        scale: options.scale || 1
+      });
+    }
+
+    enemyVfxSpec(planet, effectId) {
+      const manifest = this.assets && this.assets.manifest;
+      if (!manifest) return null;
+      if (manifest.enemyVfx && manifest.enemyVfx[`${planet}.${effectId}`] && manifest.enemyVfx[`${planet}.${effectId}`].key) {
+        return manifest.enemyVfx[`${planet}.${effectId}`];
+      }
+      return manifest.vfx && manifest.vfx[effectId] ? manifest.vfx[effectId] : null;
+    }
+
+    emitWorldVfx(planet, effectId, x, y, options = {}) {
+      if (!this.world || !effectId) return null;
+      const spec = this.enemyVfxSpec(planet, effectId);
+      if (!spec || !this.assetImage(spec.key)) return null;
+      const effect = {
+        token: `fx-${Math.floor(Math.random() * 1e9)}-${this.world.effects.length}`,
+        key: spec.key,
+        id: effectId,
+        planet: planet || null,
+        x, y,
+        elapsed: 0,
+        duration: options.duration === undefined
+          ? (spec.loop ? Math.max(0.5, spec.frameCount / spec.fps) : spec.frameCount / spec.fps)
+          : options.duration,
+        loop: Boolean(spec.loop),
+        frameWidth: spec.frameWidth,
+        frameHeight: spec.frameHeight,
+        frameCount: spec.frameCount,
+        fps: spec.fps,
+        anchor: spec.anchor,
+        blendMode: spec.blendMode || 'source-over',
+        layer: options.layer || 'over',
+        scale: options.scale || 1,
+        centered: Boolean(options.centered),
+        rotateWithDirection: Boolean(options.rotateWithDirection),
+        dirX: options.dirX === undefined ? 1 : options.dirX,
+        dirY: options.dirY === undefined ? 0 : options.dirY,
+        paletteVariant: options.paletteVariant || planet || 'gunner'
+      };
+      if (options.replaceId) this.world.effects = this.world.effects.filter((item) => item.replaceId !== options.replaceId);
+      effect.replaceId = options.replaceId || null;
+      this.world.effects.push(effect);
+      return effect;
+    }
+
+    emitComboFeedback(comboId, x, y, options = {}) {
+      if (!this.world || !comboId || !Number.isFinite(x) || !Number.isFinite(y)) return false;
+      const config = DATA.comboFeedback && DATA.comboFeedback[comboId];
+      if (!config) return false;
+      const state = this.world.comboFeedbackState || (this.world.comboFeedbackState = {});
+      const now = Number.isFinite(this.world.time) ? this.world.time : 0;
+      const previous = state[comboId] || {};
+      const cycleId = options.cycleId === undefined ? null : options.cycleId;
+      const secondary = Boolean(options.secondary);
+      const previousTime = previous.time === undefined ? -Infinity : previous.time;
+      if (!options.force && now - previousTime < (config.cooldown || 0)) return false;
+      if (cycleId !== null && previous.cycleId === cycleId && !secondary) return false;
+      if (secondary && cycleId !== null && previous.secondaryCycleId === cycleId) return false;
+
+      const dirX = Number.isFinite(options.dirX) ? options.dirX : (this.player && this.player.dirX) || 1;
+      const dirY = Number.isFinite(options.dirY) ? options.dirY : (this.player && this.player.dirY) || 0;
+      const effect = this.emitWorldVfx(null, config.vfx, x, y, {
+        layer: config.layer || 'over',
+        scale: (config.scale || 1) * (options.scale || 1),
+        centered: true,
+        rotateWithDirection: comboId === 'rift_slash' || Boolean(options.rotateWithDirection),
+        dirX,
+        dirY,
+        duration: options.duration
+      });
+      if (!effect) {
+        // The procedural burst is deliberately small: it is only a fallback
+        // for a missing image and must never block the attack itself.
+        const color = this.player && this.player.classId === 'warrior'
+          ? DATA.palette.orange
+          : (this.player && this.player.classId === 'mechanic' ? DATA.palette.acid : DATA.palette.cyan);
+        this.radialBurst(x, y, color, comboId === 'zero_storm' || comboId === 'infinite_recycle' ? 18 : 9);
+      }
+      state[comboId] = {
+        time: now,
+        cycleId: cycleId === null ? previous.cycleId : cycleId,
+        secondaryCycleId: secondary && cycleId !== null ? cycleId : previous.secondaryCycleId
+      };
+      return true;
+    }
+
+    updateWorldVfx(dt) {
+      if (!this.world || !Array.isArray(this.world.effects)) return;
+      for (const effect of this.world.effects) effect.elapsed += dt;
+      this.world.effects = this.world.effects.filter((effect) => effect.elapsed < effect.duration);
+    }
+
+    drawWorldVfx(layer = null) {
+      if (!this.world || !Array.isArray(this.world.effects)) return;
+      const ctx = this.ctx;
+      for (const effect of this.world.effects) {
+        if (layer && effect.layer !== layer) continue;
+        const image = this.assetImage(effect.key);
+        if (!image) continue;
+        const screen = this.worldToScreen(effect);
+        const frame = effect.loop
+          ? Math.floor(effect.elapsed * effect.fps) % effect.frameCount
+          : Math.min(effect.frameCount - 1, Math.floor(effect.elapsed * effect.fps));
+        const scale = effect.scale || 1;
+        ctx.save();
+        ctx.globalCompositeOperation = effect.blendMode || 'source-over';
+        ctx.globalAlpha = effect.loop ? 0.88 : clamp(1 - effect.elapsed / Math.max(0.01, effect.duration), 0, 1);
+        const directionalOriginEffect = effect.id === 'muzzle_flash' || effect.id === 'drone_muzzle' || effect.id === 'railgun_beam';
+        if (directionalOriginEffect) {
+          const angle = Math.atan2(effect.dirY || 0, effect.dirX || 1);
+          ctx.translate(Math.round(screen.x), Math.round(screen.y));
+          if (Math.abs(angle) > 0.01) ctx.rotate(angle);
+          this.drawFrame(effect.key, effect.frameWidth, effect.frameHeight, frame,
+            -effect.anchor.x * scale, -effect.anchor.y * scale,
+            effect.frameWidth * scale, effect.frameHeight * scale);
+        } else if (effect.centered) {
+          if (effect.rotateWithDirection) {
+            const angle = Math.atan2(effect.dirY || 0, effect.dirX || 1);
+            ctx.translate(Math.round(screen.x), Math.round(screen.y));
+            if (Math.abs(angle) > 0.01) ctx.rotate(angle);
+            this.drawFrame(effect.key, effect.frameWidth, effect.frameHeight, frame,
+              -effect.anchor.x * scale, -effect.anchor.y * scale,
+              effect.frameWidth * scale, effect.frameHeight * scale);
+          } else {
+            this.drawFrame(effect.key, effect.frameWidth, effect.frameHeight, frame,
+              screen.x - effect.anchor.x * scale, screen.y - effect.anchor.y * scale,
+              effect.frameWidth * scale, effect.frameHeight * scale);
+          }
+        } else if (effect.planet || effect.id === 'meteor_warning' || effect.id === 'meteor_impact' || effect.id === 'explosive_impact' || effect.id === 'spore_pool') {
+          this.drawFrame(effect.key, effect.frameWidth, effect.frameHeight, frame,
+            screen.x - effect.anchor.x * scale, screen.y - effect.anchor.y * scale,
+            effect.frameWidth * scale, effect.frameHeight * scale);
+          if (effect.id === 'meteor_warning') {
+            // Six hard-edged countdown pips make the warning readable even
+            // when the animated sheet is viewed at phone scale.
+            const progress = clamp(effect.elapsed / Math.max(0.01, effect.duration), 0, 1);
+            ctx.fillStyle = '#ff6b43';
+            for (let pip = 0; pip < 6; pip += 1) {
+              if (pip / 6 <= progress) continue;
+              ctx.fillRect(Math.round(screen.x - 23 + pip * 8), Math.round(screen.y + 22), 5, 2);
+            }
+          }
+        } else {
+          const angle = Math.atan2(effect.dirY || 0, effect.dirX || 1);
+          ctx.translate(Math.round(screen.x), Math.round(screen.y - 20));
+          if (Math.abs(angle) > 0.01) ctx.rotate(angle);
+          this.drawFrame(effect.key, effect.frameWidth, effect.frameHeight, frame,
+            -effect.anchor.x * scale, -effect.anchor.y * scale,
+            effect.frameWidth * scale, effect.frameHeight * scale);
+        }
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    hasWorldEffect(token) {
+      return Boolean(token && this.world && this.world.effects && this.world.effects.some((effect) => effect.token === token));
+    }
+
+    characterActionFrame(classData, actionState, skillId, direction, elapsed, x, y, scale) {
+      const spec = this.characterActionSpec(classData.id, actionState, skillId);
+      if (!spec) return false;
+      const frame = actionState === 'skill' || actionState === 'attack'
+        ? Math.min(spec.frameCount - 1, Math.floor(elapsed * spec.fps))
+        : Math.floor(elapsed * spec.fps) % spec.frameCount;
+      const row = Math.max(0, Math.min(3, direction));
+      const frameIndex = row * spec.frameCount + frame;
+      return this.drawFrame(
+        spec.key,
+        spec.frameWidth,
+        spec.frameHeight,
+        frameIndex,
+        x - spec.anchor.x * scale,
+        y - spec.anchor.y * scale,
+        spec.frameWidth * scale,
+        spec.frameHeight * scale
+      );
+    }
+
+    drawCharacterVfx() {
+      if (!this.player || !this.player.activeVfx || !this.world) return false;
+      const active = this.player.activeVfx;
+      const spec = this.assets && this.assets.manifest && this.assets.manifest.vfx && this.assets.manifest.vfx[active.id];
+      if (!spec) return false;
+      const image = this.assetImage(spec.key);
+      if (!image) return false;
+      const frame = spec.loop
+        ? Math.floor(active.elapsed * spec.fps) % spec.frameCount
+        : Math.min(spec.frameCount - 1, Math.floor(active.elapsed * spec.fps));
+      const dirX = active.dirX === undefined ? (this.player.dirX || 1) : active.dirX;
+      const dirY = active.dirY === undefined ? (this.player.dirY || 0) : active.dirY;
+      const origins = Array.isArray(active.origins) && active.origins.length
+        ? active.origins
+        : [{ x: this.player.x, y: this.player.y, dirX, dirY }];
+      const ctx = this.ctx;
+      const directionalOriginEffect = active.id === 'muzzle_flash' || active.id === 'drone_muzzle' || active.id === 'railgun_beam';
+      const drawOrigins = directionalOriginEffect ? origins : [origins[0]];
+      for (const origin of drawOrigins) {
+        const screen = this.worldToScreen(origin);
+        const originDirX = Number.isFinite(origin.dirX) ? origin.dirX : dirX;
+        const originDirY = Number.isFinite(origin.dirY) ? origin.dirY : dirY;
+        const angle = Math.atan2(originDirY, originDirX);
+        ctx.save();
+        ctx.globalCompositeOperation = spec.blendMode || 'source-over';
+        ctx.globalAlpha = 0.92;
+        if (directionalOriginEffect) {
+          const scale = active.id === 'drone_muzzle' ? 0.9 : 1;
+          ctx.translate(Math.round(screen.x), Math.round(screen.y));
+          if (Math.abs(angle) > 0.01) ctx.rotate(angle);
+          this.drawFrame(spec.key, spec.frameWidth, spec.frameHeight, frame,
+            -spec.anchor.x * scale, -spec.anchor.y * scale,
+            spec.frameWidth * scale, spec.frameHeight * scale);
+        } else {
+          const scale = active.id === 'zero_storm_burst' || active.id === 'self_destruct_burst' ? 1.15 : 1;
+          this.drawFrame(spec.key, spec.frameWidth, spec.frameHeight, frame,
+            screen.x - spec.anchor.x * scale, screen.y - 29 - spec.anchor.y * scale,
+            spec.frameWidth * scale, spec.frameHeight * scale);
+        }
+        ctx.restore();
+      }
       return true;
     }
 
@@ -1480,13 +2611,28 @@
       }
       const pressed = !disabled && this.uiPress && this.now < this.uiPress.until
         && this.uiPress.x === x && this.uiPress.y === y && this.uiPress.w === w && this.uiPress.h === h;
-      const buttonImage = this.assetImage(`ui.button_${theme}_${disabled ? 'disabled' : (pressed ? 'pressed' : 'normal')}`);
+      const visualState = disabled ? 'disabled' : (pressed ? 'pressed' : 'normal');
+      const customButtonKey = options.buttonAsset ? `${options.buttonAsset}_${visualState}` : null;
+      const buttonImage = (customButtonKey && this.assetImage(customButtonKey))
+        || this.assetImage(`ui.button_${theme}_${visualState}`);
+      const imageTextColors = {
+        primary: DATA.palette.acid,
+        secondary: DATA.palette.paper,
+        danger: '#ffd1c7',
+        locked: '#c5c9b8'
+      };
+      const drawButtonLabel = (labelX, labelY, color, size) => {
+        this.text(label, labelX + 1, labelY + 1, size, DATA.palette.ink, 'center', true);
+        this.text(label, labelX, labelY, size, color, 'center', true);
+      };
       if (buttonImage) {
         ctx.fillStyle = 'rgba(0,0,0,0.58)';
         ctx.fillRect(x + 4, y + 5, w, h);
-        this.drawNineSlice(buttonImage, x, y, w, h, 12);
-        const defaultText = theme === 'primary' ? DATA.palette.ink : DATA.palette.paper;
-        this.text(label, x + w / 2, y + h / 2 + 5, options.size || 14, disabled ? DATA.palette.muted : (options.text || defaultText), 'center', true);
+        this.drawNineSlice(buttonImage, x, y, w, h, options.nineSliceInset || 12);
+        const color = disabled
+          ? (options.disabledText || imageTextColors[theme] || '#c5c9b8')
+          : (options.imageText || imageTextColors[theme] || DATA.palette.paper);
+        drawButtonLabel(x + w / 2, y + h / 2 + 5, color, options.size || 14);
         this.buttons.push({ x, y, w, h, disabled, action });
         return;
       }
@@ -1506,7 +2652,10 @@
       ctx.fillStyle = DATA.palette.ink;
       ctx.fillRect(x, y, 5, 5);
       ctx.fillRect(x + w - 5, y + h - 5, 5, 5);
-      this.text(label, x + w / 2 + 2, y + h / 2 + 5, options.size || 14, disabled ? '#737773' : (options.text || DATA.palette.ink), 'center', true);
+      const fallbackText = disabled
+        ? (options.disabledText || '#c5c9b8')
+        : (options.text || (theme === 'primary' ? DATA.palette.ink : DATA.palette.paper));
+      drawButtonLabel(x + w / 2 + 2, y + h / 2 + 5, fallbackText, options.size || 14);
       this.buttons.push({ x, y, w, h, disabled, action });
     }
 
@@ -1561,12 +2710,13 @@
       points.slice(1, -1).forEach((point) => ctx.fillRect(point[0] - 2, point[1] - 2, 4, 4));
     }
 
-    drawPixelIcon(kind, x, y, size, color) {
+    drawPixelIcon(kind, x, y, size, color, roleId = null) {
       const ctx = this.ctx;
-      const skill = this.assetImage(`skill.gunner.${kind}`);
+      const skillKey = roleId ? `skill.${roleId}.${kind}` : `skill.gunner.${kind}`;
+      const skill = this.assetImage(skillKey);
       if (skill) {
         ctx.drawImage(skill, Math.round(x), Math.round(y), Math.round(size), Math.round(size));
-        return;
+        return true;
       }
       const uiIconMap = {
         scanner: 'scanner', fabricator: 'fabricator', cargo: 'cargo_hold', life_support: 'life_support', printer: 'printer',
@@ -1786,39 +2936,39 @@
     }
 
     drawHQ() {
+      if (this.hqPage === 'dispatch') this.hqPage = 'main';
       this.drawStarfield();
-      if (this.hqPage === 'crew') this.drawCrewPage();
-      else if (this.hqPage === 'ship') this.drawShipPage();
+      if (this.hqPage === 'archive') this.drawArchivePage();
+      else if (this.hqPage === 'activity') this.drawActivityPage();
+      else if (this.hqPage === 'tasks') this.drawTasksPage();
+      else if (this.hqPage === 'upgrade') this.drawUpgradePage();
       else this.drawHQMain();
+      this.drawHQNav();
     }
 
     drawHQMain() {
-      this.drawHeader('外勤调度终端');
-      const classData = DATA.classById[this.save.selectedClass];
-      this.drawIndustrialHQ(classData);
-      this.panel(10, 82, 148, 319, { uiVariant: 'inset', fill: 'rgba(12,17,17,0.97)', stroke: '#57584d', accent: classData.color, accentWidth: 5 });
-      this.text('ACTIVE COPY // 03', 26, 105, 7, classData.color, 'left', true, true);
-      this.text(classData.name, 26, 137, 23, DATA.palette.paper, 'left', true);
-      this.text(classData.employee, 26, 156, 9, DATA.palette.muted, 'left', true, true);
-      this.ctx.fillStyle = classData.color;
-      this.ctx.fillRect(26, 169, 105, 3);
-      this.text('JOB PROFILE', 26, 193, 7, DATA.palette.muted, 'left', true, true);
-      this.wrap(classData.role, 26, 214, 112, 15, 11, classData.color, 3, true);
-      this.text('EMPLOYEE NOTE', 26, 269, 7, DATA.palette.muted, 'left', true, true);
-      this.wrap(`“${classData.quote}”`, 26, 292, 111, 15, 10, DATA.palette.paper, 5, true);
-      this.ctx.fillStyle = '#d5d0b8';
-      for (let index = 0; index < 14; index += 1) this.ctx.fillRect(27 + index * 7, 370, index % 3 === 0 ? 4 : 2, 13);
-      this.drawAstronaut(224, 342, classData, 4.2, this.now * 0.3);
-      this.ctx.fillStyle = classData.color;
-      this.ctx.fillRect(188, 386, 72, 3);
-      this.text('READY', 224, 400, 7, classData.color, 'center', true, true);
-
-      this.button(25, 452, 310, 57, '接受随机派遣  >>', () => this.prepareContract(), { fill: DATA.palette.acid, size: 17 });
-      this.button(30, 518, 142, 46, '员工档案', () => { this.hqPage = 'crew'; }, { fill: '#20292c', ink: DATA.palette.paper, text: DATA.palette.paper, stroke: '#59666a' });
-      this.button(188, 518, 142, 46, '飞船模块', () => { this.hqPage = 'ship'; }, { fill: '#20292c', ink: DATA.palette.paper, text: DATA.palette.paper, stroke: '#59666a' });
-      this.text(`EXTRACT ${this.save.successes} // BEST KILL ${this.save.bestKills || 0}`, 180, 589, 8, DATA.palette.muted, 'center', true, true);
-      this.hazardStripe(26, 599, 308, 4, DATA.palette.orange);
-      this.text('打印体损失将计入个人季度绩效', 180, 620, 9, DATA.palette.orange, 'center', true);
+      const classData = DATA.classById[this.save.selectedClass] || DATA.classes[0];
+      this.drawHeader('飞船驾驶舱 // 外勤调度');
+      this.drawCockpitBackground(classData);
+      this.panel(16, 80, 143, 236, { uiVariant: 'inset', fill: 'rgba(8,14,16,0.96)', stroke: classData.color, accent: classData.color, accentWidth: 4 });
+      this.text('CURRENT EMPLOYEE', 28, 101, 7, DATA.palette.muted, 'left', true, true);
+      this.text(classData.employee, 28, 130, 18, classData.color, 'left', true);
+      this.text(classData.name, 28, 151, 11, DATA.palette.paper, 'left', true);
+      this.wrap(classData.role, 28, 178, 112, 15, 10, DATA.palette.paper, 3);
+      this.text('STATUS // ON DUTY', 28, 257, 7, DATA.palette.acid, 'left', true, true);
+      this.text('意识链路稳定', 28, 278, 9, DATA.palette.muted, 'left');
+      this.drawAstronaut(246, 322, classData, 4.4, Math.PI / 2);
+      this.text('驾驶台已锁定当前打印体', 180, 424, 9, DATA.palette.muted, 'center', true);
+      const pendingContract = Boolean(this.contract && !this.contract.started);
+      this.button(25, 445, 310, 57, pendingContract ? '继续查看派遣简报  >>' : '接受随机派遣  >>', () => this.prepareContract(), { fill: DATA.palette.acid, size: 16 });
+      this.button(25, 511, 150, 35, this.save.settings.musicEnabled ? '背景音乐 // 开' : '背景音乐 // 关', () => this.setMusicEnabled(!this.save.settings.musicEnabled), { fill: '#20292c', ink: DATA.palette.paper, text: DATA.palette.paper, stroke: '#59666a', size: 9 });
+      this.text(`已完成撤离 ${this.save.successes || 0} 次`, 194, 533, 9, DATA.palette.muted, 'left', true);
+      const musicActive = this.audio && typeof this.audio.isMusicActive === 'function' && this.audio.isMusicActive();
+      const musicStatus = !this.save.settings.musicEnabled
+        ? '背景音乐 // 已关闭'
+        : (musicActive ? '背景音乐 // 播放中' : '点击屏幕启动背景音乐');
+      this.text(musicStatus, 194, 544, musicActive ? 7 : 6, musicActive ? DATA.palette.acid : DATA.palette.orange, 'left', true, true);
+      this.text('打印体损失将计入个人季度绩效', 180, 557, 8, DATA.palette.orange, 'center', true, true);
     }
 
     drawCrewPage() {
@@ -1850,27 +3000,270 @@
       this.drawHeader('飞船模块维护');
       DATA.shipModules.forEach((moduleData, index) => {
         const y = 75 + index * 94;
-        const level = this.save.modules[moduleData.id] || 0;
-        const maxed = level >= 3;
+        const level = clamp(Math.floor(Number(this.save.modules[moduleData.id]) || 0), 0, LIMITS.moduleLevel);
+        const maxed = level >= LIMITS.moduleLevel;
         const cost = maxed ? 0 : moduleData.costs[level];
         this.panel(18, y, 324, 80, { fill: '#141a1d', stroke: '#3f4744', accent: level ? DATA.palette.acid : '#55564d' });
         this.drawPixelIcon(moduleData.id, 26, y + 19, 34, level ? DATA.palette.acid : DATA.palette.muted);
         this.text(moduleData.name, 69, y + 25, 14, DATA.palette.paper, 'left', true);
-        this.text(`LV.${level}/3`, 69, y + 43, 9, DATA.palette.muted, 'left', true, true);
+        this.text(`LV.${level}/${LIMITS.moduleLevel}`, 69, y + 43, 9, maxed ? DATA.palette.acid : DATA.palette.muted, 'left', true, true);
         this.text(moduleData.desc, 69, y + 62, 9, DATA.palette.muted, 'left');
-        this.button(248, y + 17, 75, 35, maxed ? '已满级' : `¤ ${cost}`, () => this.upgradeModule(moduleData), {
+        this.button(248, y + 17, 75, 35, maxed ? '已满级' : (this.save.credits < cost ? '金币不足' : `¤ ${cost}`), () => this.upgradeModule(moduleData), {
           disabled: maxed || this.save.credits < cost,
           fill: DATA.palette.acid,
+          disabledText: maxed ? DATA.palette.acid : DATA.palette.paper,
           size: 11
         });
       });
       this.button(30, 566, 300, 45, '返回调度终端', () => { this.hqPage = 'main'; }, { fill: '#242d30', text: DATA.palette.paper, ink: DATA.palette.paper, stroke: '#59666a' });
     }
 
+    drawCockpitBackground(classData) {
+      const ctx = this.ctx;
+      ctx.fillStyle = '#12181a';
+      ctx.fillRect(0, 61, W, 500);
+      ctx.fillStyle = '#202b2d';
+      ctx.fillRect(0, 62, W, 4);
+      ctx.fillStyle = '#0a1115';
+      ctx.fillRect(164, 76, 180, 235);
+      ctx.strokeStyle = '#526463';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(168, 80, 172, 227);
+      ctx.fillStyle = 'rgba(37,89,100,0.45)';
+      ctx.fillRect(174, 86, 160, 214);
+      ctx.globalAlpha = 0.8;
+      for (let index = 0; index < 18; index += 1) {
+        const sx = 178 + (index * 43) % 148;
+        const sy = 91 + (index * 29) % 196;
+        ctx.fillStyle = index % 4 === 0 ? DATA.palette.acid : DATA.palette.paper;
+        ctx.fillRect(sx, sy, index % 5 === 0 ? 2 : 1, index % 5 === 0 ? 2 : 1);
+      }
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(81,217,209,0.4)';
+      ctx.beginPath();
+      ctx.moveTo(182, 254); ctx.lineTo(225, 216); ctx.lineTo(274, 238); ctx.lineTo(327, 178);
+      ctx.stroke();
+      ctx.fillStyle = DATA.palette.acid;
+      ctx.fillRect(222, 214, 4, 4);
+      ctx.fillRect(271, 236, 4, 4);
+      ctx.fillRect(324, 176, 4, 4);
+      this.text('NAVIGATION // ROUTE LOCKED', 178, 98, 7, DATA.palette.cyan, 'left', true, true);
+      this.text('RX // HQ-04', 178, 294, 7, DATA.palette.muted, 'left', true, true);
+      ctx.fillStyle = '#0c1112';
+      ctx.fillRect(0, 326, W, 108);
+      ctx.fillStyle = '#353d3d';
+      ctx.fillRect(0, 326, W, 5);
+      ctx.fillStyle = '#252d2d';
+      ctx.fillRect(0, 430, W, 5);
+      this.drawPipe([[0, 350], [56, 350], [72, 380], [112, 380]], '#4d5c58', 5);
+      this.drawPipe([[360, 345], [315, 345], [300, 371], [278, 371]], classData.color, 4);
+      ctx.fillStyle = '#1f292a';
+      ctx.fillRect(170, 351, 168, 63);
+      ctx.fillStyle = '#3d4b49';
+      ctx.fillRect(176, 356, 156, 4);
+      ctx.fillStyle = classData.color;
+      ctx.fillRect(183, 371, 54, 3);
+      ctx.fillRect(183, 382, 92, 3);
+      ctx.fillStyle = DATA.palette.orange;
+      ctx.fillRect(296, 371, 18, 3);
+      ctx.fillStyle = DATA.palette.acid;
+      ctx.fillRect(296, 382, 28, 3);
+      for (let index = 0; index < 9; index += 1) {
+        ctx.fillStyle = index % 3 === 0 ? DATA.palette.orange : '#66706a';
+        ctx.fillRect(20 + index * 13, 458, 7, 4);
+      }
+      ctx.fillStyle = '#0b1011';
+      ctx.fillRect(32, 475, 106, 37);
+      ctx.fillRect(221, 475, 107, 37);
+      ctx.strokeStyle = '#4c5956';
+      ctx.strokeRect(32, 475, 106, 37);
+      ctx.strokeRect(221, 475, 107, 37);
+      this.text('FLIGHT CONTROL', 40, 491, 7, DATA.palette.muted, 'left', true, true);
+      this.text('PRINT POD', 229, 491, 7, DATA.palette.muted, 'left', true, true);
+      ctx.fillStyle = classData.color;
+      ctx.fillRect(48, 500, 38, 3);
+      ctx.fillStyle = DATA.palette.acid;
+      ctx.fillRect(238, 500, 55, 3);
+    }
+
+    drawHQNav() {
+      const labels = ['档案', '活动', '派遣', '任务', '升级'];
+      const pages = ['archive', 'activity', 'main', 'tasks', 'upgrade'];
+      const ctx = this.ctx;
+      ctx.fillStyle = '#080b0c';
+      ctx.fillRect(0, 568, W, 72);
+      ctx.fillStyle = '#273033';
+      ctx.fillRect(0, 568, W, 3);
+      ctx.fillStyle = '#111819';
+      ctx.fillRect(0, 575, W, 65);
+      for (let index = 0; index < labels.length; index += 1) {
+        const x = index * 72;
+        const selected = pages[index] === this.hqPage;
+        const dispatch = index === 2;
+        ctx.fillStyle = '#050708';
+        ctx.fillRect(x + 5, 579, 62, 58);
+        ctx.fillStyle = selected ? (dispatch ? DATA.palette.acid : DATA.palette.cyan) : '#59625d';
+        ctx.fillRect(x + 4, 572, 64, 5);
+        ctx.fillStyle = selected ? (dispatch ? '#c6e84d' : '#263d40') : '#1d2728';
+        ctx.fillRect(x + 4, 577, 64, 58);
+        ctx.fillStyle = selected ? (dispatch ? DATA.palette.ink : DATA.palette.paper) : DATA.palette.paper;
+        ctx.fillRect(x + 9, 585, 3, 39);
+        ctx.fillStyle = selected ? (dispatch ? DATA.palette.ink : DATA.palette.cyan) : '#414b49';
+        ctx.fillRect(x + 57, 585, 3, 39);
+        this.text(labels[index], x + 36, 612, 14, selected ? (dispatch ? DATA.palette.ink : DATA.palette.paper) : '#c8c3aa', 'center', true);
+        this.buttons.push({
+          x, y: 568, w: 72, h: 72, disabled: false,
+          action: () => {
+            this.hqPage = pages[index];
+          }
+        });
+      }
+    }
+
+    evolutionRecipeText(classData, evolution) {
+      const requires = Array.isArray(evolution && evolution.requires) ? evolution.requires : [];
+      if (requires.length < 2) return '配方：条件待补充';
+      const names = requires.slice(0, 2).map((skillId) => {
+        const skill = (classData.cards || []).find((card) => card.id === skillId);
+        return skill ? skill.name : skillId;
+      });
+      return `配方：${names[0]} Lv.3 + ${names[1]} Lv.3`;
+    }
+
+    drawArchivePage() {
+      this.drawHeader('员工档案 // 角色资料');
+      const activeId = this.archiveClassId || this.save.selectedClass;
+      const classData = DATA.classById[activeId] || DATA.classes[0];
+      const archiveQuote = {
+        gunner: '她把每一发子弹都当成一份需要签字的报告。',
+        warrior: '他相信贴近问题，问题就会先失去行动能力。',
+        mechanic: '他坚持每台机器人都应拥有带薪维护日。'
+      }[classData.id] || classData.quote;
+      const archiveSkillNotes = {
+        gunner: ['连续弹道压制', '近距离扇面清线', '贯穿整条航线'],
+        warrior: ['扇面范围斩击', '快速追加近战攻击', '释放远距离剑气'],
+        mechanic: ['部署跟随无人机', '建立自动火力节点', '持续修复作业身体']
+      }[classData.id] || [];
+      DATA.classes.forEach((item, index) => {
+        const x = 16 + index * 110;
+        const active = item.id === classData.id;
+        this.button(x, 72, 104, 30, item.name, () => { this.archiveClassId = item.id; }, {
+          fill: active ? item.color : '#20292c', text: active ? DATA.palette.ink : DATA.palette.paper, ink: active ? DATA.palette.ink : DATA.palette.paper, stroke: active ? item.color : '#59666a', size: 10
+        });
+      });
+      const unlocked = Boolean(this.save.unlocked[classData.id]);
+      this.panel(16, 112, 328, 157, { uiVariant: 'inset', fill: '#11191b', stroke: unlocked ? classData.color : '#4a4d49', accent: unlocked ? classData.color : '#4a4d49', accentWidth: 4 });
+      this.drawAstronaut(73, 246, classData, 2.2, Math.PI / 2);
+      this.text(classData.employee, 125, 140, 20, unlocked ? classData.color : DATA.palette.muted, 'left', true);
+      this.text(classData.name, 125, 160, 12, DATA.palette.paper, 'left', true);
+      this.text('人物介绍', 125, 186, 8, DATA.palette.muted, 'left', true, true);
+      this.wrap(archiveQuote, 125, 204, 196, 15, 10, DATA.palette.paper, 3);
+      this.text('战斗风格', 125, 248, 8, DATA.palette.muted, 'left', true, true);
+      this.wrap(classData.role, 125, 263, 196, 15, 10, classData.color, 2);
+
+      this.panel(16, 280, 328, 242, { fill: '#101719', stroke: '#4d5752', accent: classData.color });
+      this.text('代表技能', 30, 303, 9, DATA.palette.muted, 'left', true, true);
+      classData.cards.slice(0, 3).forEach((card, index) => {
+        const y = 326 + index * 33;
+        this.drawPixelIcon(card.id, 30, y - 10, 23, classData.color, classData.id);
+        this.text(card.name, 59, y + 2, 11, DATA.palette.paper, 'left', true);
+        this.text(archiveSkillNotes[index] || '职业专属升级', 156, y + 2, 9, DATA.palette.muted, 'left');
+      });
+      this.text('组合技 // 两张指定技能均达到 Lv.3', 30, 420, 8, DATA.palette.muted, 'left', true, true);
+      classData.evolutions.forEach((evolution, index) => {
+        const y = 447 + index * 24;
+        this.drawPixelIcon(evolution.id, 30, y - 13, 18, DATA.palette.acid, classData.id);
+        this.text(evolution.name, 53, y, 9, DATA.palette.acid, 'left', true);
+        const recipe = this.evolutionRecipeText(classData, evolution);
+        const effect = evolution.desc || '组合效果待补充';
+        this.text(`${recipe} · ${effect}`, 53, y + 10, 6, DATA.palette.paper, 'left');
+      });
+      if (unlocked) {
+        this.button(24, 527, 312, 35, this.save.selectedClass === classData.id ? '当前出勤员工' : '设为当前员工', () => {
+          this.save.selectedClass = classData.id;
+          this.persist();
+        }, { disabled: this.save.selectedClass === classData.id, fill: classData.color, size: 11 });
+      } else {
+        this.button(24, 527, 312, 35, '档案待解锁', () => this.unlockClass(classData), { disabled: !this.canUnlock(classData).allowed, fill: '#28302f', text: DATA.palette.muted, ink: DATA.palette.muted, stroke: '#555a55', size: 11 });
+      }
+    }
+
+    drawActivityPage() {
+      this.drawHeader('活动 // 外勤出勤签到');
+      const key = this.ensureDailyState().cycleKey;
+      const activity = this.save.activity;
+      this.panel(16, 72, 328, 106, { fill: '#11191b', stroke: DATA.palette.acid, accent: DATA.palette.acid });
+      this.text('7-DAY FIELD ATTENDANCE', 30, 95, 8, DATA.palette.muted, 'left', true, true);
+      this.text(`连续签到 ${activity.streak || 0} 天`, 30, 124, 18, DATA.palette.paper, 'left', true);
+      this.text(`刷新周期 ${key} // 04:00`, 30, 149, 9, DATA.palette.muted, 'left');
+      for (let index = 0; index < 7; index += 1) {
+        const x = 18 + index * 46;
+        const claimed = (activity.claimedDays || []).includes(key) && index < ((activity.streak - 1) % 7) + 1;
+        const current = index === ((activity.streak || 1) - 1) % 7 && activity.lastClaimKey !== key;
+        this.panel(x, 193, 40, 57, { fill: claimed ? '#314329' : '#182123', stroke: current ? DATA.palette.acid : '#47514c', accent: current ? DATA.palette.acid : '#47514c', accentWidth: current ? 3 : 1 });
+        this.text(`D${index + 1}`, x + 20, 210, 8, current ? DATA.palette.acid : DATA.palette.muted, 'center', true, true);
+        this.text(`+${DATA.activityRewards[index]}`, x + 20, 235, 11, claimed ? DATA.palette.acid : DATA.palette.paper, 'center', true);
+      }
+      this.button(24, 267, 312, 42, activity.lastClaimKey === key ? '今日已签到' : '领取今日签到奖励', () => this.claimCheckIn(), { disabled: activity.lastClaimKey === key, fill: DATA.palette.acid, size: 13 });
+      this.panel(16, 329, 328, 177, { fill: '#101719', stroke: '#4d5752', accent: DATA.palette.cyan });
+      this.text('外勤公告', 30, 355, 9, DATA.palette.muted, 'left', true, true);
+      this.text('本周任务回收率持续上升', 30, 383, 13, DATA.palette.paper, 'left', true);
+      this.wrap('连续签到会提高下一次任务工资。中断签到不会影响已获得金币，但会重新计算本周奖励序列。', 30, 410, 292, 16, 10, DATA.palette.muted, 4);
+      this.text('活动奖励仅保存在本机档案', 30, 487, 8, DATA.palette.orange, 'left', true, true);
+    }
+
+    drawTasksPage() {
+      this.drawHeader('任务 // 每日绩效');
+      const daily = this.ensureDailyState();
+      this.text(`今日活跃点 ${this.dailyActivePoints()}/3`, 22, 78, 11, DATA.palette.acid, 'left', true);
+      DATA.dailyTasks.forEach((task, index) => {
+        const y = 94 + index * 92;
+        const progress = Math.min(task.target, daily.progress[task.metric] || 0);
+        const complete = daily.claimedTasks.includes(task.id);
+        this.panel(16, y, 328, 78, { fill: '#11191b', stroke: complete ? DATA.palette.acid : '#4d5752', accent: complete ? DATA.palette.acid : DATA.palette.orange });
+        this.text(task.label, 30, y + 23, 11, DATA.palette.paper, 'left', true);
+        this.text(`${progress}/${task.target}`, 320, y + 23, 9, complete ? DATA.palette.acid : DATA.palette.muted, 'right', true, true);
+        this.drawSmallBar(30, y + 35, 184, progress / task.target, complete ? DATA.palette.acid : DATA.palette.orange);
+        this.button(232, y + 33, 98, 30, complete ? '已领取' : `领取 +${task.reward}`, () => this.claimDailyTask(task.id), { disabled: complete || progress < task.target, fill: complete ? '#27342a' : DATA.palette.acid, text: complete ? DATA.palette.acid : DATA.palette.ink, ink: complete ? DATA.palette.acid : DATA.palette.ink, stroke: complete ? DATA.palette.acid : DATA.palette.acid, size: 9 });
+      });
+      this.panel(16, 386, 328, 115, { fill: '#11191b', stroke: DATA.palette.cyan, accent: DATA.palette.cyan });
+      this.text('活跃度阶段奖励', 30, 411, 9, DATA.palette.muted, 'left', true, true);
+      DATA.activityMilestones.forEach((milestone, index) => {
+        const x = 30 + index * 145;
+        const complete = daily.claimedMilestones.includes(milestone.id);
+        this.text(`${milestone.points} 项`, x, 440, 10, complete ? DATA.palette.acid : DATA.palette.paper, 'left', true);
+        this.button(x, 454, 120, 30, complete ? '已领取' : `领取 +${milestone.reward}`, () => this.claimActivityMilestone(milestone.id), { disabled: complete || this.dailyActivePoints() < milestone.points, fill: complete ? '#27342a' : '#202b2d', text: complete ? DATA.palette.acid : DATA.palette.paper, ink: complete ? DATA.palette.acid : DATA.palette.paper, stroke: DATA.palette.cyan, size: 9 });
+      });
+      this.text('每日任务将在 04:00 自动刷新', 30, 487, 8, DATA.palette.muted, 'left', true, true);
+    }
+
+    drawUpgradePage() {
+      this.drawHeader('升级 // 飞船模块');
+      DATA.shipModules.forEach((moduleData, index) => {
+        const y = 72 + index * 84;
+        const level = clamp(Math.floor(Number(this.save.modules[moduleData.id]) || 0), 0, LIMITS.moduleLevel);
+        const maxed = level >= LIMITS.moduleLevel;
+        const cost = maxed ? 0 : moduleData.costs[level];
+        this.panel(16, y, 328, 71, { fill: '#11191b', stroke: level ? DATA.palette.acid : '#4d5752', accent: level ? DATA.palette.acid : '#59625d' });
+        this.drawPixelIcon(moduleData.id, 28, y + 19, 28, level ? DATA.palette.acid : DATA.palette.muted);
+        this.text(moduleData.name, 67, y + 23, 12, DATA.palette.paper, 'left', true);
+        this.text(moduleData.desc, 67, y + 43, 8, DATA.palette.muted, 'left');
+        this.text(`LV ${level}/${LIMITS.moduleLevel}`, 67, y + 59, 8, maxed ? DATA.palette.acid : (level ? DATA.palette.acid : DATA.palette.muted), 'left', true, true);
+        this.button(250, y + 18, 80, 32, maxed ? '已满级' : (this.save.credits < cost ? '金币不足' : `升级 ${cost}`), () => this.upgradeModule(moduleData), {
+          disabled: maxed || this.save.credits < cost,
+          fill: DATA.palette.acid,
+          disabledText: maxed ? DATA.palette.acid : DATA.palette.paper,
+          size: 9
+        });
+      });
+      this.text('功能升级只影响未来任务，不改变随机派遣结果', 180, 501, 8, DATA.palette.muted, 'center', true);
+    }
+
     drawBriefing() {
       this.drawStarfield();
       this.drawHeader('强制任务简报');
       const { planet, mission, anomaly } = this.contract;
+      const anomalyInfo = this.anomalyDetails(anomaly);
       const scanner = this.save.modules.scanner || 0;
       this.hazardStripe(18, 72, 324, 7, DATA.palette.orange);
       this.text('RANDOM ASSIGNMENT // NO REFRESH', 180, 96, 8, DATA.palette.orange, 'center', true, true);
@@ -1898,23 +3291,97 @@
       this.text(mission.name, 79, 369, 17, DATA.palette.paper, 'left', true);
       this.wrap(mission.brief, 79, 391, 236, 14, 10, DATA.palette.muted, 2);
 
-      this.panel(22, 421, 316, 82, { fill: '#15181b', stroke: '#55544e', accent: scanner > 0 ? planet.accent : '#55554e' });
+      this.panel(22, 421, 316, 96, { fill: '#15181b', stroke: '#55544e', accent: scanner > 0 ? planet.accent : '#55554e' });
       this.text('ANOMALY // 异常规则', 41, 444, 8, DATA.palette.muted, 'left', true, true);
-      if (scanner > 0) {
-        this.drawAtlasIcon(anomaly.id, 39, 456, 28);
-        this.text(anomaly.name, 76, 474, 15, planet.accent, 'left', true);
-        if (scanner > 1) this.text(anomaly.effect, 151, 474, 9, DATA.palette.paper, 'left');
+      if (scanner >= 0) {
+        this.drawAtlasIcon(anomalyInfo.id, 39, 456, 28);
+        this.text(anomalyInfo.name, 76, 470, 14, planet.accent, 'left', true);
+        this.wrap(`影响：${anomalyInfo.effect}`, 76, 486, 236, 10, 8, DATA.palette.paper, 1);
+        if (scanner > 1) this.wrap(`建议：${anomalyInfo.tip}`, 76, 500, 236, 9, 7, DATA.palette.muted, 1);
       } else {
         this.drawAtlasIcon('lock', 40, 456, 27);
-        this.text('信号受阻 // 降落后确认', 76, 474, 12, DATA.palette.orange, 'left', true);
+        this.text('信号受阻 // 降落后确认', 76, 469, 11, DATA.palette.orange, 'left', true);
+        this.text('着陆后观察预警并保持移动', 76, 490, 8, DATA.palette.muted, 'left');
       }
 
-      this.button(25, 527, 310, 56, '确认打印并降落  ▼', () => this.beginRun(), { fill: DATA.palette.acid, size: 16 });
+      this.button(25, 527, 145, 56, '返回驾驶舱', () => {
+        this.returnToHQ();
+      }, { fill: '#242d30', text: DATA.palette.paper, ink: DATA.palette.paper, stroke: '#59666a', size: 11 });
+      this.button(180, 527, 155, 56, '确认降落  ▼', () => this.beginRun(), { fill: DATA.palette.acid, size: 12 });
       this.text('任务不可刷新 // 合同编号自动归档', 180, 613, 8, DATA.palette.muted, 'center', true, true);
     }
 
     drawPlanetMark(x, y, planet) {
-      if (this.drawAtlasIcon(planet.id === 'rust' ? 'planet_rust' : 'planet_spore', x - 39, y - 39, 78)) return;
+      if (planet && planet.id === 'moon') {
+        const cover = this.assetImage('planet.moon.cover') || this.assetImage('planet.moon.icon');
+        if (cover) {
+          this.ctx.drawImage(cover, Math.round(x - 39), Math.round(y - 39), 78, 78);
+          return true;
+        }
+      }
+      if (planet && planet.id === 'moon') {
+        const ctx = this.ctx;
+        const scale = 78 / 32;
+        const rect = (left, top, width, height, color) => {
+          ctx.fillStyle = color;
+          ctx.fillRect(
+            Math.round(left * scale),
+            Math.round(top * scale),
+            Math.max(1, Math.round(width * scale)),
+            Math.max(1, Math.round(height * scale))
+          );
+        };
+        ctx.save();
+        ctx.translate(Math.round(x - 39), Math.round(y - 39));
+        ctx.fillStyle = '#0d1215';
+        ctx.beginPath();
+        ctx.moveTo(8 * scale, 1 * scale);
+        ctx.lineTo(24 * scale, 1 * scale);
+        ctx.lineTo(28 * scale, 5 * scale);
+        ctx.lineTo(30 * scale, 11 * scale);
+        ctx.lineTo(31 * scale, 21 * scale);
+        ctx.lineTo(25 * scale, 28 * scale);
+        ctx.lineTo(19 * scale, 30 * scale);
+        ctx.lineTo(9 * scale, 30 * scale);
+        ctx.lineTo(3 * scale, 27 * scale);
+        ctx.lineTo(1 * scale, 23 * scale);
+        ctx.lineTo(1 * scale, 12 * scale);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#4e5b5f';
+        ctx.beginPath();
+        ctx.moveTo(9 * scale, 3 * scale);
+        ctx.lineTo(23 * scale, 3 * scale);
+        ctx.lineTo(27 * scale, 7 * scale);
+        ctx.lineTo(29 * scale, 20 * scale);
+        ctx.lineTo(23 * scale, 27 * scale);
+        ctx.lineTo(10 * scale, 29 * scale);
+        ctx.lineTo(4 * scale, 24 * scale);
+        ctx.lineTo(3 * scale, 13 * scale);
+        ctx.lineTo(7 * scale, 5 * scale);
+        ctx.closePath();
+        ctx.fill();
+        rect(7, 7, 6, 5, '#243034');
+        rect(8, 8, 4, 2, '#5e6c6e');
+        rect(19, 6, 6, 4, '#5e6c6e');
+        rect(20, 7, 4, 3, '#243034');
+        rect(12, 13, 7, 5, '#243034');
+        rect(13, 14, 5, 3, '#3a484c');
+        rect(23, 16, 5, 6, '#243034');
+        rect(6, 21, 5, 4, '#5e6c6e');
+        rect(16, 23, 6, 5, '#243034');
+        rect(7, 18, 3, 2, '#53dbd3');
+        rect(10, 18, 3, 2, '#53dbd3');
+        rect(13, 17, 3, 2, '#53dbd3');
+        rect(16, 17, 3, 2, '#53dbd3');
+        rect(19, 16, 3, 2, '#53dbd3');
+        rect(22, 8, 3, 3, '#aafff3');
+        rect(5, 22, 3, 3, '#aafff3');
+        ctx.restore();
+        return true;
+      }
+      const iconId = planet.id === 'rust' ? 'planet_rust' : (planet.id === 'spore' ? 'planet_spore' : 'planet_moon');
+      if (this.drawAtlasIcon(iconId, x - 39, y - 39, 78)) return;
       const ctx = this.ctx;
       ctx.save();
       ctx.translate(x, y);
@@ -1944,6 +3411,7 @@
       this.drawHUD();
       if (this.notice) this.drawNotice();
       if (this.save.firstRun) this.drawTutorial();
+      if (this.state === 'playing' && !this.save.firstRun) this.drawExitButton();
       if (this.flash > 0) {
         ctx.globalAlpha = this.flash * 0.5;
         ctx.fillStyle = this.player.hp > 0 ? DATA.palette.paper : DATA.palette.danger;
@@ -1981,6 +3449,7 @@
       this.drawCache();
       if (this.world.missionComplete) this.drawExtraction();
       for (const hazard of this.world.hazards) this.drawHazard(hazard);
+      this.drawWorldVfx('under');
       for (const pickup of this.world.pickups) this.drawPickup(pickup);
       for (const turret of this.world.turrets) this.drawTurret(turret);
 
@@ -1994,6 +3463,11 @@
           this.drawCompanions(screen.x, screen.y);
         } else this.drawEnemy(actor.value);
       }
+      // Character VFX are rendered after actors and before projectiles so
+      // the transparent action frame stays clean and the effect can overlap
+      // the astronaut without being baked into the sprite sheet.
+      this.drawCharacterVfx();
+      this.drawWorldVfx('over');
       for (const projectile of this.world.projectiles) this.drawProjectile(projectile);
       for (const projectile of this.world.enemyProjectiles) this.drawEnemyProjectile(projectile);
       for (const particle of this.world.particles) this.drawParticle(particle);
@@ -2065,13 +3539,23 @@
         ctx.fillRect(Math.round(x - 6 * s), Math.round(y - 12 * s), Math.round(12 * s), Math.round(13 * s));
         ctx.fillStyle = planet.accent;
         ctx.fillRect(Math.round(x - 2 * s), Math.round(y - 10 * s), Math.max(1, Math.round(2 * s)), Math.round(5 * s));
-      } else {
+      } else if (this.contract.planet.id === 'spore') {
         ctx.fillStyle = prop.kind % 2 ? '#47315a' : '#3b2949';
         ctx.beginPath();
         ctx.arc(x, y - 6 * s, 7 * s, 0, TAU);
         ctx.fill();
         ctx.fillStyle = planet.accent;
         ctx.fillRect(Math.round(x - 2 * s), Math.round(y - 11 * s), Math.round(4 * s), Math.round(4 * s));
+        ctx.fillStyle = '#7e4d9e';
+        ctx.fillRect(Math.round(x - 9 * s), Math.round(y - 4 * s), Math.round(3 * s), Math.round(8 * s));
+      } else {
+        // Moon props should never fall back to the old triangle placeholder.
+        // Keep a small, neutral pixel debris mark if the dedicated image is
+        // unavailable so a failed optional asset cannot resemble a UI icon.
+        ctx.fillStyle = prop.kind % 2 ? '#42565c' : '#34464c';
+        ctx.fillRect(Math.round(x - 9 * s), Math.round(y - 4 * s), Math.round(18 * s), Math.max(2, Math.round(7 * s)));
+        ctx.fillStyle = planet.accent;
+        ctx.fillRect(Math.round(x - 5 * s), Math.round(y - 6 * s), Math.max(2, Math.round(4 * s)), Math.max(1, Math.round(2 * s)));
       }
       ctx.globalAlpha = 1;
     }
@@ -2083,12 +3567,10 @@
           const screen = this.worldToScreen(item);
           if (screen.x < -70 || screen.x > W + 70 || screen.y < -80 || screen.y > H + 80) continue;
           if (item.dead) {
-            if (!(this.contract.planet.id === 'rust' && this.drawAnchoredObject('rust_nest', 'destroyed', screen.x, screen.y, 1, item.index * 0.1))) {
-              this.ctx.fillStyle = '#171011';
-              this.ctx.beginPath();
-              this.ctx.ellipse(screen.x, screen.y, 31, 13, 0, 0, TAU);
-              this.ctx.fill();
+            if (this.contract.planet.id === 'rust') {
+              this.drawAnchoredObject('rust_nest', 'destroyed', screen.x, screen.y, 1, item.index * 0.1);
             }
+            continue;
           } else {
             this.drawNest(screen.x, screen.y, item);
             this.drawSmallBar(screen.x - 28, screen.y - 48, 56, item.hp / item.maxHp, DATA.palette.danger);
@@ -2110,31 +3592,67 @@
 
     drawNest(x, y, item) {
       if (this.contract.planet.id === 'rust' && this.drawAnchoredObject('rust_nest', 'idle', x, y, 1, item.index * 0.17)) return;
+      if (this.contract.planet.id === 'spore' && this.drawAnchoredObject('spore_nest', 'idle', x, y, 1, item.index * 0.17)) return;
+      if (this.contract.planet.id === 'moon' && this.drawAnchoredObject('moon_nest', 'idle', x, y, 1, item.index * 0.17)) return;
       const ctx = this.ctx;
       const pulse = Math.sin(this.now * 4 + item.index) * 2;
       ctx.fillStyle = '#08090a';
       ctx.beginPath();
       ctx.ellipse(x, y + 4, 33, 13, 0, 0, TAU);
       ctx.fill();
-      ctx.fillStyle = this.contract.planet.id === 'rust' ? '#783f31' : '#603773';
-      ctx.beginPath();
-      ctx.moveTo(x - 27, y + 2);
-      ctx.lineTo(x - 18, y - 26 - pulse);
-      ctx.lineTo(x - 5, y - 18);
-      ctx.lineTo(x + 3, y - 37 - pulse);
-      ctx.lineTo(x + 14, y - 18);
-      ctx.lineTo(x + 28, y + 2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = this.contract.planet.accent;
-      ctx.fillRect(x - 4, y - 22 - pulse, 8, 11);
+      if (this.contract.planet.id === 'spore') {
+        // Stepped fungal growth: keep a broad, readable silhouette without
+        // the old triangular placeholder used by non-rust planets.
+        ctx.fillStyle = '#3b2949';
+        ctx.fillRect(x - 27, y - 3, 54, 8);
+        ctx.fillRect(x - 21, y - 15 - pulse, 42, 13);
+        ctx.fillRect(x - 13, y - 25 - pulse, 26, 11);
+        ctx.fillStyle = '#7e4d9e';
+        ctx.fillRect(x - 17, y - 18 - pulse, 7, 5);
+        ctx.fillRect(x + 8, y - 21 - pulse, 6, 6);
+        ctx.fillStyle = this.contract.planet.accent;
+        ctx.fillRect(x - 4, y - 27 - pulse, 8, 5);
+      } else {
+        // Low-gravity moon nest: blocky regolith tiers and a cold energy
+        // core, matching the moon palette while never falling back to a
+        // triangle or UI marker.
+        ctx.fillStyle = '#2f4248';
+        ctx.fillRect(x - 28, y - 3, 56, 8);
+        ctx.fillRect(x - 21, y - 16 - pulse, 42, 14);
+        ctx.fillRect(x - 12, y - 26 - pulse, 24, 11);
+        ctx.fillStyle = '#52666b';
+        ctx.fillRect(x - 16, y - 19 - pulse, 8, 5);
+        ctx.fillRect(x + 9, y - 13 - pulse, 7, 5);
+        ctx.fillStyle = this.contract.planet.accent;
+        ctx.fillRect(x - 4, y - 28 - pulse, 8, 6);
+      }
     }
 
     drawBeacon(x, y, item, active) {
       const ctx = this.ctx;
+      const inside = dist(item, this.player) < (item.radius || 72);
+      const rangeColor = inside ? DATA.palette.acid : DATA.palette.cyan;
+      ctx.save();
+      ctx.globalAlpha = inside ? 0.25 : 0.13;
+      ctx.fillStyle = rangeColor;
+      ctx.beginPath();
+      ctx.ellipse(x, y + 4, 48, 23, 0, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = inside ? 0.9 : 0.52;
+      ctx.strokeStyle = rangeColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(x, y + 4, 48, 23, 0, 0, TAU);
+      ctx.stroke();
+      for (let tick = 0; tick < 8; tick += 1) {
+        const angle = this.now * 0.65 + tick * TAU / 8;
+        const tx = x + Math.cos(angle) * 48;
+        const ty = y + 4 + Math.sin(angle) * 23;
+        ctx.fillRect(Math.round(tx - 1), Math.round(ty - 1), 3, 3);
+      }
+      ctx.restore();
       const state = item.active ? 'completed' : (active ? 'charging' : 'inactive');
       if (this.drawAnchoredObject('company_beacon', state, x, y, 1, item.index * 0.13)) {
-        if (item.charge > 0 && !item.active) this.drawSmallBar(x - 30, y - 45, 60, item.charge / item.required, DATA.palette.acid);
         return;
       }
       ctx.strokeStyle = active ? DATA.palette.acid : '#4e5350';
@@ -2146,7 +3664,22 @@
       ctx.fillRect(x - 8, y - 24, 16, 28);
       ctx.fillStyle = active ? DATA.palette.acid : '#66685f';
       ctx.fillRect(x - 3, y - 20, 6, 18);
-      if (item.charge > 0) this.drawSmallBar(x - 30, y - 38, 60, item.charge / item.required, DATA.palette.acid);
+    }
+
+    drawBeaconOverlay() {
+      const objective = this.world && this.world.objective;
+      if (!objective || objective.id !== 'beacons') return;
+      const item = objective.items[objective.current] || objective.items[objective.items.length - 1];
+      if (!item) return;
+      const screen = this.worldToScreen(item);
+      if (screen.x < -90 || screen.x > W + 90 || screen.y < -90 || screen.y > H + 90) return;
+      const inside = dist(item, this.player) < (item.radius || 72);
+      const color = inside ? DATA.palette.acid : DATA.palette.cyan;
+      const ratio = clamp(item.charge / item.required, 0, 1);
+      this.ctx.fillStyle = 'rgba(7,10,12,0.94)';
+      this.ctx.fillRect(Math.round(screen.x - 56), Math.round(screen.y - 72), 112, 23);
+      this.drawProgressBar(screen.x - 52, screen.y - 68, 104, ratio, 'mission', 10);
+      this.text(`${Math.floor(ratio * 100)}%`, screen.x, screen.y - 52, 8, color, 'center', true, true);
     }
 
     drawDrill(x, y, item) {
@@ -2176,19 +3709,29 @@
       if (cache.collected) return;
       const screen = this.worldToScreen(cache);
       if (screen.x < -60 || screen.x > W + 60 || screen.y < -80 || screen.y > H + 80) return;
-      const available = cache.eliteDefeated;
-      if (this.drawAnchoredObject('reward_cache', available ? 'ready' : 'locked', screen.x, screen.y, 1)) return;
+      if (this.drawAnchoredObject('reward_cache', 'ready', screen.x, screen.y, 1)) {
+        if (dist(cache, this.player) < 118) this.drawCacheHint(screen.x, screen.y);
+        return;
+      }
       const ctx = this.ctx;
       ctx.fillStyle = '#080a0b';
       ctx.beginPath();
       ctx.ellipse(screen.x, screen.y + 5, 24, 9, 0, 0, TAU);
       ctx.fill();
-      ctx.fillStyle = available ? DATA.palette.acid : '#51564d';
+      ctx.fillStyle = DATA.palette.acid;
       ctx.fillRect(screen.x - 20, screen.y - 18, 40, 22);
       ctx.fillStyle = '#1b211e';
       ctx.fillRect(screen.x - 16, screen.y - 14, 32, 14);
-      ctx.fillStyle = available ? DATA.palette.orange : '#77786d';
+      ctx.fillStyle = DATA.palette.orange;
       ctx.fillRect(screen.x - 3, screen.y - 16, 6, 17);
+      if (dist(cache, this.player) < 118) this.drawCacheHint(screen.x, screen.y);
+    }
+
+    drawCacheHint(x, y) {
+      const ctx = this.ctx;
+      ctx.fillStyle = 'rgba(7,10,12,0.9)';
+      ctx.fillRect(Math.round(x - 63), Math.round(y - 48), 126, 13);
+      this.text('奖励资源箱 // 靠近领取', x, y - 38, 7, DATA.palette.acid, 'center', true);
     }
 
     drawExtraction() {
@@ -2220,18 +3763,31 @@
     drawHazard(hazard) {
       const screen = this.worldToScreen(hazard);
       const ctx = this.ctx;
+      if (hazard.visualOnly) return;
       if (hazard.type === 'meteor') {
+        // Last-resort warning remains a segmented scan with a trajectory, not
+        // the old ellipse-plus-cross placeholder.
+        const pulse = Math.floor(this.now * 12) % 6;
+        ctx.globalAlpha = hazard.exploded ? clamp(hazard.life * 2, 0, 1) : 0.72;
         ctx.strokeStyle = hazard.exploded ? DATA.palette.orange : DATA.palette.danger;
         ctx.lineWidth = 2;
-        ctx.globalAlpha = hazard.exploded ? clamp(hazard.life * 2, 0, 1) : 0.5 + Math.sin(this.now * 15) * 0.2;
+        for (let segment = 0; segment < 8; segment += 1) {
+          if ((segment + pulse) % 3 === 0) continue;
+          const angle = segment / 8 * TAU;
+          const inner = hazard.radius * 0.55;
+          const outer = hazard.radius * 0.9;
+          ctx.beginPath();
+          ctx.moveTo(screen.x + Math.cos(angle) * inner, screen.y + Math.sin(angle) * inner * 0.46);
+          ctx.lineTo(screen.x + Math.cos(angle) * outer, screen.y + Math.sin(angle) * outer * 0.46);
+          ctx.stroke();
+        }
+        ctx.fillStyle = DATA.palette.orange;
+        ctx.fillRect(Math.round(screen.x - 2), Math.round(screen.y - 2), 4, 4);
+        ctx.strokeStyle = DATA.palette.orange;
         ctx.beginPath();
-        ctx.ellipse(screen.x, screen.y, hazard.radius, hazard.radius * 0.45, 0, 0, TAU);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(screen.x - 6, screen.y);
-        ctx.lineTo(screen.x + 6, screen.y);
-        ctx.moveTo(screen.x, screen.y - 6);
-        ctx.lineTo(screen.x, screen.y + 6);
+        ctx.moveTo(screen.x + 25, screen.y - 24);
+        ctx.lineTo(screen.x + 34, screen.y - 30);
+        ctx.lineTo(screen.x + 41, screen.y - 35);
         ctx.stroke();
       } else {
         ctx.fillStyle = '#6f3a85';
@@ -2312,52 +3868,81 @@
       }
     }
 
+    drawEnemySprite(enemy, x, y, size) {
+      const direction = this.direction4(enemy.vx, enemy.vy);
+      const variantKey = enemy.elite
+        ? (enemy.dangerPulse > 0 && enemy.eliteDangerVisual && this.assetImage(enemy.eliteDangerVisual)
+          ? enemy.eliteDangerVisual : enemy.eliteVisual)
+        : (enemy.dangerPulse > 0 && enemy.dangerVisual && this.assetImage(enemy.dangerVisual)
+          ? enemy.dangerVisual : null);
+      const variantImage = variantKey && this.assetImage(variantKey);
+      if (variantImage) {
+        const frameWidth = enemy.elite ? 96 : 64;
+        const frameHeight = enemy.elite ? 96 : 64;
+        const frame = direction;
+        return this.drawFrame(variantKey, frameWidth, frameHeight, frame,
+          x - size / 2, y - (enemy.elite ? 82 : 56) * (size / frameWidth), size, size);
+      }
+      const moving = Math.hypot(enemy.vx || 0, enemy.vy || 0) > 4;
+      const state = enemy.actionState === 'attack' || enemy.actionState === 'hit' || enemy.actionState === 'death'
+        ? enemy.actionState
+        : (moving ? 'walk' : 'idle');
+      const spec = this.enemyActionSpec(enemy, state);
+      const frame = spec
+        ? direction * spec.frameCount + Math.min(spec.frameCount - 1, spec.loop ? Math.floor(enemy.actionElapsed * spec.fps) % spec.frameCount : Math.floor(enemy.actionElapsed * spec.fps))
+        : direction;
+      const key = spec ? spec.key : enemy.visual;
+      const drawn = spec
+        ? this.drawFrame(key, spec.frameWidth, spec.frameHeight, frame, x - size / 2, y - size * 0.875, size, size)
+        : this.drawFrame(key, 64, 64, frame, x - size / 2, y - size * 0.875, size, size);
+      return drawn;
+    }
+
+    drawEnemyTelegraph(enemy, x, y) {
+      // Danger state is represented by a full-body sprite variant. Keep this
+      // hook for old callers, but never draw geometric red boxes/cones.
+      return Boolean(enemy && enemy.dangerPulse > 0);
+    }
+
     drawEnemy(enemy) {
       const screen = this.worldToScreen(enemy);
-      if (screen.x < -50 || screen.x > W + 50 || screen.y < -60 || screen.y > H + 60) return;
+      if (screen.x < -80 || screen.x > W + 80 || screen.y < -105 || screen.y > H + 90) return;
       const ctx = this.ctx;
       const planet = this.contract.planet;
       const x = Math.round(screen.x);
       const y = Math.round(screen.y);
       ctx.fillStyle = '#050708';
       ctx.beginPath();
-      ctx.ellipse(x, y + 5, enemy.radius, enemy.radius * 0.38, 0, 0, TAU);
+      const shadowRadius = enemy.elite ? 36 : enemy.radius;
+      ctx.ellipse(x, y + 5, shadowRadius, shadowRadius * 0.38, 0, 0, TAU);
       ctx.fill();
       const flash = enemy.hitFlash > 0;
       if (enemy.elite) {
-        ctx.fillStyle = flash ? DATA.palette.paper : planet.accent;
-        ctx.beginPath();
-        ctx.moveTo(x - 27, y + 2);
-        ctx.lineTo(x - 20, y - 26);
-        ctx.lineTo(x - 8, y - 17);
-        ctx.lineTo(x, y - 37);
-        ctx.lineTo(x + 10, y - 17);
-        ctx.lineTo(x + 26, y - 24);
-        ctx.lineTo(x + 29, y + 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = '#0a0b0c';
-        ctx.fillRect(x - 12, y - 13, 8, 6);
-        ctx.fillRect(x + 6, y - 13, 8, 6);
-        this.drawSmallBar(x - 30, y - 48, 60, enemy.hp / enemy.maxHp, DATA.palette.danger);
+        const eliteImage = (enemy.eliteVisual && this.assetImage(enemy.eliteVisual)) || (enemy.visual && this.assetImage(enemy.visual));
+        const gait = Math.sin(enemy.animTime * 0.7) * 1.1;
+        if (eliteImage) {
+          const size = 96;
+          ctx.save();
+          ctx.translate(0, Math.round(gait));
+          this.drawEnemySprite(enemy, x, y, size);
+          if (flash) {
+            ctx.globalAlpha = 0.68;
+            ctx.globalCompositeOperation = 'lighter';
+            this.drawEnemySprite(enemy, x, y, size);
+          }
+          ctx.restore();
+        }
+        this.drawSmallBar(x - 38, y - 101, 76, enemy.hp / enemy.maxHp, DATA.palette.danger);
         return;
       }
-      if (planet.id === 'rust' && this.assetImage(`enemy.${enemy.type}`)) {
-        const frame = this.direction4(enemy.vx, enemy.vy);
-        this.drawFrame(`enemy.${enemy.type}`, 64, 64, frame, x - 32, y - 56, 64, 64);
+      if (enemy.visual && this.assetImage(enemy.visual)) {
+        this.drawEnemySprite(enemy, x, y, 64);
         if (flash) {
           ctx.save();
           ctx.globalAlpha = 0.62;
           ctx.globalCompositeOperation = 'lighter';
-          this.drawFrame(`enemy.${enemy.type}`, 64, 64, frame, x - 32, y - 56, 64, 64);
+          this.drawEnemySprite(enemy, x, y, 64);
           ctx.restore();
-        }
-        if (enemy.type === 'charger' && enemy.chargeTimer < 0.55 && enemy.chargeTimer > 0) {
-          ctx.strokeStyle = DATA.palette.danger;
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(x, y, enemy.radius + 6, 0, TAU);
-          ctx.stroke();
         }
         return;
       }
@@ -2375,14 +3960,15 @@
         ctx.fillStyle = planet.accent;
         ctx.fillRect(x - 3, y - enemy.radius + 3, 6, 4);
       } else {
-        ctx.fillStyle = flash ? DATA.palette.paper : (enemy.type === 'bloater' ? '#7a4196' : '#523069');
+        const isMoon = planet.id === 'moon';
+        ctx.fillStyle = flash ? DATA.palette.paper : (enemy.type === 'bloater' ? (isMoon ? '#506f87' : '#7a4196') : (isMoon ? '#314d59' : '#523069'));
         ctx.beginPath();
         ctx.arc(x, y - enemy.radius / 2, enemy.radius, 0, TAU);
         ctx.fill();
         ctx.fillStyle = planet.accent;
         ctx.fillRect(x - 5, y - enemy.radius / 2 - 4, 3, 3);
         ctx.fillRect(x + 3, y - enemy.radius / 2 - 4, 3, 3);
-        ctx.strokeStyle = '#402551';
+        ctx.strokeStyle = isMoon ? '#273f47' : '#402551';
         ctx.beginPath();
         ctx.moveTo(x - 5, y + 2);
         ctx.lineTo(x - 9, y + 9);
@@ -2390,18 +3976,30 @@
         ctx.lineTo(x + 9, y + 9);
         ctx.stroke();
       }
-      if (enemy.type === 'charger' && enemy.chargeTimer < 0.55 && enemy.chargeTimer > 0) {
-        ctx.strokeStyle = DATA.palette.danger;
-        ctx.beginPath();
-        ctx.arc(x, y, enemy.radius + 6, 0, TAU);
-        ctx.stroke();
-      }
     }
 
     drawAstronaut(x, y, classData, scale, angle) {
       const ctx = this.ctx;
-      if (classData.id === 'gunner' && this.assetImage('character.gunner_mia')) {
-        const frame = this.direction4(Math.cos(angle), Math.sin(angle));
+      const characterKey = classData.id === 'gunner' ? 'character.gunner_mia' : (classData.id === 'warrior' ? 'character.warrior_kade' : 'character.mechanic_locke');
+      if (this.assetImage(characterKey)) {
+        const hasRuntimePlayer = Boolean(this.player && this.world && (this.state === 'playing' || this.state === 'levelup') && this.player.classId === classData.id);
+        const moving = hasRuntimePlayer && this.player.moving;
+        const actionState = hasRuntimePlayer ? this.player.actionState : 'idle';
+        const actionSkill = hasRuntimePlayer ? this.player.actionSkill : null;
+        const actionElapsed = hasRuntimePlayer ? this.player.actionElapsed : 0;
+        const actionDirection = hasRuntimePlayer && (actionState === 'attack' || actionState === 'skill') && this.player.actionDirection
+          ? this.player.actionDirection
+          : { x: Math.cos(angle), y: Math.sin(angle) };
+        const frame = this.direction4(actionDirection.x, actionDirection.y);
+        const actionSpec = hasRuntimePlayer
+          ? (actionState === 'skill'
+            ? this.characterActionSpec(classData.id, 'skill', actionSkill)
+            : (actionState === 'attack'
+              ? this.characterActionSpec(classData.id, 'attack')
+              : (moving ? this.characterActionSpec(classData.id, 'walk') : null)))
+          : null;
+        const actionAvailable = Boolean(actionSpec && this.assetImage(actionSpec.key));
+        const bob = !actionAvailable && moving ? Math.round(Math.sin(this.player.movePhase || this.now * 6) * 1.2) : 0;
         ctx.save();
         ctx.globalAlpha = 0.52;
         ctx.fillStyle = '#030506';
@@ -2409,14 +4007,22 @@
         ctx.ellipse(Math.round(x), Math.round(y + scale * 2), 11 * scale, 4 * scale, 0, 0, TAU);
         ctx.fill();
         ctx.globalAlpha = this.player && this.player.invuln > 0 && Math.floor(this.now * 18) % 2 ? 0.55 : 1;
-        this.drawFrame('character.gunner_mia', 64, 64, frame, x - 32 * scale, y - 56 * scale, 64 * scale, 64 * scale);
+        const actionDrawn = actionAvailable && this.characterActionFrame(classData, actionState, actionSkill, frame, actionElapsed, x, y, scale);
+        if (!actionDrawn) this.drawFrame(characterKey, 64, 64, frame, x - 32 * scale, y - 56 * scale + bob, 64 * scale, 64 * scale);
+        if (!actionDrawn) {
+          ctx.globalAlpha = 0.7;
+          ctx.fillStyle = classData.color;
+          const footShift = moving ? Math.sin((this.player.movePhase || this.now * 6) + Math.PI) * 1.2 : 0;
+          ctx.fillRect(Math.round(x - 7 * scale + footShift), Math.round(y - 2 * scale), Math.max(1, Math.round(3 * scale)), Math.max(1, Math.round(2 * scale)));
+          ctx.fillRect(Math.round(x + 4 * scale - footShift), Math.round(y - 2 * scale), Math.max(1, Math.round(3 * scale)), Math.max(1, Math.round(2 * scale)));
+        }
         ctx.restore();
         return;
       }
       ctx.save();
       ctx.translate(Math.round(x), Math.round(y));
       ctx.scale(scale, scale);
-      const bob = Math.sin(this.now * 6) * 0.5;
+      const bob = Math.sin((this.player && this.player.movePhase) || this.now * 6) * 0.8;
       ctx.fillStyle = 'rgba(0,0,0,0.62)';
       ctx.beginPath();
       ctx.ellipse(0, 6, 11, 4, 0, 0, TAU);
@@ -2517,13 +4123,6 @@
         ctx.beginPath();
         ctx.arc(screen.x, screen.y, particle.range * (1 - alpha * 0.12), particle.angle - 0.65, particle.angle + 0.65);
         ctx.stroke();
-      } else if (particle.type === 'rail') {
-        ctx.strokeStyle = particle.color;
-        ctx.lineWidth = 4 + alpha * 7;
-        ctx.beginPath();
-        ctx.moveTo(screen.x, screen.y);
-        ctx.lineTo(screen.x + Math.cos(particle.angle) * 520, screen.y + Math.sin(particle.angle) * 520);
-        ctx.stroke();
       } else if (particle.type === 'arc') {
         const end = this.worldToScreen({ x: particle.x2, y: particle.y2 });
         ctx.strokeStyle = particle.color;
@@ -2559,6 +4158,45 @@
       return true;
     }
 
+    drawExitButton() {
+      this.button(270, 132, 80, 24, '退出', () => this.openExitConfirm(), {
+        buttonAsset: 'ui.exit.return_hq',
+        nineSliceInset: 8,
+        fill: '#20292c',
+        text: DATA.palette.paper,
+        ink: DATA.palette.paper,
+        stroke: DATA.palette.cyan,
+        size: 9
+      });
+    }
+
+    drawExitModal() {
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.fillStyle = 'rgba(2,5,7,0.78)';
+      ctx.fillRect(0, 0, W, H);
+      const panelImage = this.assetImage('ui.exit.warning_panel');
+      if (panelImage) {
+        this.drawNineSlice(panelImage, 40, 206, 280, 196, 8);
+      } else {
+        this.panel(40, 206, 280, 196, { uiVariant: 'inset', fill: '#0c1619', stroke: DATA.palette.danger, accent: DATA.palette.cyan });
+      }
+      const warningIcon = this.assetImage('ui.exit.loss_icon');
+      if (warningIcon) ctx.drawImage(warningIcon, 58, 226, 32, 32);
+      this.text('退出外勤？', 180, 241, 17, DATA.palette.danger, 'center', true);
+      this.text('退出将失去未撤离的额外战利品', 180, 276, 10, DATA.palette.paper, 'center', true);
+      this.text('保底工资与货舱保护按失败结算规则保留', 180, 298, 8, DATA.palette.muted, 'center');
+      this.button(54, 337, 118, 36, '继续任务', () => this.cancelExitConfirm(), {
+        buttonAsset: 'ui.exit.return_hq',
+        fill: '#20292c', text: DATA.palette.paper, ink: DATA.palette.paper, stroke: DATA.palette.cyan, size: 10
+      });
+      this.button(188, 337, 118, 36, '返回总部', () => this.confirmExitToHQ(), {
+        buttonAsset: 'ui.exit.danger',
+        uiTheme: 'danger', fill: DATA.palette.danger, text: '#ffd1c7', ink: '#ffd1c7', stroke: '#ff9b7a', size: 10
+      });
+      ctx.restore();
+    }
+
     drawHUD() {
       const ctx = this.ctx;
       const classData = DATA.classById[this.player.classId];
@@ -2586,15 +4224,24 @@
       const missionIcon = this.world.missionComplete ? 'success' : (this.world.objective.id === 'nests' ? 'mission_nest' : (this.world.objective.id === 'beacons' ? 'mission_beacon' : 'mission_drill'));
       this.drawAtlasIcon(missionIcon, 53, 69, 22);
       this.text(this.missionStatus(), 190, 85, 9, this.world.missionComplete ? DATA.palette.acid : DATA.palette.paper, 'center', true);
+      if (this.world.objective.id === 'beacons') {
+        const beacon = this.world.objective.items[this.world.objective.current] || this.world.objective.items[this.world.objective.items.length - 1];
+        if (beacon) this.drawProgressBar(105, 88, 150, beacon.charge / beacon.required, 'mission', 6);
+      }
 
+      this.drawBeaconOverlay();
       this.drawObjectiveArrow();
       this.drawCacheArrow();
       this.drawJoystick();
-      if (this.contract.anomaly.id === 'energy_tide' && this.energyTideActive()) {
-        this.panel(89, 103, 182, 25, { fill: 'rgba(7,10,12,0.9)', stroke: DATA.palette.acid, accent: DATA.palette.acid });
-        this.drawAtlasIcon('energy_tide', 97, 106, 18);
-        this.text('能源潮汐 // 双方加速', 191, 120, 8, DATA.palette.acid, 'center', true);
-      }
+      const anomalyInfo = this.anomalyDetails(this.contract.anomaly);
+      const tideActive = anomalyInfo.id === 'energy_tide' && this.energyTideActive();
+      const anomalyColor = tideActive ? DATA.palette.acid : this.contract.planet.accent;
+      const anomalyLabel = tideActive
+        ? `${anomalyInfo.name} // 双方加速`
+        : `${anomalyInfo.name} // ${anomalyInfo.effect}`;
+      this.panel(36, 103, 288, 25, { fill: 'rgba(7,10,12,0.9)', stroke: anomalyColor, accent: anomalyColor });
+      this.drawAtlasIcon(anomalyInfo.id, 44, 106, 18);
+      this.text(anomalyLabel, 190, 120, 7, anomalyColor, 'center', true);
       if (this.world.missionComplete && this.world.extraction.progress > 0) {
         const ratio = clamp(this.world.extraction.progress / this.world.extraction.required, 0, 1);
         ctx.fillStyle = 'rgba(7,10,12,0.92)';
@@ -2678,8 +4325,8 @@
 
     drawJoystick() {
       const ctx = this.ctx;
-      const x = this.pointer.active ? this.pointer.originX : 74;
-      const y = this.pointer.active ? this.pointer.originY : 554;
+      const x = this.pointer.active ? this.pointer.originX : 180;
+      const y = this.pointer.active ? this.pointer.originY : 560;
       const dx = this.pointer.active ? clamp(this.pointer.x - x, -38, 38) : 0;
       const dy = this.pointer.active ? clamp(this.pointer.y - y, -38, 38) : 0;
       ctx.globalAlpha = this.pointer.active ? 0.82 : 0.3;
@@ -2767,7 +4414,7 @@
       const overflow = choice.type === 'overflow';
       const classData = DATA.classById[this.player.classId];
       const card = choice.data;
-      const level = evolution ? 'EVOLUTION' : (overflow ? 'OVERTIME' : `LV.${(this.player.cards[card.id] || 0) + 1}/3`);
+      const level = evolution ? 'EVOLUTION' : (overflow ? '一次性超载' : `LV.${(this.player.cards[card.id] || 0) + 1}/${LIMITS.skillLevel}`);
       const color = evolution ? DATA.palette.acid : classData.color;
       const kind = evolution ? 'COMBO TECH' : (overflow ? 'OVERTIME' : `${card.kind.toUpperCase()} TECH`);
       this.panel(10, y, 340, 154, { uiVariant: 'upgrade', fill: evolution ? '#192114' : '#121817', stroke: color, accent: color, accentWidth: 6 });
@@ -2784,7 +4431,7 @@
         this.ctx.fillRect(35, y + 35 + cell * 16, 66, 1);
       }
       this.ctx.globalAlpha = 1;
-      this.drawPixelIcon(card.id || kind, 38, y + 38, 60, color);
+      this.drawPixelIcon(card.id || kind, 38, y + 38, 60, color, classData.id);
       this.text(`0${index + 1}`, 35, y + 145, 8, DATA.palette.muted, 'left', true, true);
       this.text(kind, 125, y + 25, 7, evolution ? DATA.palette.acid : DATA.palette.muted, 'left', true, true);
       this.text(level, 333, y + 25, 8, color, 'right', true, true);
@@ -2796,12 +4443,12 @@
         if (recipe) {
           const other = recipe.requires.find((id) => id !== card.id);
           const otherCard = classData.cards.find((entry) => entry.id === other);
-          this.text(`配方 ${card.name} + ${otherCard.name}`, 125, y + 131, 7, DATA.palette.muted, 'left', true);
+          this.text(`配方：${card.name} Lv.3 + ${otherCard.name} Lv.3`, 125, y + 131, 7, DATA.palette.muted, 'left', true);
           this.text(`→ ${recipe.name}`, 125, y + 144, 8, color, 'left', true);
         }
       } else if (evolution) {
-        const names = card.requires.map((id) => classData.cards.find((entry) => entry.id === id).name);
-        this.text(`${names[0]} + ${names[1]}`, 125, y + 139, 8, DATA.palette.acid, 'left', true);
+        this.text('两项技能均达到 Lv.3', 125, y + 126, 7, DATA.palette.muted, 'left', true);
+        this.text(this.evolutionRecipeText(classData, card), 125, y + 140, 7, DATA.palette.acid, 'left', true);
       }
       if (!evolution && !overflow) {
         const currentLevel = (this.player.cards[card.id] || 0) + 1;
@@ -2838,6 +4485,7 @@
         this.state = 'hq';
         this.hqPage = 'main';
         this.result = null;
+        this.syncMusic(true);
       }, { fill: DATA.palette.acid, size: 16 });
       this.hazardStripe(34, 565, 292, 5, DATA.palette.orange);
       this.text('部分战利品已按货舱保险等级处理', 180, 594, 9, DATA.palette.muted, 'center');

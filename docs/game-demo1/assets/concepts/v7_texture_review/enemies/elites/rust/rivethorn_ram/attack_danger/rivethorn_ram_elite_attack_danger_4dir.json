@@ -1,0 +1,22 @@
+{
+  "id": "rivethorn_ram.elite_attack_danger",
+  "assetType": "elite_attack_danger",
+  "planet": "rust",
+  "enemyId": "rivethorn_ram",
+  "enemyType": "charger",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 4,
+  "anchor": {
+    "x": 48,
+    "y": 82
+  },
+  "order": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "sheet": "rivethorn_ram_elite_attack_danger_4dir.png",
+  "imageSmoothingEnabled": false
+}

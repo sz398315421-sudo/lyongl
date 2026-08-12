@@ -1,0 +1,936 @@
+{
+  "pack": "v5_skill_icon_review",
+  "styleReference": "assets/game/skills/gunner/icons",
+  "roles": {
+    "warrior": {
+      "iconCount": 15,
+      "manifestOk": true,
+      "icons": [
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\cleave.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 977,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\double_slash.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1224,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\sword_wave.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 978,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\orbit_blade.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 935,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\strength.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1347,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\attack_speed.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 864,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\battle_fury.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1013,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\guard.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1155,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\dodge.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 923,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\counter.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 748,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\lifesteal.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1363,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\unyielding.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1576,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\rift_slash.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1174,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\star_ring.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 834,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\warrior\\icons\\phantom_counter.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1081,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        }
+      ]
+    },
+    "mechanic": {
+      "iconCount": 15,
+      "manifestOk": true,
+      "icons": [
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\drone.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1706,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\turret.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1394,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\repair_bot.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1633,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\mech_count.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1175,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\overclock.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1382,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\salvage.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1425,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\arc.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 840,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\self_destruct.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1360,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\shield.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1033,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\quick_deploy.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1371,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\recycle_heal.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1645,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\magnet.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1202,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\swarm_protocol.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 772,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\mobile_fortress.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1877,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\concepts\\v5_skill_icon_review\\skills\\mechanic\\icons\\infinite_recycle.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1227,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        }
+      ]
+    }
+  },
+  "runtimeRoles": {
+    "warrior": {
+      "iconCount": 15,
+      "manifestOk": true,
+      "icons": [
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\cleave.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 977,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\double_slash.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1224,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\sword_wave.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 978,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\orbit_blade.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 935,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\strength.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1347,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\attack_speed.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 864,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\battle_fury.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1013,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\guard.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1155,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\dodge.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 923,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\counter.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 748,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\lifesteal.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1363,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\unyielding.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1576,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\rift_slash.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1174,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\star_ring.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 834,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\warrior\\icons\\phantom_counter.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1081,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        }
+      ]
+    },
+    "mechanic": {
+      "iconCount": 15,
+      "manifestOk": true,
+      "icons": [
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\drone.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1706,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\turret.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1394,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\repair_bot.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1633,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\mech_count.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1175,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\overclock.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1382,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\salvage.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1425,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\arc.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 840,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\self_destruct.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1360,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\shield.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1033,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\quick_deploy.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1371,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\recycle_heal.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1645,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\magnet.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1202,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\swarm_protocol.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 772,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\mobile_fortress.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1877,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        },
+        {
+          "path": "assets\\game\\skills\\mechanic\\icons\\infinite_recycle.png",
+          "mode": "RGBA",
+          "size": [
+            64,
+            64
+          ],
+          "alphaMin": 0,
+          "alphaMax": 255,
+          "partialPixels": 0,
+          "opaquePixels": 1227,
+          "edgePixels": 0,
+          "magentaPixels": 0,
+          "passed": true
+        }
+      ]
+    }
+  },
+  "expectedTotalIcons": 30,
+  "runtimeExpectedTotalIcons": 30,
+  "passed": true,
+  "failures": []
+}

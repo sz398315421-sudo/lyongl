@@ -1,0 +1,35 @@
+{
+  "id": "v15_meteor_perspective_runtime_validation",
+  "passed": true,
+  "manifest": "assets/game/v15_meteor_runtime_manifest.json",
+  "perspective": {
+    "camera": "angled-top-down-2.5D",
+    "groundFootprint": "flattened-horizontal-ellipse",
+    "meteorRemainsVolumetric": true
+  },
+  "checked": [
+    {
+      "id": "meteor_warning",
+      "sourceReviewId": "meteor_warning_v8",
+      "frameSize": [
+        96,
+        64
+      ],
+      "frameCount": 6,
+      "fps": 12,
+      "loop": true
+    },
+    {
+      "id": "meteor_impact",
+      "sourceReviewId": "meteor_impact_v6",
+      "frameSize": [
+        128,
+        128
+      ],
+      "frameCount": 10,
+      "fps": 18,
+      "loop": false
+    }
+  ],
+  "errors": []
+}

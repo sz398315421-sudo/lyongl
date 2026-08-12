@@ -1,0 +1,15 @@
+{
+  "id": "moon_cover",
+  "assetType": "planet_cover",
+  "width": 128,
+  "height": 128,
+  "anchor": {
+    "x": 64,
+    "y": 64
+  },
+  "planet": "moon",
+  "derivedFrom": "planet_moon.png",
+  "scale": "nearest-neighbor 4x",
+  "styleReference": "assets/game/ui/icons/planet_rust.png",
+  "imageSmoothingEnabled": false
+}

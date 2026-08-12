@@ -1,0 +1,155 @@
+{
+  "version": "3.2",
+  "reviewOnly": true,
+  "gameCodeModified": false,
+  "logicalSize": [
+    360,
+    640
+  ],
+  "previewSize": [
+    720,
+    1280
+  ],
+  "scaling": "nearest-neighbor",
+  "contentSafeBottom": 544,
+  "navigation": {
+    "layout": "equal-width-text-only-tech-buttons",
+    "labels": [
+      "档案",
+      "活动",
+      "派遣",
+      "任务",
+      "升级"
+    ],
+    "overallRect": {
+      "x": 0,
+      "y": 568,
+      "width": 360,
+      "height": 72
+    },
+    "visualRects": [
+      {
+        "label": "档案",
+        "x": 4,
+        "y": 572,
+        "width": 68,
+        "height": 66
+      },
+      {
+        "label": "活动",
+        "x": 75,
+        "y": 572,
+        "width": 68,
+        "height": 66
+      },
+      {
+        "label": "派遣",
+        "x": 146,
+        "y": 572,
+        "width": 68,
+        "height": 66
+      },
+      {
+        "label": "任务",
+        "x": 217,
+        "y": 572,
+        "width": 68,
+        "height": 66
+      },
+      {
+        "label": "升级",
+        "x": 288,
+        "y": 572,
+        "width": 68,
+        "height": 66
+      }
+    ],
+    "hitRects": [
+      {
+        "label": "档案",
+        "x": 0,
+        "y": 568,
+        "width": 72,
+        "height": 72
+      },
+      {
+        "label": "活动",
+        "x": 72,
+        "y": 568,
+        "width": 72,
+        "height": 72
+      },
+      {
+        "label": "派遣",
+        "x": 144,
+        "y": 568,
+        "width": 72,
+        "height": 72
+      },
+      {
+        "label": "任务",
+        "x": 216,
+        "y": 568,
+        "width": 72,
+        "height": 72
+      },
+      {
+        "label": "升级",
+        "x": 288,
+        "y": 568,
+        "width": 72,
+        "height": 72
+      }
+    ],
+    "gap": 3,
+    "outerMargin": 4,
+    "fontSize": 12,
+    "icons": false,
+    "badges": false,
+    "raisedCenter": false,
+    "dispatchPrimaryColor": "#d9ff57"
+  },
+  "joystick": {
+    "center": [
+      180,
+      560
+    ],
+    "imageRect": {
+      "x": 136,
+      "y": 516,
+      "width": 88,
+      "height": 88
+    },
+    "unchangedFrom": "../v3_ui_review"
+  },
+  "screens": [
+    "ui/home_mia.png",
+    "ui/home_kade.png",
+    "ui/home_locke.png",
+    "ui/archive_mia.png",
+    "ui/archive_kade.png",
+    "ui/archive_locke.png",
+    "ui/activity_checkin.png",
+    "ui/daily_tasks.png",
+    "ui/upgrade.png",
+    "ui/beacon_rust.png",
+    "ui/beacon_spore.png",
+    "ui/beacon_moon.png"
+  ],
+  "previews": [
+    "ui/home_mia_2x.png",
+    "ui/home_kade_2x.png",
+    "ui/home_locke_2x.png",
+    "ui/archive_mia_2x.png",
+    "ui/archive_kade_2x.png",
+    "ui/archive_locke_2x.png",
+    "ui/activity_checkin_2x.png",
+    "ui/daily_tasks_2x.png",
+    "ui/upgrade_2x.png",
+    "ui/beacon_rust_2x.png",
+    "ui/beacon_spore_2x.png",
+    "ui/beacon_moon_2x.png"
+  ],
+  "overview": "ui/ui_overview.png",
+  "navigationStates": "ui/nav_text_button_states.png"
+}

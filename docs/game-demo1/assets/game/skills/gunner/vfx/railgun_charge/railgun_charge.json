@@ -1,6 +1,26 @@
 {
-  "id": "railgun_charge", "image": "railgun_charge.png", "frameWidth": 64, "frameHeight": 64,
-  "frameCount": 4, "fps": 12, "loop": true, "anchor": { "x": 32, "y": 32 },
-  "blendMode": "lighter", "frames": ["frame_00.png", "frame_01.png", "frame_02.png", "frame_03.png"],
-  "imageSmoothingEnabled": false
+  "id": "railgun_charge",
+  "image": "railgun_charge.png",
+  "frameWidth": 64,
+  "frameHeight": 64,
+  "frameCount": 4,
+  "fps": 12,
+  "loop": true,
+  "anchor": {
+    "x": 32,
+    "y": 32
+  },
+  "blendMode": "lighter",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png"
+  ],
+  "imageSmoothingEnabled": false,
+  "category": "vfx",
+  "event": "railgun_charge",
+  "paletteVariant": "gunner",
+  "sheetLayout": "horizontal",
+  "previewGif": "railgun_charge.gif"
 }

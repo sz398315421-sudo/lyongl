@@ -1,0 +1,26 @@
+{
+  "id": "spore_swarm_attack",
+  "category": "vfx",
+  "event": "attack",
+  "paletteVariant": "spore",
+  "image": "spore_swarm_attack.png",
+  "sheetLayout": "horizontal",
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "frameCount": 4,
+  "fps": 16,
+  "loop": false,
+  "anchor": {
+    "x": 16,
+    "y": 16
+  },
+  "blendMode": "source-over",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png"
+  ],
+  "previewGif": "spore_swarm_attack.gif",
+  "imageSmoothingEnabled": false
+}

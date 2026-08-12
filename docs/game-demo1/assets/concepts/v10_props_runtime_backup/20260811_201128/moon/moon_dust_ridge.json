@@ -1,0 +1,20 @@
+{
+  "id": "moon_dust_ridge",
+  "planet": "moon",
+  "assetType": "prop",
+  "width": 96,
+  "height": 48,
+  "anchor": {
+    "x": 48,
+    "y": 40
+  },
+  "sizeClass": "decal",
+  "suggestedScale": [
+    0.72,
+    1.15
+  ],
+  "occupancyRadius": 16,
+  "weight": 1,
+  "hasShadow": false,
+  "imageSmoothingEnabled": false
+}

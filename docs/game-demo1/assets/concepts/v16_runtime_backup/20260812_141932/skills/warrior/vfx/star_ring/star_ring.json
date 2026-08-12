@@ -1,0 +1,28 @@
+{
+  "id": "star_ring",
+  "category": "vfx",
+  "event": "star_ring",
+  "paletteVariant": "warrior",
+  "image": "star_ring.png",
+  "sheetLayout": "horizontal",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 6,
+  "fps": 12,
+  "loop": true,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "lighter",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png"
+  ],
+  "previewGif": "star_ring.gif",
+  "imageSmoothingEnabled": false
+}

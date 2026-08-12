@@ -1,0 +1,15 @@
+{
+  "id": "v13_spore_burst_review",
+  "sourceReview": "GPT-Image 2 redraw of the existing spore_pool effect",
+  "asset": "vfx/spore_pool_v2",
+  "files": {
+    "gif": "vfx/spore_pool_v2/spore_pool_v2.gif",
+    "gif4x": "vfx/spore_pool_v2/spore_pool_v2_4x.gif",
+    "sheet": "vfx/spore_pool_v2/spore_pool_v2.png",
+    "overview": "vfx/spore_pool_v2/spore_pool_v2_overview.png",
+    "alphaCheck": "vfx/spore_pool_v2/spore_pool_v2_alpha_check.png",
+    "groundPreview": "spore_pool_v13_ground_preview.png"
+  },
+  "validation": "v13_spore_burst_validation.json",
+  "runtimeChanged": false
+}

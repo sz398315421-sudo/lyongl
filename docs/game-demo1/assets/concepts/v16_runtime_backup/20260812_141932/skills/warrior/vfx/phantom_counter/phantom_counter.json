@@ -1,0 +1,28 @@
+{
+  "id": "phantom_counter",
+  "category": "vfx",
+  "event": "phantom_counter",
+  "paletteVariant": "warrior",
+  "image": "phantom_counter.png",
+  "sheetLayout": "horizontal",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 6,
+  "fps": 14,
+  "loop": false,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "lighter",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png"
+  ],
+  "previewGif": "phantom_counter.gif",
+  "imageSmoothingEnabled": false
+}
