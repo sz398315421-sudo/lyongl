@@ -4,6 +4,23 @@
   "libVersion": "3.5.7",
   "appid": "touristappid",
   "projectname": "star-duty-mvp",
+  "packOptions": {
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "process"
+      }
+    ],
+    "include": []
+  },
+  "watchOptions": {
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "process"
+      }
+    ]
+  },
   "setting": {
     "es6": true,
     "enhance": true,

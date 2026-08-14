@@ -83,32 +83,32 @@
   // entries add the dimensions and gameplay collision metadata used by the
   // seeded prop placer and movement resolver.
   const propSpecs = {
-    scrap_plate: { planet: 'rust', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/objects/scrap_plate.png' },
-    cable_coil: { planet: 'rust', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/objects/cable_coil.png' },
-    pipe_junction: { planet: 'rust', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/objects/pipe_junction.png' },
-    power_pylon: { planet: 'rust', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/objects/power_pylon.png' },
-    scorch_mark: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/decals/scorch_mark.png' },
-    oil_stain: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/decals/oil_stain.png' },
-    metal_seam: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/decals/metal_seam.png' },
-    cable_run: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/rust/decals/cable_run.png' },
+    scrap_plate: { planet: 'rust', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10 },
+    cable_coil: { planet: 'rust', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10 },
+    pipe_junction: { planet: 'rust', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20 },
+    power_pylon: { planet: 'rust', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20 },
+    scorch_mark: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8 },
+    oil_stain: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8 },
+    metal_seam: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8 },
+    cable_run: { planet: 'rust', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8 },
 
-    spore_pod_cluster: { planet: 'spore', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/objects/spore_pod_cluster.png' },
-    mycelium_stump: { planet: 'spore', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/objects/mycelium_stump.png' },
-    fungal_mound: { planet: 'spore', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/objects/fungal_mound.png' },
-    husk_remains: { planet: 'spore', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/objects/husk_remains.png' },
-    spore_pool_decal: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/decals/spore_pool_decal.png' },
-    mycelium_rift: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/decals/mycelium_rift.png' },
-    acid_stain: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/decals/acid_stain.png' },
-    root_trail: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8, sourceReference: 'assets/concepts/v10_planet_props_review/props/spore/decals/root_trail.png' },
+    spore_pod_cluster: { planet: 'spore', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10 },
+    mycelium_stump: { planet: 'spore', group: 'objects', width: 32, height: 32, anchor: [16, 28], sizeClass: 'small', collisionRadius: 10 },
+    fungal_mound: { planet: 'spore', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20 },
+    husk_remains: { planet: 'spore', group: 'objects', width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 20 },
+    spore_pool_decal: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8 },
+    mycelium_rift: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8 },
+    acid_stain: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8 },
+    root_trail: { planet: 'spore', group: 'decals', width: 64, height: 64, anchor: [32, 32], sizeClass: 'decal', collisionRadius: 8 },
 
-    moon_shallow_crater: { planet: 'moon', group: null, width: 64, height: 32, anchor: [32, 24], sizeClass: 'decal', collisionRadius: 10, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_shallow_crater.png' },
-    moon_regolith_chunk: { planet: 'moon', group: null, width: 48, height: 48, anchor: [24, 40], sizeClass: 'small', collisionRadius: 16, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_regolith_chunk.png' },
-    moon_crystal_cluster: { planet: 'moon', group: null, width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 21, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_crystal_cluster.png' },
-    moon_energy_seam: { planet: 'moon', group: null, width: 64, height: 32, anchor: [32, 24], sizeClass: 'decal', collisionRadius: 10, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_energy_seam.png' },
-    moon_probe_wreck: { planet: 'moon', group: null, width: 96, height: 64, anchor: [48, 56], sizeClass: 'large', collisionRadius: 21, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_probe_wreck.png' },
-    moon_antenna_fragment: { planet: 'moon', group: null, width: 64, height: 96, anchor: [32, 88], sizeClass: 'medium', collisionRadius: 21, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_antenna_fragment.png' },
-    moon_lander_panel: { planet: 'moon', group: null, width: 96, height: 64, anchor: [48, 56], sizeClass: 'large', collisionRadius: 21, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_lander_panel.png' },
-    moon_dust_ridge: { planet: 'moon', group: null, width: 96, height: 48, anchor: [48, 40], sizeClass: 'decal', collisionRadius: 16, sourceReference: 'assets/concepts/v9_moon_props_review/props/moon/moon_dust_ridge.png' }
+    moon_shallow_crater: { planet: 'moon', group: null, width: 64, height: 32, anchor: [32, 24], sizeClass: 'decal', collisionRadius: 10 },
+    moon_regolith_chunk: { planet: 'moon', group: null, width: 48, height: 48, anchor: [24, 40], sizeClass: 'small', collisionRadius: 16 },
+    moon_crystal_cluster: { planet: 'moon', group: null, width: 64, height: 64, anchor: [32, 56], sizeClass: 'medium', collisionRadius: 21 },
+    moon_energy_seam: { planet: 'moon', group: null, width: 64, height: 32, anchor: [32, 24], sizeClass: 'decal', collisionRadius: 10 },
+    moon_probe_wreck: { planet: 'moon', group: null, width: 96, height: 64, anchor: [48, 56], sizeClass: 'large', collisionRadius: 21 },
+    moon_antenna_fragment: { planet: 'moon', group: null, width: 64, height: 96, anchor: [32, 88], sizeClass: 'medium', collisionRadius: 21 },
+    moon_lander_panel: { planet: 'moon', group: null, width: 96, height: 64, anchor: [48, 56], sizeClass: 'large', collisionRadius: 21 },
+    moon_dust_ridge: { planet: 'moon', group: null, width: 96, height: 48, anchor: [48, 40], sizeClass: 'decal', collisionRadius: 16 }
   };
 
   const propSets = {
@@ -435,7 +435,7 @@
       collision: true,
       collisionShape: 'circle',
       collisionRadius: spec.collisionRadius,
-      sourceReference: spec.sourceReference
+      sourceReference: images[`prop.${id}`]
     };
   });
 
