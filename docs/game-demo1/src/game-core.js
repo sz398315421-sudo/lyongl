@@ -116,6 +116,10 @@
         };
       }
       this.archiveClassId = this.save.selectedClass;
+      // Non-persistent archive UI state. Entering the archive from another
+      // headquarters page resets to the representative skills tab; switching
+      // employee tabs keeps the current archive tab visible.
+      this.archiveSkillTab = 'skills';
       this._musicTrack = null;
       this._musicPlanet = null;
       this.contract = null;
@@ -3281,6 +3285,9 @@
         this.buttons.push({
           x, y: 568, w: 72, h: 72, disabled: false,
           action: () => {
+            if (pages[index] === 'archive' && this.hqPage !== 'archive') {
+              this.archiveSkillTab = 'skills';
+            }
             this.hqPage = pages[index];
           }
         });
@@ -3295,6 +3302,35 @@
         return skill ? skill.name : skillId;
       });
       return `配方：${names[0]} Lv.3 + ${names[1]} Lv.3`;
+    }
+
+    drawArchiveSkillTab(classData) {
+      const skillCards = Array.isArray(classData.cards) ? classData.cards : [];
+      this.text(`代表技能 // ${skillCards.length} 项`, 30, 326, 8.5, DATA.palette.muted, 'left', true, true);
+      const columns = [30, 180];
+      const startY = 345;
+      const rowHeight = 28;
+      skillCards.forEach((card, index) => {
+        const x = columns[index % columns.length];
+        const y = startY + Math.floor(index / columns.length) * rowHeight;
+        const iconColor = card.kind === 'survival' ? DATA.palette.cyan : classData.color;
+        this.drawPixelIcon(card.id, x, y - 10, 18, iconColor, classData.id);
+        this.text(card.name, x + 23, y + 3, 8, DATA.palette.paper, 'left', true);
+      });
+    }
+
+    drawArchiveComboTab(classData) {
+      const evolutions = Array.isArray(classData.evolutions) ? classData.evolutions : [];
+      this.text('组合技 // 两项技能均达到 Lv.3', 30, 326, 7.5, DATA.palette.muted, 'left', true, true);
+      const startY = 337;
+      const rowHeight = 30;
+      evolutions.forEach((evolution, index) => {
+        const y = startY + index * rowHeight;
+        this.drawPixelIcon(evolution.id, 28, y - 11, 18, DATA.palette.acid, classData.id);
+        this.text(evolution.name, 56, y, 8.5, DATA.palette.acid, 'left', true);
+        this.text(this.evolutionRecipeText(classData, evolution), 56, y + 10, 6.8, DATA.palette.paper, 'left');
+        this.wrap(String(evolution.desc || '效果待补充'), 56, y + 20, 276, 8, 6.8, DATA.palette.muted, 2);
+      });
     }
 
     drawArchivePage() {
@@ -3328,44 +3364,37 @@
       this.text('战斗风格', 125, 248, 8, DATA.palette.muted, 'left', true, true);
       this.wrap(classData.role, 125, 263, 196, 15, 10, classData.color, 2);
 
-      this.panel(16, 280, 328, 242, { fill: '#101719', stroke: '#4d5752', accent: classData.color });
-      // Compact two-column catalogue: every representative skill remains visible
-      // at the 360px logical width, while combo recipes stay in the same panel.
-      this.text('代表技能 // 全部', 30, 300, 8, DATA.palette.muted, 'left', true, true);
-      const skillColumns = [30, 180];
-      const skillStartY = 317;
-      const skillRowHeight = 21;
       const skillCards = Array.isArray(classData.cards) ? classData.cards : [];
-      skillCards.forEach((card, index) => {
-        const column = index % skillColumns.length;
-        const row = Math.floor(index / skillColumns.length);
-        const x = skillColumns[column];
-        const y = skillStartY + row * skillRowHeight;
-        const iconColor = card.kind === 'survival' ? DATA.palette.cyan : classData.color;
-        this.drawPixelIcon(card.id, x, y - 9, 16, iconColor, classData.id);
-        this.text(card.name, x + 21, y + 2, 7, DATA.palette.paper, 'left', true);
+      const evolutions = Array.isArray(classData.evolutions) ? classData.evolutions : [];
+      this.panel(16, 280, 328, 242, { fill: '#101719', stroke: '#4d5752', accent: classData.color });
+      const skillsActive = this.archiveSkillTab !== 'combos';
+      this.button(24, 289, 145, 24, `代表技能 ${skillCards.length}`, () => {
+        this.archiveSkillTab = 'skills';
+      }, {
+        fill: skillsActive ? classData.color : '#20292c',
+        text: skillsActive ? DATA.palette.ink : DATA.palette.paper,
+        ink: skillsActive ? DATA.palette.ink : DATA.palette.paper,
+        imageText: skillsActive ? classData.color : DATA.palette.paper,
+        stroke: skillsActive ? classData.color : '#59666a',
+        size: 8
       });
-      const skillRows = Math.ceil(skillCards.length / skillColumns.length);
-      const comboHeaderY = skillStartY + skillRows * skillRowHeight + 7;
-      this.text(`组合技 // ${(classData.evolutions || []).length} 组配方`, 30, comboHeaderY, 7, DATA.palette.muted, 'left', true, true);
-      // Six recipes fit in a compact two-column catalogue. The ingredient IDs
-      // remain visible at small size without pushing the employee button out
-      // of the 360x640 safe area.
-      const comboColumns = [30, 180];
-      (classData.evolutions || []).forEach((evolution, index) => {
-        const column = index % comboColumns.length;
-        const row = Math.floor(index / comboColumns.length);
-        const x = comboColumns[column];
-        const y = comboHeaderY + 13 + row * 20;
-        this.drawPixelIcon(evolution.id, x, y - 8, 13, DATA.palette.acid, classData.id);
-        this.text(evolution.name, x + 17, y - 1, 6.5, DATA.palette.acid, 'left', true);
-        const recipeNames = Array.isArray(evolution.requires)
-          ? evolution.requires.map((id) => (classData.cards.find((card) => card.id === id) || { name: id }).name).join(' + ')
-          : '—';
-        this.text(`${recipeNames} Lv.3`, x + 17, y + 7, 4.2, DATA.palette.paper, 'left');
-        const effect = String(evolution.desc || '效果待补充').replace(/[。！？]/g, '').slice(0, 20);
-        this.text(effect, x + 17, y + 14, 4.1, DATA.palette.muted, 'left');
+      this.button(191, 289, 145, 24, `组合技 ${evolutions.length}`, () => {
+        this.archiveSkillTab = 'combos';
+      }, {
+        fill: !skillsActive ? classData.color : '#20292c',
+        text: !skillsActive ? DATA.palette.ink : DATA.palette.paper,
+        ink: !skillsActive ? DATA.palette.ink : DATA.palette.paper,
+        imageText: !skillsActive ? classData.color : DATA.palette.paper,
+        stroke: !skillsActive ? classData.color : '#59666a',
+        size: 8
       });
+      // Button image skins are shared across the HQ, so add a role-colored
+      // pixel accent after drawing the tab to keep the active state obvious.
+      this.ctx.fillStyle = classData.color;
+      if (skillsActive) this.ctx.fillRect(28, 289, 137, 3);
+      else this.ctx.fillRect(195, 289, 137, 3);
+      if (skillsActive) this.drawArchiveSkillTab(classData);
+      else this.drawArchiveComboTab(classData);
       if (unlocked) {
         this.button(24, 527, 312, 35, this.save.selectedClass === classData.id ? '当前出勤员工' : '设为当前员工', () => {
           this.save.selectedClass = classData.id;

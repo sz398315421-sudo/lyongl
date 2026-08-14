@@ -179,8 +179,25 @@
     'drone', 'turret', 'repair_bot', 'mech_count', 'overclock', 'salvage', 'arc', 'self_destruct',
     'shield', 'quick_deploy', 'recycle_heal', 'magnet', 'swarm_protocol', 'mobile_fortress', 'infinite_recycle'
   ];
-  const skillIconSets = { gunner: gunnerSkills, warrior: warriorSkills, mechanic: mechanicSkills };
+  // The V19 additions are archive/upgrade icons only.  Keep them out of the
+  // character action list above because their character animation sheets are
+  // not part of this icon-only update.
+  const newComboIcons = {
+    gunner: ['burst_overdrive', 'railgun_overcharge', 'critical_dash'],
+    warrior: ['fury_combo', 'iron_fury', 'blood_oath'],
+    mechanic: ['parallel_overclock', 'field_reconstruction', 'magnetic_reclaim']
+  };
+  const skillIconSets = {
+    gunner: [...gunnerSkills, ...newComboIcons.gunner],
+    warrior: [...warriorSkills, ...newComboIcons.warrior],
+    mechanic: [...mechanicSkills, ...newComboIcons.mechanic]
+  };
   Object.entries({ warrior: warriorSkills, mechanic: mechanicSkills }).forEach(([classId, skillIds]) => {
+    skillIds.forEach((id) => {
+      images[`skill.${classId}.${id}`] = `${prefix}skills/${classId}/icons/${id}.png`;
+    });
+  });
+  Object.entries(newComboIcons).forEach(([classId, skillIds]) => {
     skillIds.forEach((id) => {
       images[`skill.${classId}.${id}`] = `${prefix}skills/${classId}/icons/${id}.png`;
     });
