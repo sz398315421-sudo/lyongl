@@ -1,0 +1,11 @@
+{
+  "id": "v18_orbit_blade_runtime",
+  "installedAt": "2026-08-13T20:24:25",
+  "sourceReview": "assets\\concepts\\v18_orbit_blade_review\\vfx\\orbit_blade",
+  "backup": "assets\\concepts\\v18_runtime_backup\\20260813_202425\\skills\\warrior\\vfx\\orbit_blade",
+  "runtime": "assets\\game\\skills\\warrior\\vfx\\orbit_blade",
+  "validation": {
+    "passed": true,
+    "errors": []
+  }
+}

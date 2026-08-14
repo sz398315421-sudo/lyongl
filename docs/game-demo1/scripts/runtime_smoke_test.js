@@ -36,6 +36,9 @@ const assets = {
   image: (key) => fakeImage(key)
 };
 
+assert.ok(DATA.classes.length === 3, 'three classes configured');
+assert.ok(DATA.classes.every((classData) => Array.isArray(classData.cards) && classData.cards.length >= 12), 'all classes expose full representative skill lists');
+
 const musicProbe = {
   active: false,
   unlocked: false,
@@ -76,6 +79,29 @@ const game = new StarDutyGame({ getContext: () => ctx }, {
   audio: musicProbe
 });
 
+// QA mode exposes all three employees without spending credits. The release
+// switch is data-driven and can be disabled without changing this flow.
+assert.strictEqual(DATA.runtime.testUnlockAllClasses, true);
+assert.strictEqual(game.isClassUnlocked(DATA.classById.warrior), true);
+assert.strictEqual(game.isClassUnlocked(DATA.classById.mechanic), true);
+assert.strictEqual(game.canUnlock(DATA.classById.warrior).cost, 0);
+assert.deepStrictEqual([0, 1, 2, 3].map((direction) => game.characterDirectionRow(direction)), [0, 3, 2, 1]);
+assert.strictEqual(assets.manifest.skillIconSets.warrior.length, 15);
+assert.ok(assets.manifest.images['skill.warrior.cleave'].endsWith('skills/warrior/icons/cleave.png'));
+assert.ok(assets.manifest.images['skill.warrior.guard'].endsWith('skills/warrior/icons/guard.png'));
+assert.ok(assets.manifest.images['skill.warrior.rift_slash'].endsWith('skills/warrior/icons/rift_slash.png'));
+assert.deepStrictEqual(assets.manifest.characterActions.warrior_kade.walk.directionRowMap, [0, 3, 2, 1]);
+assert.deepStrictEqual(assets.manifest.characterRoleSpecs.warrior_kade.weaponMuzzles, {
+  front: { x: 10, y: -20 }, right: { x: 14, y: -21 }, back: { x: 10, y: -23 }, left: { x: -14, y: -21 }
+});
+assert.deepStrictEqual(assets.manifest.vfx.slash_arc.anchor, { x: 10, y: 32 });
+assert.deepStrictEqual(assets.manifest.vfx.sword_wave.anchor, { x: 13, y: 48 });
+assert.strictEqual(DATA.comboFeedback.star_ring.layer, 'under');
+assert.strictEqual(DATA.comboFeedback.star_ring.scale, 1.55);
+assert.strictEqual(assets.manifest.vfx.orbit_blade.frameCount, 6);
+assert.strictEqual(assets.manifest.vfx.orbit_blade.frameWidth, 64);
+assert.strictEqual(assets.manifest.vfx.orbit_blade.frameHeight, 64);
+
 // Music starts on the first valid interaction, does not duplicate timers or
 // tracks on repeated syncs, and can recover after an adapter loses its timer.
 game.pointerDown(2, 2, 0);
@@ -106,14 +132,78 @@ assert.strictEqual(musicProbe.active, true);
 game.world = null;
 game.contract = null;
 
+// Cleave visual reach follows the same progression as its damage arc.
+game.save.selectedClass = 'warrior';
+game.contract = { seed: 31, planet: DATA.planetById.rust, mission: DATA.missionById.nests, anomaly: DATA.anomalyById.meteor, started: false };
+game.beginRun();
+game.world.enemies = [];
+game.player.cards.double_slash = 0;
+const cleaveVisualScales = [];
+for (const cleaveLevel of [0, 1, 2, 3]) {
+  game.player.cards.cleave = cleaveLevel;
+  game.player.attackTimer = 0;
+  game.player.lastActionAt = -Infinity;
+  game.player.activeVfx = null;
+  game.spawnEnemy({ x: game.player.x + 60, y: game.player.y });
+  game.updateWarrior(0, { damage: 12, interval: 1 });
+  cleaveVisualScales.push(game.player.actionVfxScale);
+  game.world.enemies = [];
+}
+assert.ok(cleaveVisualScales[0] < cleaveVisualScales[1]);
+assert.ok(cleaveVisualScales[1] < cleaveVisualScales[2]);
+assert.ok(cleaveVisualScales[2] < cleaveVisualScales[3]);
+
+// Combo recipe cards receive a 3x draft weight as soon as either ingredient
+// reaches Lv.1. Completed evolutions remain excluded from the boost.
+game.player.cards = {};
+game.player.evolutions = {};
+assert.strictEqual(game.getUpgradeCardWeight('orbit_blade'), 1);
+assert.strictEqual(game.getUpgradeCardWeight('attack_speed'), 1);
+assert.strictEqual(game.getUpgradeCardWeight('cleave'), 1);
+game.player.cards.orbit_blade = 1;
+assert.strictEqual(game.getUpgradeCardWeight('orbit_blade'), 3);
+assert.strictEqual(game.getUpgradeCardWeight('attack_speed'), 3);
+assert.strictEqual(game.getUpgradeCardWeight('cleave'), 1);
+const warriorClass = DATA.classById.warrior;
+warriorClass.evolutions.push({ id: '__smoke_multi_recipe', requires: ['orbit_blade', 'dodge'] });
+assert.strictEqual(game.getUpgradeCardWeight('orbit_blade'), 5);
+warriorClass.evolutions.pop();
+for (const classData of DATA.classes) {
+  game.player.classId = classData.id;
+  game.player.cards = {};
+  game.player.evolutions = {};
+  const recipe = classData.evolutions[0];
+  game.player.cards[recipe.requires[0]] = 1;
+  assert.strictEqual(game.getUpgradeCardWeight(recipe.requires[0]), 3, `${classData.id} first recipe card should be boosted`);
+  assert.strictEqual(game.getUpgradeCardWeight(recipe.requires[1]), 3, `${classData.id} partner recipe card should be boosted`);
+  const unrelated = classData.cards.find((card) => !recipe.requires.includes(card.id));
+  assert.strictEqual(game.getUpgradeCardWeight(unrelated.id), 1, `${classData.id} unrelated card should stay neutral`);
+}
+game.player.classId = 'warrior';
+game.player.cards = { orbit_blade: 1 };
+game.player.evolutions = {};
+const weightedChoices = game.generateChoices();
+assert.ok(weightedChoices.length <= 3);
+assert.strictEqual(new Set(weightedChoices.filter((choice) => choice.type === 'card').map((choice) => choice.data.id)).size,
+  weightedChoices.filter((choice) => choice.type === 'card').length);
+
 assert.strictEqual(assets.manifest.vfx.meteor_warning.frameCount, 6);
 assert.strictEqual(assets.manifest.vfx.meteor_impact.frameCount, 10);
 assert.strictEqual(assets.manifest.vfx.railgun_beam.frameCount, 4);
 assert.strictEqual(assets.manifest.vfx.railgun_beam.anchor.x, 0);
 assert.ok(assets.manifest.images['planet.moon.cover']);
+assert.ok(assets.manifest.images['planet.rust.icon']);
+assert.ok(assets.manifest.images['planet.spore.icon']);
 assert.ok(assets.manifest.images['enemy.elite.moon.prism_sentry']);
 assert.ok(assets.manifest.images['enemy.danger.spore.acid_eye_pod']);
 assert.ok(assets.manifest.images['ui.exit.warning_panel']);
+assert.ok(assets.manifest.characterActions.gunner_mia.idle);
+assert.ok(assets.manifest.characterActions.warrior_kade.idle);
+assert.ok(assets.manifest.characterActions.mechanic_locke.idle);
+assert.strictEqual(JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'assets/game/v17_warrior_vfx_runtime_manifest.json'), 'utf8')).vfx.star_ring.sourceReviewId, 'v17_star_ring');
+assert.strictEqual(JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'assets/game/v17_warrior_vfx_runtime_manifest.json'), 'utf8')).vfx.sword_wave.sourceReviewId, 'v17_sword_wave');
+assert.deepStrictEqual(assets.manifest.planetAssets.rust, { icon: 'planet.rust.icon', cover: 'planet.rust.icon' });
+assert.deepStrictEqual(assets.manifest.planetAssets.spore, { icon: 'planet.spore.icon', cover: 'planet.spore.icon' });
 
 // V16 replaces all nine combo VFX sheets with the reviewed eight-frame
 // contracts and keeps the combo-to-effect mapping centralized in DATA.
@@ -126,7 +216,16 @@ const comboVfxExpectations = {
   phantom_counter: [96, 96, 8, 15, false],
   swarm_protocol: [96, 96, 8, 15, false],
   mobile_fortress: [96, 96, 8, 12, true],
-  recycle_burst: [128, 128, 8, 15, false]
+  recycle_burst: [128, 128, 8, 15, false],
+  burst_overdrive: [96, 96, 8, 15, false],
+  railgun_overcharge: [96, 96, 8, 15, false],
+  critical_dash: [96, 96, 8, 15, false],
+  fury_combo: [96, 96, 8, 15, false],
+  iron_fury: [96, 96, 8, 15, false],
+  blood_oath: [96, 96, 8, 15, false],
+  parallel_overclock: [96, 96, 8, 15, false],
+  field_reconstruction: [96, 96, 8, 15, false],
+  magnetic_reclaim: [96, 96, 8, 15, false]
 };
 Object.entries(comboVfxExpectations).forEach(([vfxId, expected]) => {
   const spec = assets.manifest.vfx[vfxId];
@@ -136,12 +235,24 @@ Object.entries(comboVfxExpectations).forEach(([vfxId, expected]) => {
 const comboMap = {
   piercing_star: 'piercing_star_burst', hunt_barrage: 'hunt_barrage_lock', zero_storm: 'zero_storm_burst',
   rift_slash: 'sword_wave', star_ring: 'star_ring', phantom_counter: 'phantom_counter',
-  swarm_protocol: 'swarm_protocol', mobile_fortress: 'mobile_fortress', infinite_recycle: 'recycle_burst'
+  swarm_protocol: 'swarm_protocol', mobile_fortress: 'mobile_fortress', infinite_recycle: 'recycle_burst',
+  burst_overdrive: 'burst_overdrive', railgun_overcharge: 'railgun_overcharge', critical_dash: 'critical_dash',
+  fury_combo: 'fury_combo', iron_fury: 'iron_fury', blood_oath: 'blood_oath',
+  parallel_overclock: 'parallel_overclock', field_reconstruction: 'field_reconstruction', magnetic_reclaim: 'magnetic_reclaim'
 };
 Object.entries(comboMap).forEach(([comboId, vfxId]) => {
   assert.ok(DATA.comboFeedback[comboId], `missing combo feedback ${comboId}`);
   assert.strictEqual(DATA.comboFeedback[comboId].vfx, vfxId);
 });
+for (const classData of DATA.classes) {
+  assert.strictEqual(classData.evolutions.length, 6, `${classData.id} should expose six combo recipes`);
+  for (const evolution of classData.evolutions) {
+    assert.strictEqual(evolution.requires.length, 2);
+    assert.ok(evolution.requires.every((id) => classData.cards.some((card) => card.id === id)), `${classData.id} recipe ${evolution.id} references an unknown card`);
+  }
+  const coveredCardIds = new Set(classData.evolutions.flatMap((evolution) => evolution.requires));
+  assert.ok(classData.cards.every((card) => coveredCardIds.has(card.id)), `${classData.id} has a representative skill without a combo recipe`);
+}
 
 const propCounts = {};
 for (const planetId of ['rust', 'spore', 'moon']) {
@@ -390,6 +501,60 @@ assert.strictEqual(game.player.actionOrigin.x, expectedRailShot.origin.x);
 assert.strictEqual(game.player.actionOrigin.y, expectedRailShot.origin.y);
 game.player.cards.railgun = 0;
 
+// Warrior effects use the sword-hand mount, never the old head-centered
+// offset. The V17 slash replaces the procedural arc while sword-wave art is
+// owned by the travelling projectile rather than duplicated on the actor.
+game.save.selectedClass = 'warrior';
+game.contract = {
+  seed: 23,
+  planet: DATA.planetById.rust,
+  mission: DATA.missionById.nests,
+  anomaly: DATA.anomalyById.meteor,
+  started: false
+};
+game.beginRun();
+game.world.enemies = [];
+game.world.particles = [];
+game.player.cards.cleave = 1;
+game.player.attackTimer = 0;
+game.player.lastActionAt = -Infinity;
+const warriorTarget = game.spawnEnemy({ x: game.player.x + 70, y: game.player.y });
+const expectedBladeOrigin = game.getWeaponMuzzle(game.player, 1, 0);
+game.updateWarrior(0, { damage: 12, interval: 1 });
+assert.ok(game.player.actionOrigin, 'warrior attack should retain the sword-hand origin');
+assert.strictEqual(game.player.actionOrigin.x, expectedBladeOrigin.x);
+assert.strictEqual(game.player.actionOrigin.y, expectedBladeOrigin.y);
+assert.strictEqual(game.world.particles.filter((particle) => particle.type === 'slash').length, 0, 'V17 slash should replace the old procedural arc');
+game.updateCharacterAnimation(1 / 12);
+assert.ok(game.player.activeVfx && game.player.activeVfx.id === 'slash_arc');
+assert.strictEqual(game.player.activeVfx.origins[0].x, expectedBladeOrigin.x);
+assert.strictEqual(game.player.activeVfx.origins[0].y, expectedBladeOrigin.y);
+
+game.world.enemies = [warriorTarget];
+game.world.projectiles = [];
+game.player.cards.sword_wave = 1;
+game.player.attackCount = 3;
+game.player.attackTimer = 0;
+game.player.lastActionAt = -Infinity;
+game.updateWarrior(0, { damage: 12, interval: 1 });
+const swordWaveProjectile = game.world.projectiles.find((projectile) => projectile.source === 'wave');
+assert.ok(swordWaveProjectile, 'sword wave should spawn a travelling projectile');
+assert.strictEqual(game.player.actionVfxDisabled, true, 'sword-wave action must not duplicate projectile art on the actor');
+
+game.world.effects = [];
+game.world.comboFeedbackState = {};
+game.world.time = 200;
+assert.strictEqual(game.emitComboFeedback('star_ring', game.player.x, game.player.y), true);
+const starRingEffect = game.world.effects[game.world.effects.length - 1];
+assert.strictEqual(starRingEffect.layer, 'under');
+assert.strictEqual(starRingEffect.scale, 1.55);
+
+// Restore the gunner fixture used by the projectile-origin regressions below.
+game.player.classId = 'gunner';
+game.player.actionState = 'idle';
+game.player.lastActionAt = -Infinity;
+game.player.activeVfx = null;
+
 // A swept segment must still hit a target crossed between two frame samples.
 game.world.enemies = [];
 game.world.objective.items = [];
@@ -535,6 +700,19 @@ game.beginRun();
 game.player.cards.burst = 3;
 const choices = game.generateChoices();
 assert.ok(!choices.some((choice) => choice.data && choice.data.id === 'burst'));
+
+// A card at Lv.2 may appear only as the final Lv.3 offer, while a card that
+// is already Lv.3 must never be offered again. The UI label is tested through
+// the same effective-level path used by generateChoices/chooseUpgrade.
+game.player.cards.scatter = 2;
+const finalLevelChoices = game.generateChoices();
+const scatterChoice = finalLevelChoices.find((choice) => choice.data && choice.data.id === 'scatter');
+if (scatterChoice) {
+  assert.strictEqual(game.getCardLevel('scatter'), 2);
+  assert.strictEqual(game.getCardLevel(scatterChoice.data.id) < DATA.limits.skillLevel, true);
+}
+game.player.cards.scatter = 3;
+assert.ok(!game.generateChoices().some((choice) => choice.data && choice.data.id === 'scatter'));
 
 console.log(JSON.stringify({
   passed: true,

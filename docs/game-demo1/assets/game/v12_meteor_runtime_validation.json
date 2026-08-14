@@ -1,10 +1,15 @@
 {
   "passed": true,
+  "status": "superseded",
   "manifest": "assets/game/v12_meteor_runtime_manifest.json",
   "sourceReviewIds": {
     "meteor_warning": "meteor_warning_v4",
     "meteor_impact": "meteor_impact_v3"
   },
-  "handoffEqual": true,
-  "errors": []
+  "activeSourceReviewIds": {
+    "meteor_warning": "meteor_warning_v8",
+    "meteor_impact": "meteor_impact_v6"
+  },
+  "errors": [],
+  "note": "V12 bytes are retained for rollback; active runtime is owned by a later meteor package."
 }

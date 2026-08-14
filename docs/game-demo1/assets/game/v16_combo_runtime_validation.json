@@ -1,5 +1,10 @@
 {
   "passed": true,
   "assetCount": 9,
+  "superseded": {
+    "star_ring": "v17_star_ring",
+    "slash_arc": "v17_slash_arc",
+    "sword_wave": "v17_sword_wave"
+  },
   "errors": []
 }

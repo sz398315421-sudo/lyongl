@@ -1,0 +1,442 @@
+{
+  "id": "v17_warrior_vfx_review",
+  "generationModel": "gpt-image-2",
+  "provider": "codex",
+  "quality": "medium",
+  "sourceDirectory": "tmp/imagegen/v17_warrior_vfx",
+  "outputDirectory": "assets/concepts/v17_warrior_vfx_review",
+  "alphaMethod": "chroma-key",
+  "pixelization": "nearest-neighbor",
+  "assetCount": 3,
+  "assets": [
+    {
+      "id": "star_ring",
+      "classId": "warrior",
+      "frameCount": 8,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "fps": 12,
+      "loop": true,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "lighter",
+      "json": "vfx/star_ring/star_ring.json",
+      "sheet": "vfx/star_ring/star_ring.png"
+    },
+    {
+      "id": "slash_arc",
+      "classId": "warrior",
+      "frameCount": 5,
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "fps": 16,
+      "loop": false,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      },
+      "blendMode": "source-over",
+      "json": "vfx/slash_arc/slash_arc.json",
+      "sheet": "vfx/slash_arc/slash_arc.png"
+    },
+    {
+      "id": "sword_wave",
+      "classId": "warrior",
+      "frameCount": 8,
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "fps": 15,
+      "loop": false,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "lighter",
+      "json": "vfx/sword_wave/sword_wave.json",
+      "sheet": "vfx/sword_wave/sword_wave.png"
+    }
+  ],
+  "checks": [
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\frames\\frame_00.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "5de29349e6d07823d9c74c35914977116c45700edd7b78136bd6832bcfb534ba",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\frames\\frame_01.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "59366457db74841be740e25dd6dc22b7c5d2c8602b51799bdf860f3fdf19edae",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\frames\\frame_02.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "f06bdf804d7e1cdab951cd39936ccfb02833b542e88e8a2feed8926373b98b38",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\frames\\frame_03.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "06ce3a49db90360130cab4d91e98892e2f9b89a72f016ca340d7808d14069a98",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\frames\\frame_04.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "1fa09ca3d248a1ecea9784f58ebeca962f3a9c65f244f4fbef0e725f4b9ec3a5",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\frames\\frame_05.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "6013a45bb9834b81dc024c3ede588cf655f0b452f48e061e8e9e0cae1f8c1f72",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\frames\\frame_06.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "12b1b3a3e3aad60951bc077db62153680b423ef0fcb52a008e8198bc90bdaac5",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\frames\\frame_07.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "ac9edbf3d7f3ad407b1032d5b9612acef1725f5c1b79b36353f3659f3ffdf103",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\star_ring.png",
+      "size": [
+        768,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "4cfa8688c849ec0c026fdcae93ce56d6ada74af709c8d10d04bf8a80c07923ef",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\star_ring\\star_ring_4x.png",
+      "size": [
+        3072,
+        384
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "e99706e7102c6fe5574ff8b89c93735dad7c5876982191c42172f5feea930536",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\slash_arc\\frames\\frame_00.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "65901aa80b295dd9e01f62cf51c764b329109bd5a30413ed37b2fc5f4165e746",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\slash_arc\\frames\\frame_01.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "72dd73df4a58669eba5400a40879e8c18e60594490763292ed2452f5f988b9ce",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\slash_arc\\frames\\frame_02.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "8f8ab82ec19c3d8ddef113c33f52aa1d94225a2ea673f37dd11a1b07627228b0",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\slash_arc\\frames\\frame_03.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "1c3328db4afdf930bda5905761246a1b11b29bd6d0aef5afa48eba973d09e967",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\slash_arc\\frames\\frame_04.png",
+      "size": [
+        64,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "acc7779a1438a3d85effff0a3793fa68437d55bd1429d34772903b342ede82ab",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\slash_arc\\slash_arc.png",
+      "size": [
+        320,
+        64
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "ea086cb6223ee810a4070b6ae67b4d102a5ccc4e65181f76d7ae1801ef5acd20",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\slash_arc\\slash_arc_4x.png",
+      "size": [
+        1280,
+        256
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "fe677b3a5a4c2ac67db0dd8e929ad13d8a9bd189f135cb94a6661854731c21be",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\frames\\frame_00.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "a5b749cb461c62e45d061634572a4e1f0ba553d9b6cc1f13bee522878abb5e64",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\frames\\frame_01.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "4643067f79d224f3fa77efced748c7c896d54b039e54dd8fe683d7b44d808f67",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\frames\\frame_02.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "8e83a5c485579b071c94ab90c67748641c0bb03d41caa22a2db075120bded4c1",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\frames\\frame_03.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "d5f3620fc400345232f2da79461cbd783210fd278d534d23a78a36d3079e7761",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\frames\\frame_04.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "93abdbdf2b4038fa23d136c4d42985abb51c8a1157986737c60b042feec3aeff",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\frames\\frame_05.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "70f736479a18956707602cd437c80373260a0508bea0c59e0089b6693da3186b",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\frames\\frame_06.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "f7dd210f30bf51ab906a6ed4412540246ac31d04a16f745c705723c0d3ada832",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\frames\\frame_07.png",
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "f868c51e90ca674c9cbd1123df7b128929ede687f55b534219de4df1b5dc08d0",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\sword_wave.png",
+      "size": [
+        768,
+        96
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "65ac6a16cebb7d355082e0210b326451fb8ef4705e6a859b63deef05a8a77475",
+      "errors": []
+    },
+    {
+      "path": "assets\\concepts\\v17_warrior_vfx_review\\vfx\\sword_wave\\sword_wave_4x.png",
+      "size": [
+        3072,
+        384
+      ],
+      "mode": "RGBA",
+      "alphaBinary": true,
+      "transparentCorners": true,
+      "transparentBorder": true,
+      "hasOpaquePixels": true,
+      "sha256": "62b72c678536af66ef739f4db4f5855f58c5b9a77e5c7dbece831a5cc842e237",
+      "errors": []
+    }
+  ],
+  "passed": true
+}

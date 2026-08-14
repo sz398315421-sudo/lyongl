@@ -1,0 +1,10 @@
+{
+  "id": "v17_warrior_vfx_runtime_validation",
+  "passed": true,
+  "checked": [
+    "star_ring",
+    "slash_arc",
+    "sword_wave"
+  ],
+  "errors": []
+}

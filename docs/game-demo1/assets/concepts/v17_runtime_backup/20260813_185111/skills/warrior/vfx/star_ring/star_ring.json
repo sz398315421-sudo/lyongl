@@ -1,0 +1,40 @@
+{
+  "id": "star_ring",
+  "comboId": "star_ring",
+  "classId": "warrior",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 8,
+  "fps": 12,
+  "loop": true,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "lighter",
+  "eventUnit": "orbit_pulse",
+  "sheet": "star_ring.png",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png",
+    "frame_06.png",
+    "frame_07.png"
+  ],
+  "previewGif": "star_ring.gif",
+  "imageSmoothingEnabled": false,
+  "generationModel": "gpt-image-2",
+  "generationProvider": "codex",
+  "generationQuality": "medium",
+  "alphaMethod": "chroma-key",
+  "pixelization": "nearest-neighbor",
+  "palette": "orange-gold ring with cyan blade glints",
+  "role": "warrior",
+  "previewImage": "star_ring_preview.png",
+  "sourceReviewId": "v16_star_ring",
+  "sourceReviewPath": "assets/concepts/v16_combo_vfx_review/vfx/star_ring",
+  "runtimePath": "assets/game/skills/warrior/vfx/star_ring/star_ring.png"
+}

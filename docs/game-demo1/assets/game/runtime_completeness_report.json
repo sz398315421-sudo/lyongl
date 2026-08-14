@@ -1,0 +1,19 @@
+{
+  "id": "runtime_completeness",
+  "passed": true,
+  "checked": {
+    "images": 340,
+    "actions": 54,
+    "enemyActions": 60,
+    "vfx": 54,
+    "props": 24,
+    "skills": 9,
+    "combos": 9
+  },
+  "missing": [],
+  "notes": [
+    "Every path is resolved through src/assets.js manifest.",
+    "Prop sets are required to contain exactly eight active IDs.",
+    "Character idle, walk, attack and skill actions are audited together."
+  ]
+}

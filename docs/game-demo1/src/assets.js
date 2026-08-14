@@ -6,6 +6,8 @@
     'ground.rust': `${prefix}planets/rust_ground.png`,
     'ground.spore': `${prefix}planets/spore_ground.png`,
     'ground.moon': `${prefix}planets/moon_ground.png`,
+    'planet.rust.icon': `${prefix}ui/icons/planet_rust.png`,
+    'planet.spore.icon': `${prefix}ui/icons/planet_spore.png`,
     'planet.moon.icon': `${prefix}planets/moon/planet_moon.png`,
     'planet.moon.cover': `${prefix}planets/moon/moon_cover.png`,
     'character.gunner_mia': `${prefix}characters/gunner_mia/gunner_mia_4dir.png`,
@@ -191,8 +193,9 @@
   const characterRoleSpecs = {
     gunner_mia: {
       classId: 'gunner',
+      directionRowMap: [0, 3, 2, 1],
       skills: gunnerSkills,
-      combos: ['piercing_star', 'hunt_barrage', 'zero_storm'],
+      combos: ['piercing_star', 'hunt_barrage', 'zero_storm', 'burst_overdrive', 'railgun_overcharge', 'critical_dash'],
       weaponMuzzles: {
         // Coordinates are relative to the 64x64 action-frame feet anchor.
         // The projectile and its VFX both use this point as their origin.
@@ -204,26 +207,40 @@
       vfx: {
         burst: 'muzzle_flash', scatter: 'muzzle_flash', railgun: 'railgun_beam', reload: 'muzzle_flash',
         piercing_star: 'piercing_star_burst', hunt_barrage: 'hunt_barrage_lock', zero_storm: 'zero_storm_burst',
-        weakspot: 'weakspot_lock', emergency_dash: 'emergency_dash'
+        weakspot: 'weakspot_lock', emergency_dash: 'emergency_dash',
+        burst_overdrive: 'burst_overdrive', railgun_overcharge: 'railgun_overcharge', critical_dash: 'critical_dash'
       }
     },
     warrior_kade: {
       classId: 'warrior',
+      directionRowMap: [0, 3, 2, 1],
       skills: warriorSkills,
-      combos: ['rift_slash', 'star_ring', 'phantom_counter'],
+      combos: ['rift_slash', 'star_ring', 'phantom_counter', 'fury_combo', 'iron_fury', 'blood_oath'],
+      // Melee VFX use the sword hand as their pivot. Coordinates are relative
+      // to the 64x64 character frame's feet anchor, matching weaponMuzzles on
+      // ranged classes so gameplay can share one direction-aware interface.
+      weaponMuzzles: {
+        front: { x: 10, y: -20 },
+        right: { x: 14, y: -21 },
+        back: { x: 10, y: -23 },
+        left: { x: -14, y: -21 }
+      },
       vfx: {
         cleave: 'slash_arc', sword_wave: 'sword_wave', orbit_blade: 'orbit_blade', guard: 'guard', counter: 'counter',
-        rift_slash: 'sword_wave', star_ring: 'star_ring', phantom_counter: 'phantom_counter'
+        rift_slash: 'sword_wave', star_ring: 'star_ring', phantom_counter: 'phantom_counter',
+        fury_combo: 'fury_combo', iron_fury: 'iron_fury', blood_oath: 'blood_oath'
       }
     },
     mechanic_locke: {
       classId: 'mechanic',
+      directionRowMap: [0, 3, 2, 1],
       skills: mechanicSkills,
-      combos: ['swarm_protocol', 'mobile_fortress', 'infinite_recycle'],
+      combos: ['swarm_protocol', 'mobile_fortress', 'infinite_recycle', 'parallel_overclock', 'field_reconstruction', 'magnetic_reclaim'],
       vfx: {
         drone: 'drone_muzzle', turret: 'turret_deploy', repair_bot: 'repair_pulse', arc: 'drone_arc',
         self_destruct: 'self_destruct_burst', shield: 'shield_pulse', swarm_protocol: 'swarm_protocol',
-        mobile_fortress: 'mobile_fortress', infinite_recycle: 'recycle_burst'
+        mobile_fortress: 'mobile_fortress', infinite_recycle: 'recycle_burst',
+        parallel_overclock: 'parallel_overclock', field_reconstruction: 'field_reconstruction', magnetic_reclaim: 'magnetic_reclaim'
       }
     }
   };
@@ -244,6 +261,10 @@
           ? (frameCount === 6 ? 3 : 2)
           : (state === 'attack' ? Math.min(1, frameCount - 1) : null),
         anchor: { x: 32, y: 56 }, directionOrder: ['front', 'right', 'back', 'left'],
+        // Keep the authored side-row convention explicit for renderers.
+        // Runtime direction order remains front/right/back/left; the game
+        // maps screen-right to the authored left-facing row and vice versa.
+        directionRowMap: [0, 3, 2, 1],
         sheetLayout: 'rows-by-direction', imageSmoothingEnabled: false
       };
       if (vfx) spec.vfx = vfx;
@@ -251,6 +272,7 @@
       else actions[state] = spec;
     };
     actions.skills = {};
+    addAction('idle', null, 4, 8, true);
     addAction('walk', null, 6, 10, true);
     addAction('attack', null, roleSpec.combos.includes(roleSpec.skills[0]) ? 6 : 5, 12, false, roleSpec.vfx[roleSpec.skills[0]] || null);
     roleSpec.skills.forEach((skillId) => {
@@ -309,7 +331,16 @@
     slash_arc: ['warrior', 64, 64, 5, 16, false, 'source-over'], star_ring: ['warrior', 96, 96, 8, 12, true, 'lighter'],
     swarm_protocol: ['mechanic', 96, 96, 8, 15, false, 'lighter'], sword_wave: ['warrior', 96, 96, 8, 15, false, 'lighter'],
     turret_deploy: ['mechanic', 64, 64, 5, 12, false, 'source-over'], weakspot_lock: ['gunner', 64, 64, 5, 10, true, 'source-over'],
-    zero_storm_burst: ['gunner', 128, 128, 8, 15, false, 'source-over']
+    zero_storm_burst: ['gunner', 128, 128, 8, 15, false, 'source-over'],
+    burst_overdrive: ['gunner', 96, 96, 8, 15, false, 'lighter'],
+    railgun_overcharge: ['gunner', 96, 96, 8, 15, false, 'lighter'],
+    critical_dash: ['gunner', 96, 96, 8, 15, false, 'lighter'],
+    fury_combo: ['warrior', 96, 96, 8, 15, false, 'lighter'],
+    iron_fury: ['warrior', 96, 96, 8, 15, false, 'lighter'],
+    blood_oath: ['warrior', 96, 96, 8, 15, false, 'lighter'],
+    parallel_overclock: ['mechanic', 96, 96, 8, 15, false, 'lighter'],
+    field_reconstruction: ['mechanic', 96, 96, 8, 15, false, 'lighter'],
+    magnetic_reclaim: ['mechanic', 96, 96, 8, 15, false, 'lighter']
   };
   Object.assign(vfxSpecs, {
     explosive_impact: ['gunner', 96, 96, 8, 18, false, 'source-over'],
@@ -331,6 +362,12 @@
       sheetLayout: 'horizontal', imageSmoothingEnabled: false
     };
   });
+  // These two sheets are authored left-to-right: the hot sword core is near
+  // the left edge, not at the frame center. Keeping the authored pivot here
+  // makes rotation occur around the weapon hand instead of around the middle
+  // of the energy arc.
+  if (vfx.slash_arc) vfx.slash_arc.anchor = { x: 10, y: 32 };
+  if (vfx.sword_wave) vfx.sword_wave.anchor = { x: 13, y: 48 };
 
   const enemyVfx = {};
   const enemyVfxDefinitions = {
@@ -417,6 +454,8 @@
     enemyVariants,
     propSets,
     planetAssets: {
+      rust: { icon: 'planet.rust.icon', cover: 'planet.rust.icon' },
+      spore: { icon: 'planet.spore.icon', cover: 'planet.spore.icon' },
       moon: { icon: 'planet.moon.icon', cover: 'planet.moon.cover' }
     },
     exitUi: {
@@ -438,6 +477,10 @@
     constructor(options = {}) {
       this.createImage = options.createImage;
       this.basePath = options.basePath || '';
+      // Version the image URLs at the loader boundary.  A long-lived
+      // file:// preview can otherwise keep an older placeholder icon after
+      // the runtime PNG has been replaced.
+      this.cacheBust = options.cacheBust ? String(options.cacheBust) : '';
       this.images = {};
       this.failures = [];
       this.loadedCount = 0;
@@ -465,7 +508,10 @@
           const image = this.createImage();
           image.onload = () => finish(image, null);
           image.onerror = (error) => finish(null, error || new Error(`Unable to load ${path}`));
-          image.src = `${this.basePath}${path}`;
+          const cachePath = this.cacheBust
+            ? `${path}${path.includes('?') ? '&' : '?'}v=${encodeURIComponent(this.cacheBust)}`
+            : path;
+          image.src = `${this.basePath}${cachePath}`;
           if (image.complete && image.width) finish(image, null);
           timeoutId = setTimeout(() => finish(null, new Error(`Timed out loading ${path}`)), 15000);
         } catch (error) {

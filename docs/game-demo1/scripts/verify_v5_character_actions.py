@@ -47,29 +47,35 @@ def main() -> None:
     actions = manifest.get("actions", [])
     skill_entries = [entry for entry in actions if entry.get("assetType") == "character_skill_action"]
     walk_entries = [entry for entry in actions if entry.get("assetType") == "character_action" and entry.get("state") == "walk"]
+    idle_entries = [entry for entry in actions if entry.get("assetType") == "character_action" and entry.get("state") == "idle"]
     if len(skill_entries) != 45:
         errors.append(f"skill action count={len(skill_entries)}, expected=45")
     if len(walk_entries) != 3:
         errors.append(f"walk action count={len(walk_entries)}, expected=3")
+    if len(idle_entries) != 3:
+        errors.append(f"idle action count={len(idle_entries)}, expected=3")
     for character_id, expected in ROLES.items():
         entries = [entry for entry in skill_entries if entry.get("assetId") == character_id]
         if len(entries) != expected:
             errors.append(f"{character_id} skill count={len(entries)}, expected={expected}")
-    for entry in walk_entries + skill_entries:
+    for entry in idle_entries + walk_entries + skill_entries:
         frame_count = int(entry.get("frameCount", 0))
         frame_width = int(entry.get("frameWidth", 0))
         frame_height = int(entry.get("frameHeight", 0))
-        expected_count = 6 if entry.get("state") == "walk" else (6 if entry.get("skillId") in {
+        expected_count = 4 if entry.get("state") == "idle" else (6 if entry.get("state") == "walk" else (6 if entry.get("skillId") in {
             "piercing_star", "hunt_barrage", "zero_storm", "rift_slash", "star_ring", "phantom_counter",
             "swarm_protocol", "mobile_fortress", "infinite_recycle",
-        } else 5)
+        } else 5))
         if frame_count != expected_count:
             errors.append(f"{entry.get('id')} frameCount={frame_count}, expected={expected_count}")
         if entry.get("anchor") != {"x": 32, "y": 56}:
             errors.append(f"{entry.get('id')} anchor mismatch")
         if entry.get("directionOrder") != DIRECTIONS:
             errors.append(f"{entry.get('id')} direction order mismatch")
-        if entry.get("state") == "walk":
+        if entry.get("state") == "idle":
+            if entry.get("loop") is not True:
+                errors.append(f"{entry.get('id')} idle timing mismatch")
+        elif entry.get("state") == "walk":
             if entry.get("fps") != 10 or entry.get("loop") is not True:
                 errors.append(f"{entry.get('id')} walk timing mismatch")
         else:
@@ -84,6 +90,7 @@ def main() -> None:
     report = {
         "passed": not errors,
         "walkCount": len(walk_entries),
+        "idleCount": len(idle_entries),
         "skillCount": len(skill_entries),
         "roles": {role: len([entry for entry in skill_entries if entry.get("assetId") == role]) for role in ROLES},
         "errors": errors,

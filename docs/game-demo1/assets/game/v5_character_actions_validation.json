@@ -1,6 +1,7 @@
 {
   "passed": true,
   "walkCount": 3,
+  "idleCount": 3,
   "skillCount": 45,
   "roles": {
     "gunner_mia": 15,

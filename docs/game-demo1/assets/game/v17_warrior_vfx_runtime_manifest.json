@@ -1,0 +1,137 @@
+{
+  "version": 17,
+  "installedAt": "20260813_185111",
+  "sourceReview": "assets/concepts/v17_warrior_vfx_review",
+  "backupRoot": "assets/concepts/v17_runtime_backup/20260813_185111/skills/warrior/vfx",
+  "vfx": {
+    "star_ring": {
+      "id": "star_ring",
+      "sourceReviewId": "v17_star_ring",
+      "sourceReviewPath": "assets/concepts/v17_warrior_vfx_review/vfx/star_ring",
+      "backup": "assets/concepts/v17_runtime_backup/20260813_185111/skills/warrior/vfx/star_ring",
+      "path": "assets/game/skills/warrior/vfx/star_ring/star_ring.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "frameCount": 8,
+      "fps": 12,
+      "loop": true,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "lighter",
+      "files": [
+        "assets/game/skills/warrior/vfx/star_ring/star_ring.png",
+        "assets/game/skills/warrior/vfx/star_ring/star_ring.gif",
+        "assets/game/skills/warrior/vfx/star_ring/star_ring.json",
+        "assets/game/skills/warrior/vfx/star_ring/frame_00.png",
+        "assets/game/skills/warrior/vfx/star_ring/frame_01.png",
+        "assets/game/skills/warrior/vfx/star_ring/frame_02.png",
+        "assets/game/skills/warrior/vfx/star_ring/frame_03.png",
+        "assets/game/skills/warrior/vfx/star_ring/frame_04.png",
+        "assets/game/skills/warrior/vfx/star_ring/frame_05.png",
+        "assets/game/skills/warrior/vfx/star_ring/frame_06.png",
+        "assets/game/skills/warrior/vfx/star_ring/frame_07.png",
+        "assets/game/skills/warrior/vfx/star_ring/star_ring_preview.png"
+      ],
+      "sha256": {
+        "assets/game/skills/warrior/vfx/star_ring/star_ring.png": "4cfa8688c849ec0c026fdcae93ce56d6ada74af709c8d10d04bf8a80c07923ef",
+        "assets/game/skills/warrior/vfx/star_ring/star_ring.gif": "beaedf8893ff6c7204d4253bba11f6b3b6852624be5c71fb42de93d75b948fea",
+        "assets/game/skills/warrior/vfx/star_ring/star_ring.json": "3cb73f0773f8dc9190f766c5ba98bf282bf53033a07af5520808d7185c60c6f9",
+        "assets/game/skills/warrior/vfx/star_ring/frame_00.png": "5de29349e6d07823d9c74c35914977116c45700edd7b78136bd6832bcfb534ba",
+        "assets/game/skills/warrior/vfx/star_ring/frame_01.png": "59366457db74841be740e25dd6dc22b7c5d2c8602b51799bdf860f3fdf19edae",
+        "assets/game/skills/warrior/vfx/star_ring/frame_02.png": "f06bdf804d7e1cdab951cd39936ccfb02833b542e88e8a2feed8926373b98b38",
+        "assets/game/skills/warrior/vfx/star_ring/frame_03.png": "06ce3a49db90360130cab4d91e98892e2f9b89a72f016ca340d7808d14069a98",
+        "assets/game/skills/warrior/vfx/star_ring/frame_04.png": "1fa09ca3d248a1ecea9784f58ebeca962f3a9c65f244f4fbef0e725f4b9ec3a5",
+        "assets/game/skills/warrior/vfx/star_ring/frame_05.png": "6013a45bb9834b81dc024c3ede588cf655f0b452f48e061e8e9e0cae1f8c1f72",
+        "assets/game/skills/warrior/vfx/star_ring/frame_06.png": "12b1b3a3e3aad60951bc077db62153680b423ef0fcb52a008e8198bc90bdaac5",
+        "assets/game/skills/warrior/vfx/star_ring/frame_07.png": "ac9edbf3d7f3ad407b1032d5b9612acef1725f5c1b79b36353f3659f3ffdf103",
+        "assets/game/skills/warrior/vfx/star_ring/star_ring_preview.png": "e99706e7102c6fe5574ff8b89c93735dad7c5876982191c42172f5feea930536"
+      }
+    },
+    "slash_arc": {
+      "id": "slash_arc",
+      "sourceReviewId": "v17_slash_arc",
+      "sourceReviewPath": "assets/concepts/v17_warrior_vfx_review/vfx/slash_arc",
+      "backup": "assets/concepts/v17_runtime_backup/20260813_185111/skills/warrior/vfx/slash_arc",
+      "path": "assets/game/skills/warrior/vfx/slash_arc/slash_arc.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 5,
+      "fps": 16,
+      "loop": false,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      },
+      "blendMode": "source-over",
+      "files": [
+        "assets/game/skills/warrior/vfx/slash_arc/slash_arc.png",
+        "assets/game/skills/warrior/vfx/slash_arc/slash_arc.gif",
+        "assets/game/skills/warrior/vfx/slash_arc/slash_arc.json",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_00.png",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_01.png",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_02.png",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_03.png",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_04.png",
+        "assets/game/skills/warrior/vfx/slash_arc/slash_arc_preview.png"
+      ],
+      "sha256": {
+        "assets/game/skills/warrior/vfx/slash_arc/slash_arc.png": "ea086cb6223ee810a4070b6ae67b4d102a5ccc4e65181f76d7ae1801ef5acd20",
+        "assets/game/skills/warrior/vfx/slash_arc/slash_arc.gif": "01bba4b8d4f8fb4879f7d2f47fc8483d7533d8db1e9cea432781a2554a201fe9",
+        "assets/game/skills/warrior/vfx/slash_arc/slash_arc.json": "578fa1edfc9f4d5953645c8440410c5907acb50b9c289a418875c683fe1bca33",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_00.png": "65901aa80b295dd9e01f62cf51c764b329109bd5a30413ed37b2fc5f4165e746",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_01.png": "72dd73df4a58669eba5400a40879e8c18e60594490763292ed2452f5f988b9ce",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_02.png": "8f8ab82ec19c3d8ddef113c33f52aa1d94225a2ea673f37dd11a1b07627228b0",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_03.png": "1c3328db4afdf930bda5905761246a1b11b29bd6d0aef5afa48eba973d09e967",
+        "assets/game/skills/warrior/vfx/slash_arc/frame_04.png": "acc7779a1438a3d85effff0a3793fa68437d55bd1429d34772903b342ede82ab",
+        "assets/game/skills/warrior/vfx/slash_arc/slash_arc_preview.png": "fe677b3a5a4c2ac67db0dd8e929ad13d8a9bd189f135cb94a6661854731c21be"
+      }
+    },
+    "sword_wave": {
+      "id": "sword_wave",
+      "sourceReviewId": "v17_sword_wave",
+      "sourceReviewPath": "assets/concepts/v17_warrior_vfx_review/vfx/sword_wave",
+      "backup": "assets/concepts/v17_runtime_backup/20260813_185111/skills/warrior/vfx/sword_wave",
+      "path": "assets/game/skills/warrior/vfx/sword_wave/sword_wave.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "frameCount": 8,
+      "fps": 15,
+      "loop": false,
+      "anchor": {
+        "x": 48,
+        "y": 48
+      },
+      "blendMode": "lighter",
+      "files": [
+        "assets/game/skills/warrior/vfx/sword_wave/sword_wave.png",
+        "assets/game/skills/warrior/vfx/sword_wave/sword_wave.gif",
+        "assets/game/skills/warrior/vfx/sword_wave/sword_wave.json",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_00.png",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_01.png",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_02.png",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_03.png",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_04.png",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_05.png",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_06.png",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_07.png",
+        "assets/game/skills/warrior/vfx/sword_wave/sword_wave_preview.png"
+      ],
+      "sha256": {
+        "assets/game/skills/warrior/vfx/sword_wave/sword_wave.png": "65ac6a16cebb7d355082e0210b326451fb8ef4705e6a859b63deef05a8a77475",
+        "assets/game/skills/warrior/vfx/sword_wave/sword_wave.gif": "ad0076224719d406c79dd69e1b4231e5330ec877890433b3f5df8aa879a282dd",
+        "assets/game/skills/warrior/vfx/sword_wave/sword_wave.json": "c04dba822bc7fcc85fe7fb4a590d500f2215914c8916ca08a2c45851d8b9cac6",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_00.png": "a5b749cb461c62e45d061634572a4e1f0ba553d9b6cc1f13bee522878abb5e64",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_01.png": "4643067f79d224f3fa77efced748c7c896d54b039e54dd8fe683d7b44d808f67",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_02.png": "8e83a5c485579b071c94ab90c67748641c0bb03d41caa22a2db075120bded4c1",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_03.png": "d5f3620fc400345232f2da79461cbd783210fd278d534d23a78a36d3079e7761",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_04.png": "93abdbdf2b4038fa23d136c4d42985abb51c8a1157986737c60b042feec3aeff",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_05.png": "70f736479a18956707602cd437c80373260a0508bea0c59e0089b6693da3186b",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_06.png": "f7dd210f30bf51ab906a6ed4412540246ac31d04a16f745c705723c0d3ada832",
+        "assets/game/skills/warrior/vfx/sword_wave/frame_07.png": "f868c51e90ca674c9cbd1123df7b128929ede687f55b534219de4df1b5dc08d0",
+        "assets/game/skills/warrior/vfx/sword_wave/sword_wave_preview.png": "62b72c678536af66ef739f4db4f5855f58c5b9a77e5c7dbece831a5cc842e237"
+      }
+    }
+  }
+}

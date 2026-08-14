@@ -119,8 +119,9 @@ def main() -> None:
     # 3 default attack sheets and 45 four-direction skill sheets.
     expected_actions = 127
     # V6 adds meteor warning/impact, a dedicated spore pool effect, and
-    # replaces the three-planet behavior variants in place.
-    expected_vfx = 12 + 8 + 10 + 36 + 3
+    # replaces the three-planet behavior variants in place. V19 adds nine
+    # additive combo feedback sheets.
+    expected_vfx = 12 + 8 + 10 + 36 + 3 + 9
     if len(actions) != expected_actions:
         errors.append(f"action count {len(actions)}, expected {expected_actions}")
     if len(vfx) != expected_vfx:

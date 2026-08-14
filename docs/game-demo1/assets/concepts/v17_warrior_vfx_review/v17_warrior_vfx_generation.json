@@ -1,0 +1,53 @@
+{
+  "id": "v17_warrior_vfx_generation",
+  "model": "gpt-image-2",
+  "provider": "codex",
+  "quality": "medium",
+  "cli": "scripts/gpt_image_2_skill.cjs",
+  "command": "images generate",
+  "size": "2K",
+  "format": "png",
+  "transparentExtraction": {
+    "command": "transparent extract",
+    "method": "chroma",
+    "matteColor": "auto",
+    "profile": "effect",
+    "strict": true
+  },
+  "pixelization": "nearest-neighbor",
+  "jobs": [
+    {
+      "id": "star_ring",
+      "source": "tmp\\imagegen\\v17_warrior_vfx\\star_ring_source.png",
+      "sourceSize": [
+        1536,
+        1024
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "aa4deb5a1686109ac96ae70b0fcb9485d8b2556cdfa49ea9db82c270e9c2bffa",
+      "promptBrief": "warrior star_ring; orange-gold oblique ellipse with cyan-white sword glints; hard-edge 8-bit storyboard on flat magenta matte"
+    },
+    {
+      "id": "slash_arc",
+      "source": "tmp\\imagegen\\v17_warrior_vfx\\slash_arc_source.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "d86eb6a63a87312d8ea80a02f27c4dcd3fe51c590ce540393d5f996cc8b3b74a",
+      "promptBrief": "warrior slash_arc; cyan-white stepped crescent with orange-red start spark; hard-edge 8-bit storyboard on flat magenta matte"
+    },
+    {
+      "id": "sword_wave",
+      "source": "tmp\\imagegen\\v17_warrior_vfx\\sword_wave_source.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "storyboardLayout": "4x2",
+      "sha256": "68fade83f705a61fe8abe92cc3ee31bb7f5e0d02a47262d48faf37e3400f26c3",
+      "promptBrief": "warrior sword_wave; white-cyan layered sword waves with orange-red core; hard-edge 8-bit storyboard on flat magenta matte"
+    }
+  ]
+}

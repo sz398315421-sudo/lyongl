@@ -5,6 +5,11 @@
     title: '星际外勤',
     subtitle: '本星球不在保险范围内',
     version: '0.2.0-mvp',
+    // Local QA switch: keep enabled while testing so all astronauts are
+    // immediately selectable. Set false for release to restore the gates.
+    runtime: {
+      testUnlockAllClasses: true
+    },
     palette: {
       ink: '#090d10',
       panel: '#141a1d',
@@ -21,6 +26,10 @@
       skillLevel: 3,
       moduleLevel: 3,
       skillSlots: 6
+    },
+    comboDraft: {
+      relatedWeight: 3,
+      activationLevel: 1
     },
     extraction: {
       requiredSeconds: 30,
@@ -55,7 +64,10 @@
         evolutions: [
           { id: 'piercing_star', name: '贯星弹', requires: ['piercing', 'explosive'], desc: '贯穿目标后引发连续爆炸。' },
           { id: 'hunt_barrage', name: '猎杀弹幕', requires: ['ricochet', 'weakspot'], desc: '弹丸自动追猎残血目标并多次折射。' },
-          { id: 'zero_storm', name: '零距风暴', requires: ['scatter', 'knockback'], desc: '怪物贴近时自动释放环形霰弹。' }
+          { id: 'zero_storm', name: '零距风暴', requires: ['scatter', 'knockback'], desc: '怪物贴近时自动释放环形霰弹。' },
+          { id: 'burst_overdrive', name: '超载连发', requires: ['burst', 'magazine'], desc: '连续弹幕形成集中火力，短暂强化多发射击反馈。' },
+          { id: 'railgun_overcharge', name: '轨道超载', requires: ['railgun', 'reload'], desc: '轨道枪完成蓄能后释放一次更强的贯穿脉冲。' },
+          { id: 'critical_dash', name: '暴击推进', requires: ['crit', 'emergency_dash'], desc: '推进闪避后锁定目标弱点，释放一次高亮精准打击。' }
         ]
       },
       {
@@ -85,7 +97,10 @@
         evolutions: [
           { id: 'rift_slash', name: '裂空斩', requires: ['cleave', 'sword_wave'], desc: '巨型斩击撕开空间并释放多道剑气。' },
           { id: 'star_ring', name: '星环剑阵', requires: ['orbit_blade', 'attack_speed'], desc: '高速飞剑形成持续切割的星环。' },
-          { id: 'phantom_counter', name: '幻影反攻', requires: ['dodge', 'counter'], desc: '闪避成功时释放全向幻影斩。' }
+          { id: 'phantom_counter', name: '幻影反攻', requires: ['dodge', 'counter'], desc: '闪避成功时释放全向幻影斩。' },
+          { id: 'fury_combo', name: '狂战连斩', requires: ['double_slash', 'strength'], desc: '连续挥出交叉剑弧，形成一次重叠斩击。' },
+          { id: 'iron_fury', name: '钢铁战意', requires: ['battle_fury', 'guard'], desc: '格挡姿态蓄力后释放带护盾反馈的反击冲击。' },
+          { id: 'blood_oath', name: '不屈血誓', requires: ['lifesteal', 'unyielding'], desc: '低生命状态下释放生命回收脉冲，并强化近战收束效果。' }
         ]
       },
       {
@@ -115,7 +130,10 @@
         evolutions: [
           { id: 'swarm_protocol', name: '蜂群协议', requires: ['drone', 'arc'], desc: '无人机组成电弧蜂群，攻击在怪群间跳跃。' },
           { id: 'mobile_fortress', name: '移动堡垒', requires: ['turret', 'shield'], desc: '炮塔改为环绕玩家的护卫炮台。' },
-          { id: 'infinite_recycle', name: '无限回收协议', requires: ['self_destruct', 'salvage'], desc: '无人机连续自爆、重建并回收生命。' }
+          { id: 'infinite_recycle', name: '无限回收协议', requires: ['self_destruct', 'salvage'], desc: '无人机连续自爆、重建并回收生命。' },
+          { id: 'parallel_overclock', name: '并行超频', requires: ['mech_count', 'overclock'], desc: '多台机械同步过载，形成短暂电弧网。' },
+          { id: 'field_reconstruction', name: '战地重构', requires: ['quick_deploy', 'repair_bot'], desc: '快速部署维修单元，释放范围维修脉冲。' },
+          { id: 'magnetic_reclaim', name: '磁力回收', requires: ['recycle_heal', 'magnet'], desc: '磁力聚拢废料并转化为范围恢复能量。' }
         ]
       }
     ],
@@ -214,11 +232,23 @@
       hunt_barrage: { vfx: 'hunt_barrage_lock', trigger: 'gunner_attack_cycle', layer: 'over', scale: 1, cooldown: 0.22, eventUnit: 'initial_lock_and_first_ricochet' },
       zero_storm: { vfx: 'zero_storm_burst', trigger: 'ring_release', layer: 'over', scale: 1, cooldown: 0.50, eventUnit: 'ring_release' },
       rift_slash: { vfx: 'sword_wave', trigger: 'melee_swing', layer: 'over', scale: 1, cooldown: 0.18, eventUnit: 'melee_swing' },
-      star_ring: { vfx: 'star_ring', trigger: 'orbit_pulse', layer: 'over', scale: 0.9, cooldown: 0.45, eventUnit: 'orbit_pulse' },
+      // The ground ring matches the real 70x48 orbit path. Floating swords
+      // remain on the actor layer while the elliptical energy ring stays
+      // underneath the astronaut.
+      star_ring: { vfx: 'star_ring', trigger: 'orbit_pulse', layer: 'under', scale: 1.55, cooldown: 0.45, eventUnit: 'orbit_pulse' },
       phantom_counter: { vfx: 'phantom_counter', trigger: 'successful_dodge', layer: 'over', scale: 1, cooldown: 0.35, eventUnit: 'successful_dodge' },
       swarm_protocol: { vfx: 'swarm_protocol', trigger: 'drone_volley', layer: 'over', scale: 0.95, cooldown: 0.30, eventUnit: 'drone_volley' },
       mobile_fortress: { vfx: 'mobile_fortress', trigger: 'fortress_volley', layer: 'over', scale: 0.95, cooldown: 0.30, eventUnit: 'fortress_volley' },
-      infinite_recycle: { vfx: 'recycle_burst', trigger: 'recycle_event', layer: 'over', scale: 1, cooldown: 0.50, eventUnit: 'self_destruct_rebuild' }
+      infinite_recycle: { vfx: 'recycle_burst', trigger: 'recycle_event', layer: 'over', scale: 1, cooldown: 0.50, eventUnit: 'self_destruct_rebuild' },
+      burst_overdrive: { vfx: 'burst_overdrive', trigger: 'gunner_attack_cycle', layer: 'over', scale: 1, cooldown: 0.35, eventUnit: 'combo_activation' },
+      railgun_overcharge: { vfx: 'railgun_overcharge', trigger: 'railgun_fire', layer: 'over', scale: 1, cooldown: 0.45, eventUnit: 'combo_activation' },
+      critical_dash: { vfx: 'critical_dash', trigger: 'emergency_dash', layer: 'over', scale: 1, cooldown: 0.35, eventUnit: 'combo_activation' },
+      fury_combo: { vfx: 'fury_combo', trigger: 'melee_swing', layer: 'over', scale: 1, cooldown: 0.25, eventUnit: 'combo_activation' },
+      iron_fury: { vfx: 'iron_fury', trigger: 'guard_event', layer: 'over', scale: 1, cooldown: 0.40, eventUnit: 'combo_activation' },
+      blood_oath: { vfx: 'blood_oath', trigger: 'low_health_melee', layer: 'over', scale: 1, cooldown: 0.50, eventUnit: 'combo_activation' },
+      parallel_overclock: { vfx: 'parallel_overclock', trigger: 'drone_volley', layer: 'over', scale: 1, cooldown: 0.35, eventUnit: 'combo_activation' },
+      field_reconstruction: { vfx: 'field_reconstruction', trigger: 'repair_event', layer: 'over', scale: 1, cooldown: 0.45, eventUnit: 'combo_activation' },
+      magnetic_reclaim: { vfx: 'magnetic_reclaim', trigger: 'recycle_event', layer: 'over', scale: 1, cooldown: 0.50, eventUnit: 'combo_activation' }
     }
   };
 

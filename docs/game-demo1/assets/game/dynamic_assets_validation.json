@@ -1,8 +1,8 @@
 {
   "passed": true,
   "actionCount": 127,
-  "vfxCount": 69,
+  "vfxCount": 78,
   "checkedActionFrames": 2408,
-  "checkedVfxFrames": 389,
+  "checkedVfxFrames": 461,
   "errors": []
 }

@@ -1,10 +1,7 @@
 {
   "id": "slash_arc",
-  "category": "vfx",
-  "event": "melee_attack",
-  "paletteVariant": "warrior",
-  "image": "slash_arc.png",
-  "sheetLayout": "horizontal",
+  "classId": "warrior",
+  "assetType": "melee_vfx",
   "frameWidth": 64,
   "frameHeight": 64,
   "frameCount": 5,
@@ -15,6 +12,8 @@
     "y": 32
   },
   "blendMode": "source-over",
+  "eventUnit": "melee_attack",
+  "sheet": "slash_arc.png",
   "frames": [
     "frame_00.png",
     "frame_01.png",
@@ -23,5 +22,15 @@
     "frame_04.png"
   ],
   "previewGif": "slash_arc.gif",
-  "imageSmoothingEnabled": false
+  "previewImage": "slash_arc_preview.png",
+  "imageSmoothingEnabled": false,
+  "generationModel": "gpt-image-2",
+  "generationProvider": "codex",
+  "generationQuality": "medium",
+  "alphaMethod": "chroma-key",
+  "pixelization": "nearest-neighbor",
+  "palette": "cyan-white stepped crescent with orange-red start spark",
+  "sourceReviewId": "v17_slash_arc",
+  "sourceReviewPath": "assets/concepts/v17_warrior_vfx_review/vfx/slash_arc",
+  "runtimeId": "slash_arc"
 }

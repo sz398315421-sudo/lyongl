@@ -289,7 +289,8 @@
   };
 
   const assetStore = new window.StarDutyAssets.AssetStore({
-    createImage: () => new Image()
+    createImage: () => new Image(),
+    cacheBust: 'v21-v19-combos-20260814'
   });
   let game = null;
   let loading = true;

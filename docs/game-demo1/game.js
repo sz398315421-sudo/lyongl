@@ -260,7 +260,8 @@ const raf = canvas.requestAnimationFrame
   : (callback) => requestAnimationFrame(callback);
 
 const assetStore = new AssetStore({
-  createImage: () => (canvas.createImage ? canvas.createImage() : wx.createImage())
+  createImage: () => (canvas.createImage ? canvas.createImage() : wx.createImage()),
+  cacheBust: 'v21-v19-combos-20260814'
 });
 let game = null;
 

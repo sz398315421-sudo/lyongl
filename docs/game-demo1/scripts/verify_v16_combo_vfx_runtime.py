@@ -53,6 +53,20 @@ def main() -> None:
         errors.append("missing assets/game/v16_combo_runtime_manifest.json")
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8")) if MANIFEST_PATH.exists() else {}
     installed = {entry.get("id"): entry for entry in manifest.get("assets", [])}
+    # V17 supersedes the three warrior effects while retaining the V16 files
+    # and manifest for rollback.  Validate the active package with its own
+    # verifier instead of treating the expected hash drift as corruption.
+    superseded: dict[str, str] = {}
+    for asset_id in ("star_ring", "slash_arc", "sword_wave"):
+        metadata_path = RUNTIME / "warrior" / "vfx" / asset_id / f"{asset_id}.json"
+        if metadata_path.exists():
+            try:
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                source_id = metadata.get("sourceReviewId")
+                if source_id and source_id != f"v16_{asset_id}":
+                    superseded[asset_id] = source_id
+            except json.JSONDecodeError:
+                pass
     if set(installed) != set(JOBS):
         errors.append(f"manifest assets {sorted(installed)}, expected {sorted(JOBS)}")
     for asset_id, (role, width, height, count, fps, loop) in JOBS.items():
@@ -77,11 +91,16 @@ def main() -> None:
                 errors.append(f"{asset_id} GIF frames {getattr(gif, 'n_frames', 1)}, expected {count}")
         entry = installed.get(asset_id, {})
         hashes = entry.get("hashes", {})
+        if asset_id in superseded:
+            # Dimensions and files are still checked above; only historical
+            # bytes/source identifiers are intentionally owned by the newer
+            # runtime package.
+            continue
         for name in (f"{asset_id}.png", f"{asset_id}.json", f"{asset_id}.gif"):
             path = folder / name
             if path.exists() and hashes.get(name) and hashes[name] != sha256(path):
                 errors.append(f"{asset_id} hash mismatch for {name}")
-    report = {"passed": not errors, "assetCount": len(JOBS), "errors": errors}
+    report = {"passed": not errors, "assetCount": len(JOBS), "superseded": superseded, "errors": errors}
     out = ROOT / "assets" / "game" / "v16_combo_runtime_validation.json"
     out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))

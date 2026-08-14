@@ -174,6 +174,14 @@
           if (merged.modules[moduleId] !== normalizedLevel) normalizedModules = true;
           merged.modules[moduleId] = normalizedLevel;
         });
+        // Test unlocks are intentionally ephemeral: do not write them into
+        // the save, otherwise flipping the QA switch off for release would
+        // leave test-only employees permanently unlocked.
+        if (!(DATA.runtime && DATA.runtime.testUnlockAllClasses)
+          && !merged.unlocked[merged.selectedClass]) {
+          merged.selectedClass = 'gunner';
+          merged._needsPersist = true;
+        }
         if (normalizedModules) merged._needsPersist = true;
         if (typeof this.resetDailyState === 'function') this.resetDailyState(merged);
         if (merged.activity.cycleKey !== activityDayKey()) {
@@ -605,6 +613,7 @@
         actionOrigin: null,
         actionDirection: null,
         actionVfxOrigins: null,
+        actionVfxScale: 1,
         actionVfxDisabled: false,
         lastActionAt: -Infinity,
         activeVfx: null
@@ -693,6 +702,37 @@
 
     hasEvolution(id) {
       return Boolean(this.player.evolutions[id]);
+    }
+
+    getUpgradeCardWeight(cardId) {
+      const config = DATA.comboDraft || { relatedWeight: 3, activationLevel: 1 };
+      const relatedWeight = Number.isFinite(config.relatedWeight) ? Math.max(1, config.relatedWeight) : 3;
+      const activationLevel = Number.isFinite(config.activationLevel) ? Math.max(1, config.activationLevel) : 1;
+      const classData = DATA.classById[this.player.classId];
+      if (!classData || !Array.isArray(classData.evolutions)) return 1;
+      let weight = 1;
+      for (const evolution of classData.evolutions) {
+        if (!evolution || this.player.evolutions[evolution.id]) continue;
+        const requires = Array.isArray(evolution.requires) ? evolution.requires : [];
+        if (!requires.includes(cardId)) continue;
+        if (requires.some((requiredId) => this.getCardLevel(requiredId) >= activationLevel)) {
+          weight += relatedWeight - 1;
+        }
+      }
+      return weight;
+    }
+
+    drawWeighted(items, random, weightFn) {
+      if (!Array.isArray(items) || !items.length) return null;
+      const weights = items.map((item) => Math.max(0, Number(weightFn(item)) || 0));
+      const total = weights.reduce((sum, weight) => sum + weight, 0);
+      if (total <= 0) return items[items.length - 1];
+      let roll = Math.max(0, Math.min(0.999999999, random())) * total;
+      for (let index = 0; index < items.length; index += 1) {
+        roll -= weights[index];
+        if (roll < 0) return items[index];
+      }
+      return items[items.length - 1];
     }
 
     currentStats() {
@@ -839,6 +879,7 @@
       this.player.actionOrigin = null;
       this.player.actionDirection = null;
       this.player.actionVfxOrigins = null;
+      this.player.actionVfxScale = 1;
       this.player.actionVfxDisabled = false;
     }
 
@@ -856,6 +897,7 @@
       player.actionElapsed = 0;
       player.actionEventFired = false;
       player.actionVfxDisabled = Boolean(options.suppressVfx);
+      player.actionVfxScale = Number.isFinite(options.vfxScale) ? clamp(options.vfxScale, 0.5, 3) : 1;
       player.lastActionAt = this.now;
       this.setActionOrigin(options);
       return true;
@@ -877,6 +919,7 @@
       player.actionElapsed = 0;
       player.actionEventFired = false;
       player.actionVfxDisabled = false;
+      player.actionVfxScale = Number.isFinite(options.vfxScale) ? clamp(options.vfxScale, 0.5, 3) : 1;
       player.lastActionAt = this.now;
       this.setActionOrigin(options);
       return true;
@@ -906,9 +949,10 @@
         id: vfxId,
         elapsed: 0,
         duration: spec.loop ? Math.max(0.32, spec.frameCount / spec.fps) : spec.frameCount / spec.fps,
-        dirX,
-        dirY,
-        origins
+         dirX,
+         dirY,
+         origins,
+         scale: Number.isFinite(options.scale) ? clamp(options.scale, 0.5, 3) : 1
       };
       return true;
     }
@@ -937,6 +981,7 @@
             this.emitCharacterVfx(spec.vfx || fallbackVfx, {
               origin: player.actionOrigin,
               origins: player.actionVfxOrigins,
+              scale: player.actionVfxScale,
               dirX: player.actionDirection && player.actionDirection.x,
               dirY: player.actionDirection && player.actionDirection.y
             });
@@ -1037,6 +1082,11 @@
           this.player.boostTimer = 0.8 + this.getCardLevel('emergency_dash') * 0.2;
           this.player.boostCooldown = 8 - this.getCardLevel('emergency_dash') * 1.2;
           this.triggerCharacterSkill('emergency_dash');
+          if (this.hasEvolution('critical_dash')) {
+            this.emitComboFeedback('critical_dash', this.player.x, this.player.y, {
+              dirX: this.player.dirX, dirY: this.player.dirY
+            });
+          }
           this.notify('紧急推进', '检测到不健康的同事密度', DATA.palette.cyan, 1.2);
           this.audio.play('dash');
         }
@@ -1326,6 +1376,12 @@
       this.spawnText(this.player.x, this.player.y - 24, `-${Math.ceil(dealt)}`, DATA.palette.danger);
       this.audio.play('hurt');
 
+      if (this.player.classId === 'warrior' && this.hasEvolution('iron_fury')) {
+        this.emitComboFeedback('iron_fury', this.player.x, this.player.y, {
+          dirX: sourceX - this.player.x, dirY: sourceY - this.player.y
+        });
+      }
+
       if (this.player.classId === 'warrior' && this.getCardLevel('counter') > 0) {
         const level = this.getCardLevel('counter');
         this.radialDamage(this.player.x, this.player.y, 54 + level * 13, stats.damage * (0.65 + level * 0.25), DATA.palette.orange);
@@ -1415,6 +1471,13 @@
         player.attackTimer = stats.interval;
         this.audio.play('shot');
         this.triggerCharacterAttack({ origin: muzzle, dirX: player.dirX, dirY: player.dirY });
+        if (this.hasEvolution('burst_overdrive')) {
+          this.emitComboFeedback('burst_overdrive', target.ref.x, target.ref.y, {
+            cycleId: comboCycleId,
+            dirX: player.dirX,
+            dirY: player.dirY
+          });
+        }
         if (this.hasEvolution('hunt_barrage')) {
           this.emitComboFeedback('hunt_barrage', target.ref.x, target.ref.y, {
             cycleId: comboCycleId,
@@ -1439,7 +1502,13 @@
           player.dirY = shot ? shot.dirY : Math.sin(angle);
           this.lineDamage(muzzle.x, muzzle.y, angle, 520, 12 + railLevel * 3, stats.damage * (2.2 + railLevel * 0.55));
           player.railTimer = 6.2 - railLevel * 0.85;
+          player.railCycleId = (player.railCycleId || 0) + 1;
           this.triggerCharacterSkill('railgun', { origin: muzzle, dirX: player.dirX, dirY: player.dirY });
+          if (this.hasEvolution('railgun_overcharge')) {
+            this.emitComboFeedback('railgun_overcharge', muzzle.x, muzzle.y, {
+              dirX: player.dirX, dirY: player.dirY, cycleId: player.railCycleId
+            });
+          }
           this.audio.play('rail');
           this.shake = 3;
         }
@@ -1486,26 +1555,48 @@
       const target = this.nearestTarget(player.x, player.y, 92 + cleave * 13);
       if (player.attackTimer <= 0 && target) {
         const angle = Math.atan2(target.ref.y - player.y, target.ref.x - player.x);
+        const attackDirX = Math.cos(angle);
+        const attackDirY = Math.sin(angle);
+        const bladeOrigin = this.getWeaponMuzzle(player, attackDirX, attackDirY);
         const range = 76 + cleave * 13;
         const arc = 1.15 + cleave * 0.16;
+        const slashVisualScale = clamp(range / 70, 1.08, 1.78);
         this.arcDamage(player.x, player.y, angle, range, arc, stats.damage * (1 + cleave * 0.1));
-        player.dirX = Math.cos(angle);
-        player.dirY = Math.sin(angle);
+        player.dirX = attackDirX;
+        player.dirY = attackDirY;
         player.attackCount += 1;
-        this.world.particles.push({ type: 'slash', x: player.x, y: player.y, angle, range, life: 0.18, max: 0.18, color: DATA.classById.warrior.color });
+        const slashSpec = this.assets && this.assets.manifest && this.assets.manifest.vfx && this.assets.manifest.vfx.slash_arc;
+        // Preserve the procedural arc only as a missing-asset fallback. Drawing
+        // it together with V17 produced the old orange circle over the new art.
+        if (!slashSpec || !this.assetImage(slashSpec.key)) {
+          this.world.particles.push({ type: 'slash', x: player.x, y: player.y, angle, range, life: 0.18, max: 0.18, color: DATA.classById.warrior.color });
+        }
         if (this.hasEvolution('rift_slash')) {
-          this.triggerCharacterSkill('rift_slash', { suppressVfx: true });
-          this.emitComboFeedback('rift_slash', player.x, player.y, { dirX: Math.cos(angle), dirY: Math.sin(angle) });
-        } else this.triggerCharacterAttack();
+          this.triggerCharacterSkill('rift_slash', { suppressVfx: true, origin: bladeOrigin, dirX: attackDirX, dirY: attackDirY });
+          this.emitComboFeedback('rift_slash', bladeOrigin.x, bladeOrigin.y, { dirX: attackDirX, dirY: attackDirY });
+        } else this.triggerCharacterAttack({ origin: bladeOrigin, dirX: attackDirX, dirY: attackDirY, vfxScale: slashVisualScale });
+        if (this.hasEvolution('fury_combo')) {
+          this.emitComboFeedback('fury_combo', bladeOrigin.x, bladeOrigin.y, {
+            cycleId: player.attackCount, dirX: attackDirX, dirY: attackDirY
+          });
+        }
+        if (this.hasEvolution('blood_oath') && player.hp / player.maxHp < 0.34) {
+          this.emitComboFeedback('blood_oath', player.x, player.y, {
+            cycleId: player.attackCount, dirX: attackDirX, dirY: attackDirY
+          });
+        }
         const doubleLevel = this.getCardLevel('double_slash');
         if (doubleLevel > 0 && Math.random() < 0.2 + doubleLevel * 0.16) {
           this.arcDamage(player.x, player.y, angle + 0.18, range, arc, stats.damage * (0.55 + doubleLevel * 0.13));
-          this.triggerCharacterSkill('double_slash');
+          this.triggerCharacterSkill('double_slash', { origin: bladeOrigin, dirX: attackDirX, dirY: attackDirY, vfxScale: slashVisualScale, force: true });
         }
         const waveLevel = this.getCardLevel('sword_wave');
         const every = waveLevel >= 2 ? 3 : 4;
         if (waveLevel > 0 && player.attackCount % every === 0) {
-          if (!this.hasEvolution('rift_slash')) this.triggerCharacterSkill('sword_wave');
+          // The travelling projectile owns the sword-wave art. Suppress the
+          // character-layer copy so one attack never shows two overlapping
+          // waves at the sword hand.
+          if (!this.hasEvolution('rift_slash')) this.triggerCharacterSkill('sword_wave', { origin: bladeOrigin, dirX: attackDirX, dirY: attackDirY, suppressVfx: true, force: true });
           const waveCount = this.hasEvolution('rift_slash') ? 3 : 1;
           for (let index = 0; index < waveCount; index += 1) {
             const waveAngle = angle + (index - (waveCount - 1) / 2) * 0.22;
@@ -1517,7 +1608,7 @@
               radius: 9 + waveLevel * 2,
               life: 1.55,
               color: DATA.palette.orange,
-              source: 'wave', pierce: 4, bounce: 0, chain: 0, explosion: 0, knockback: 1, hitIds: []
+              source: 'wave', pierce: 4, bounce: 0, chain: 0, explosion: 0, knockback: 1, hitIds: [], age: 0
             });
           }
         }
@@ -1529,7 +1620,10 @@
       if (orbitLevel > 0) {
         if (Math.floor(this.world.time * 2) % 8 === 0) {
           const orbitSkill = this.hasEvolution('star_ring') ? 'star_ring' : 'orbit_blade';
-          this.triggerCharacterSkill(orbitSkill, { minGap: 0.4, suppressVfx: this.hasEvolution('star_ring') });
+          // The persistent orbiting swords are rendered at their actual orbit
+          // positions below. Do not also flash one sword at the astronaut's
+          // center on every pulse.
+          this.triggerCharacterSkill(orbitSkill, { minGap: 0.4, suppressVfx: true });
           if (this.hasEvolution('star_ring')) this.emitComboFeedback('star_ring', player.x, player.y);
         }
         const count = Math.min(7, orbitLevel + (this.hasEvolution('star_ring') ? 3 : 0));
@@ -1566,11 +1660,19 @@
         }
         player.attackTimer = stats.interval;
         this.audio.play('drone');
-        if (this.hasEvolution('swarm_protocol')) {
+        const swarmProtocolActive = this.hasEvolution('swarm_protocol');
+        const parallelOverclockActive = this.hasEvolution('parallel_overclock');
+        if (swarmProtocolActive) {
           this.triggerCharacterSkill('swarm_protocol', { suppressVfx: true });
           this.emitComboFeedback('swarm_protocol', player.x, player.y);
         }
-        else this.triggerCharacterAttack({ origins: shotOrigins, dirX: shotOrigins[0].dirX, dirY: shotOrigins[0].dirY });
+        if (parallelOverclockActive) {
+          this.triggerCharacterSkill('parallel_overclock', { suppressVfx: true });
+          this.emitComboFeedback('parallel_overclock', player.x, player.y);
+        }
+        if (!swarmProtocolActive && !parallelOverclockActive) {
+          this.triggerCharacterAttack({ origins: shotOrigins, dirX: shotOrigins[0].dirX, dirY: shotOrigins[0].dirY });
+        }
       }
 
       const turretLevel = this.getCardLevel('turret');
@@ -1620,9 +1722,14 @@
       this.world.turrets = this.world.turrets.filter((turret) => turret.life > 0);
 
       const repair = this.getCardLevel('repair_bot');
-      if (repair > 0 && player.hp < player.maxHp) {
-        player.hp = Math.min(player.maxHp, player.hp + dt * repair * 0.34);
-        if (Math.floor(this.world.time * 2) % 12 === 0) this.triggerCharacterSkill('repair_bot', { minGap: 0.5 });
+      if (repair > 0) {
+        if (player.hp < player.maxHp) player.hp = Math.min(player.maxHp, player.hp + dt * repair * 0.34);
+        const repairPulseTick = Math.floor(this.world.time * 2);
+        if (repairPulseTick !== player.lastRepairPulseTick && repairPulseTick % 12 === 0) {
+          player.lastRepairPulseTick = repairPulseTick;
+          this.triggerCharacterSkill('repair_bot', { minGap: 0.5 });
+          if (this.hasEvolution('field_reconstruction')) this.emitComboFeedback('field_reconstruction', player.x, player.y);
+        }
       }
 
       const selfDestruct = this.getCardLevel('self_destruct');
@@ -1669,6 +1776,7 @@
         const endY = startY + projectile.vy * dt;
         projectile.x = endX;
         projectile.y = endY;
+        projectile.age = (projectile.age || 0) + dt;
         projectile.life -= dt;
         if (projectile.life <= 0) continue;
         let hit = null;
@@ -1894,6 +2002,9 @@
         if (length < 16) {
           item.life = 0;
           this.addXp(item.value);
+          if (this.player.classId === 'mechanic' && this.hasEvolution('magnetic_reclaim')) {
+            this.emitComboFeedback('magnetic_reclaim', this.player.x, this.player.y);
+          }
           if (this.player.classId === 'mechanic' && this.getCardLevel('magnet') >= 3 && Math.random() < 0.08) this.player.scrap += 1;
         }
       }
@@ -1941,19 +2052,36 @@
       const slots = Object.keys(this.player.cards).length + Object.keys(this.player.evolutions).length;
       const cardCandidates = classData.cards.filter((card) => {
         if (consumedCards.includes(card.id)) return false;
-        const level = this.player.cards[card.id] || 0;
+        // Use the effective level here instead of the raw card dictionary.
+        // An evolution consumes its recipe cards, but getCardLevel() still
+        // reports their effective Lv.3 state. This also makes stale choices
+        // impossible after a level-up or an evolution is completed.
+        const level = this.getCardLevel(card.id);
         return level > 0 ? level < LIMITS.skillLevel : slots < LIMITS.skillSlots;
       });
       const random = this.world.random;
       const choices = [];
       if (readyEvolutions.length) choices.push({ type: 'evolution', data: pick(readyEvolutions, random) });
+      const remainingCards = cardCandidates.slice();
+      const drawCard = (pool = remainingCards) => {
+        if (!pool.length) return null;
+        const card = this.drawWeighted(pool, random, (candidate) => this.getUpgradeCardWeight(candidate.id));
+        const index = pool.indexOf(card);
+        if (index >= 0) pool.splice(index, 1);
+        return card;
+      };
       if (this.player.level <= 4) {
-        const core = shuffled(cardCandidates.filter((card) => card.kind === 'core'), random)[0];
+        const corePool = remainingCards.filter((card) => card.kind === 'core');
+        const core = drawCard(corePool);
+        if (core) {
+          const remainingIndex = remainingCards.indexOf(core);
+          if (remainingIndex >= 0) remainingCards.splice(remainingIndex, 1);
+        }
         if (core) choices.push({ type: 'card', data: core });
       }
-      for (const card of shuffled(cardCandidates, random)) {
-        if (choices.length >= 3) break;
-        if (!choices.some((choice) => choice.data.id === card.id)) choices.push({ type: 'card', data: card });
+      while (choices.length < 3 && remainingCards.length) {
+        const card = drawCard();
+        if (card) choices.push({ type: 'card', data: card });
       }
       if (!choices.length && !this.player.overflowUsed) {
         choices.push(
@@ -1972,6 +2100,9 @@
         for (const required of choice.data.requires) delete this.player.cards[required];
         this.player.evolutions[choice.data.id] = true;
         this.triggerCharacterSkill(choice.data.id, { force: true });
+        if (DATA.comboFeedback && DATA.comboFeedback[choice.data.id]) {
+          this.emitComboFeedback(choice.data.id, this.player.x, this.player.y, { force: true });
+        }
         this.notify(`组合进化：${choice.data.name}`, choice.data.desc, DATA.palette.acid, 3);
         this.audio.play('evolution');
       } else if (choice.type === 'overflow') {
@@ -1980,10 +2111,16 @@
         this.player.overflow[choice.data.id] += 1;
         this.notify(choice.data.name, choice.data.desc, DATA.classById[this.player.classId].color, 1.5);
       } else {
-        const currentLevel = this.player.cards[choice.data.id] || 0;
+        const currentLevel = this.getCardLevel(choice.data.id);
         if (currentLevel >= LIMITS.skillLevel) {
           this.levelChoices = this.generateChoices();
-          this.notify('技能已满级', `${choice.data.name} 已达到 Lv.${LIMITS.skillLevel}`, DATA.palette.muted, 1.5);
+          if (!this.levelChoices.length) {
+            this.state = 'playing';
+            this.pointer.active = false;
+            this.notify('技能池已满', `没有可用的 Lv.${LIMITS.skillLevel} 以上升级`, DATA.palette.muted, 1.5);
+          } else {
+            this.notify('技能已满级', `${choice.data.name} 已达到 Lv.${LIMITS.skillLevel}`, DATA.palette.muted, 1.5);
+          }
           return false;
         }
         const nextLevel = Math.min(LIMITS.skillLevel, currentLevel + 1);
@@ -2132,6 +2269,7 @@
 
     canUnlock(classData) {
       if (this.save.unlocked[classData.id]) return { allowed: true, reason: '已打印' };
+      if (DATA.runtime && DATA.runtime.testUnlockAllClasses) return { allowed: true, cost: 0, reason: 'QA TEST // ALL EMPLOYEES' };
       const discount = 1 - (this.save.modules.printer || 0) * 0.08;
       const cost = Math.max(0, Math.floor(classData.unlock.cost * discount));
       if (this.save.successes < (classData.unlock.successes || 0)) return { allowed: false, cost, reason: `需成功撤离 ${classData.unlock.successes} 次` };
@@ -2140,9 +2278,22 @@
       return { allowed: true, cost, reason: `打印费用 ${cost}` };
     }
 
+    isClassUnlocked(classData) {
+      return Boolean(this.save.unlocked[classData.id])
+        || Boolean(DATA.runtime && DATA.runtime.testUnlockAllClasses);
+    }
+
     unlockClass(classData) {
       const state = this.canUnlock(classData);
       if (!state.allowed || this.save.unlocked[classData.id]) return;
+      if (DATA.runtime && DATA.runtime.testUnlockAllClasses) {
+        // QA unlocks stay out of the save; disabling the switch restores the
+        // release gates on the next load.
+        this.save.selectedClass = classData.id;
+        this.archiveClassId = classData.id;
+        this.audio.play('evolution');
+        return;
+      }
       this.save.credits -= state.cost;
       this.save.unlocked[classData.id] = true;
       this.save.selectedClass = classData.id;
@@ -2401,7 +2552,8 @@
       const frame = actionState === 'skill' || actionState === 'attack'
         ? Math.min(spec.frameCount - 1, Math.floor(elapsed * spec.fps))
         : Math.floor(elapsed * spec.fps) % spec.frameCount;
-      const row = Math.max(0, Math.min(3, direction));
+      const rowMap = Array.isArray(spec.directionRowMap) ? spec.directionRowMap : [0, 3, 2, 1];
+      const row = clamp(Number(rowMap[clamp(Math.floor(Number(direction) || 0), 0, 3)]) || 0, 0, 3);
       const frameIndex = row * spec.frameCount + frame;
       return this.drawFrame(
         spec.key,
@@ -2431,7 +2583,7 @@
         ? active.origins
         : [{ x: this.player.x, y: this.player.y, dirX, dirY }];
       const ctx = this.ctx;
-      const directionalOriginEffect = active.id === 'muzzle_flash' || active.id === 'drone_muzzle' || active.id === 'railgun_beam';
+      const directionalOriginEffect = active.id === 'muzzle_flash' || active.id === 'drone_muzzle' || active.id === 'railgun_beam' || active.id === 'slash_arc' || active.id === 'sword_wave';
       const drawOrigins = directionalOriginEffect ? origins : [origins[0]];
       for (const origin of drawOrigins) {
         const screen = this.worldToScreen(origin);
@@ -2442,7 +2594,7 @@
         ctx.globalCompositeOperation = spec.blendMode || 'source-over';
         ctx.globalAlpha = 0.92;
         if (directionalOriginEffect) {
-          const scale = active.id === 'drone_muzzle' ? 0.9 : 1;
+          const scale = (active.id === 'drone_muzzle' ? 0.9 : 1) * (active.scale || 1);
           ctx.translate(Math.round(screen.x), Math.round(screen.y));
           if (Math.abs(angle) > 0.01) ctx.rotate(angle);
           this.drawFrame(spec.key, spec.frameWidth, spec.frameHeight, frame,
@@ -2491,6 +2643,16 @@
     direction4(vx, vy) {
       if (Math.abs(vx) > Math.abs(vy) * 0.72) return vx >= 0 ? 1 : 3;
       return vy >= 0 ? 0 : 2;
+    }
+
+    // Character action sheets are authored from the astronaut's point of
+    // view: their "right" row faces screen-left and their "left" row faces
+    // screen-right. Keep gameplay direction semantics stable and translate
+    // only at the character sheet lookup boundary.
+    characterDirectionRow(direction) {
+      const rowMap = [0, 3, 2, 1];
+      const safeDirection = clamp(Math.floor(Number(direction) || 0), 0, 3);
+      return rowMap[safeDirection];
     }
 
     direction8(vx, vy) {
@@ -2724,6 +2886,11 @@
         meteor: 'meteor', spore_bloom: 'spore_bloom', energy_tide: 'energy_tide'
       };
       if (uiIconMap[kind] && this.drawAtlasIcon(uiIconMap[kind], x, y, size)) return;
+      const iconKind = {
+        burst_overdrive: 'burst', railgun_overcharge: 'railgun', critical_dash: 'emergency_dash',
+        fury_combo: 'double_slash', iron_fury: 'guard', blood_oath: 'lifesteal',
+        parallel_overclock: 'arc', field_reconstruction: 'repair_bot', magnetic_reclaim: 'magnet'
+      }[kind] || kind;
       const cell = Math.max(3, Math.floor(size / 10));
       const cx = Math.round(x + size / 2);
       const cy = Math.round(y + size / 2);
@@ -2733,37 +2900,37 @@
       ctx.strokeStyle = color;
       ctx.lineWidth = cell;
       ctx.lineCap = 'square';
-      if (/rail|pierc|sword_wave|rift/.test(kind)) {
+      if (/rail|pierc|sword_wave|rift/.test(iconKind)) {
         ctx.fillRect(-cell, -size * 0.38, cell * 2, size * 0.65);
         ctx.fillRect(-cell * 2, size * 0.18, cell * 4, cell);
         ctx.fillRect(-cell / 2, size * 0.3, cell, cell * 2);
-      } else if (/scatter|burst|barrage|storm/.test(kind)) {
+      } else if (/scatter|burst|barrage|storm/.test(iconKind)) {
         [-0.32, 0, 0.32].forEach((angle) => {
           ctx.save();
           ctx.rotate(angle);
           ctx.fillRect(-cell, -size * 0.38, cell * 2, size * 0.55);
           ctx.restore();
         });
-      } else if (/drone|swarm|orbit|star_ring/.test(kind)) {
+      } else if (/drone|swarm|orbit|star_ring|arc|overclock/.test(iconKind)) {
         ctx.fillRect(-cell * 2, -cell * 2, cell * 4, cell * 4);
         ctx.fillRect(-size * 0.38, -cell, cell * 2, cell * 2);
         ctx.fillRect(size * 0.18, -cell, cell * 2, cell * 2);
         ctx.fillRect(-cell, -size * 0.38, cell * 2, cell * 2);
-      } else if (/turret|fortress/.test(kind)) {
+      } else if (/turret|fortress/.test(iconKind)) {
         ctx.fillRect(-size * 0.3, 0, size * 0.6, cell * 3);
         ctx.fillRect(-cell * 2, -cell * 3, cell * 4, cell * 3);
         ctx.fillRect(cell * 2, -cell * 2, cell * 4, cell);
-      } else if (/scanner/.test(kind)) {
+      } else if (/scanner/.test(iconKind)) {
         ctx.strokeRect(-size * 0.32, -size * 0.32, size * 0.64, size * 0.64);
         ctx.strokeRect(-size * 0.16, -size * 0.16, size * 0.32, size * 0.32);
         ctx.fillRect(-cell, -cell, cell * 2, cell * 2);
-      } else if (/fabricator|printer|cargo/.test(kind)) {
+      } else if (/fabricator|printer|cargo/.test(iconKind)) {
         ctx.strokeRect(-size * 0.34, -size * 0.28, size * 0.68, size * 0.58);
         ctx.fillRect(-size * 0.24, -size * 0.38, size * 0.48, cell * 2);
         ctx.fillRect(-size * 0.22, -cell, size * 0.44, cell * 2);
         ctx.fillStyle = DATA.palette.ink;
         ctx.fillRect(-cell, -cell, cell * 2, cell * 2);
-      } else if (/shield|guard|unyield|life|repair/.test(kind)) {
+      } else if (/shield|guard|unyield|life|repair|magnet/.test(iconKind)) {
         ctx.beginPath();
         ctx.moveTo(0, -size * 0.4);
         ctx.lineTo(size * 0.32, -size * 0.22);
@@ -2773,7 +2940,7 @@
         ctx.lineTo(-size * 0.32, -size * 0.22);
         ctx.closePath();
         ctx.stroke();
-      } else if (/explosive|self_destruct|recycle/.test(kind)) {
+      } else if (/explosive|self_destruct|recycle/.test(iconKind)) {
         for (let angle = 0; angle < TAU; angle += TAU / 8) {
           ctx.save();
           ctx.rotate(angle);
@@ -2781,7 +2948,7 @@
           ctx.restore();
         }
         ctx.fillRect(-cell * 2, -cell * 2, cell * 4, cell * 4);
-      } else if (/arc|ricochet|counter|dodge/.test(kind)) {
+      } else if (/arc|ricochet|counter|dodge/.test(iconKind)) {
         ctx.beginPath();
         ctx.moveTo(-size * 0.35, -size * 0.22);
         ctx.lineTo(-cell, -cell);
@@ -2975,7 +3142,7 @@
       this.drawHeader('打印体员工档案');
       DATA.classes.forEach((classData, index) => {
         const y = 78 + index * 154;
-        const unlocked = Boolean(this.save.unlocked[classData.id]);
+        const unlocked = this.isClassUnlocked(classData);
         const selected = this.save.selectedClass === classData.id;
         this.panel(18, y, 324, 136, { fill: unlocked ? '#141b1e' : '#111416', stroke: selected ? classData.color : '#3d4442', accent: unlocked ? classData.color : '#4a4d49' });
         this.drawAstronaut(67, y + 82, classData, 1.55, -0.3);
@@ -3151,7 +3318,7 @@
           fill: active ? item.color : '#20292c', text: active ? DATA.palette.ink : DATA.palette.paper, ink: active ? DATA.palette.ink : DATA.palette.paper, stroke: active ? item.color : '#59666a', size: 10
         });
       });
-      const unlocked = Boolean(this.save.unlocked[classData.id]);
+      const unlocked = this.isClassUnlocked(classData);
       this.panel(16, 112, 328, 157, { uiVariant: 'inset', fill: '#11191b', stroke: unlocked ? classData.color : '#4a4d49', accent: unlocked ? classData.color : '#4a4d49', accentWidth: 4 });
       this.drawAstronaut(73, 246, classData, 2.2, Math.PI / 2);
       this.text(classData.employee, 125, 140, 20, unlocked ? classData.color : DATA.palette.muted, 'left', true);
@@ -3162,21 +3329,42 @@
       this.wrap(classData.role, 125, 263, 196, 15, 10, classData.color, 2);
 
       this.panel(16, 280, 328, 242, { fill: '#101719', stroke: '#4d5752', accent: classData.color });
-      this.text('代表技能', 30, 303, 9, DATA.palette.muted, 'left', true, true);
-      classData.cards.slice(0, 3).forEach((card, index) => {
-        const y = 326 + index * 33;
-        this.drawPixelIcon(card.id, 30, y - 10, 23, classData.color, classData.id);
-        this.text(card.name, 59, y + 2, 11, DATA.palette.paper, 'left', true);
-        this.text(archiveSkillNotes[index] || '职业专属升级', 156, y + 2, 9, DATA.palette.muted, 'left');
+      // Compact two-column catalogue: every representative skill remains visible
+      // at the 360px logical width, while combo recipes stay in the same panel.
+      this.text('代表技能 // 全部', 30, 300, 8, DATA.palette.muted, 'left', true, true);
+      const skillColumns = [30, 180];
+      const skillStartY = 317;
+      const skillRowHeight = 21;
+      const skillCards = Array.isArray(classData.cards) ? classData.cards : [];
+      skillCards.forEach((card, index) => {
+        const column = index % skillColumns.length;
+        const row = Math.floor(index / skillColumns.length);
+        const x = skillColumns[column];
+        const y = skillStartY + row * skillRowHeight;
+        const iconColor = card.kind === 'survival' ? DATA.palette.cyan : classData.color;
+        this.drawPixelIcon(card.id, x, y - 9, 16, iconColor, classData.id);
+        this.text(card.name, x + 21, y + 2, 7, DATA.palette.paper, 'left', true);
       });
-      this.text('组合技 // 两张指定技能均达到 Lv.3', 30, 420, 8, DATA.palette.muted, 'left', true, true);
-      classData.evolutions.forEach((evolution, index) => {
-        const y = 447 + index * 24;
-        this.drawPixelIcon(evolution.id, 30, y - 13, 18, DATA.palette.acid, classData.id);
-        this.text(evolution.name, 53, y, 9, DATA.palette.acid, 'left', true);
-        const recipe = this.evolutionRecipeText(classData, evolution);
-        const effect = evolution.desc || '组合效果待补充';
-        this.text(`${recipe} · ${effect}`, 53, y + 10, 6, DATA.palette.paper, 'left');
+      const skillRows = Math.ceil(skillCards.length / skillColumns.length);
+      const comboHeaderY = skillStartY + skillRows * skillRowHeight + 7;
+      this.text(`组合技 // ${(classData.evolutions || []).length} 组配方`, 30, comboHeaderY, 7, DATA.palette.muted, 'left', true, true);
+      // Six recipes fit in a compact two-column catalogue. The ingredient IDs
+      // remain visible at small size without pushing the employee button out
+      // of the 360x640 safe area.
+      const comboColumns = [30, 180];
+      (classData.evolutions || []).forEach((evolution, index) => {
+        const column = index % comboColumns.length;
+        const row = Math.floor(index / comboColumns.length);
+        const x = comboColumns[column];
+        const y = comboHeaderY + 13 + row * 20;
+        this.drawPixelIcon(evolution.id, x, y - 8, 13, DATA.palette.acid, classData.id);
+        this.text(evolution.name, x + 17, y - 1, 6.5, DATA.palette.acid, 'left', true);
+        const recipeNames = Array.isArray(evolution.requires)
+          ? evolution.requires.map((id) => (classData.cards.find((card) => card.id === id) || { name: id }).name).join(' + ')
+          : '—';
+        this.text(`${recipeNames} Lv.3`, x + 17, y + 7, 4.2, DATA.palette.paper, 'left');
+        const effect = String(evolution.desc || '效果待补充').replace(/[。！？]/g, '').slice(0, 20);
+        this.text(effect, x + 17, y + 14, 4.1, DATA.palette.muted, 'left');
       });
       if (unlocked) {
         this.button(24, 527, 312, 35, this.save.selectedClass === classData.id ? '当前出勤员工' : '设为当前员工', () => {
@@ -3312,92 +3500,75 @@
     }
 
     drawPlanetMark(x, y, planet) {
-      if (planet && planet.id === 'moon') {
-        const cover = this.assetImage('planet.moon.cover') || this.assetImage('planet.moon.icon');
+      const planetAssets = this.assets && this.assets.manifest && this.assets.manifest.planetAssets;
+      const planetSpec = planetAssets && planet ? planetAssets[planet.id] : null;
+      if (planetSpec) {
+        const cover = this.assetImage(planetSpec.cover) || this.assetImage(planetSpec.icon);
         if (cover) {
           this.ctx.drawImage(cover, Math.round(x - 39), Math.round(y - 39), 78, 78);
           return true;
         }
       }
-      if (planet && planet.id === 'moon') {
-        const ctx = this.ctx;
-        const scale = 78 / 32;
-        const rect = (left, top, width, height, color) => {
-          ctx.fillStyle = color;
-          ctx.fillRect(
-            Math.round(left * scale),
-            Math.round(top * scale),
-            Math.max(1, Math.round(width * scale)),
-            Math.max(1, Math.round(height * scale))
-          );
-        };
-        ctx.save();
-        ctx.translate(Math.round(x - 39), Math.round(y - 39));
-        ctx.fillStyle = '#0d1215';
-        ctx.beginPath();
-        ctx.moveTo(8 * scale, 1 * scale);
-        ctx.lineTo(24 * scale, 1 * scale);
-        ctx.lineTo(28 * scale, 5 * scale);
-        ctx.lineTo(30 * scale, 11 * scale);
-        ctx.lineTo(31 * scale, 21 * scale);
-        ctx.lineTo(25 * scale, 28 * scale);
-        ctx.lineTo(19 * scale, 30 * scale);
-        ctx.lineTo(9 * scale, 30 * scale);
-        ctx.lineTo(3 * scale, 27 * scale);
-        ctx.lineTo(1 * scale, 23 * scale);
-        ctx.lineTo(1 * scale, 12 * scale);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = '#4e5b5f';
-        ctx.beginPath();
-        ctx.moveTo(9 * scale, 3 * scale);
-        ctx.lineTo(23 * scale, 3 * scale);
-        ctx.lineTo(27 * scale, 7 * scale);
-        ctx.lineTo(29 * scale, 20 * scale);
-        ctx.lineTo(23 * scale, 27 * scale);
-        ctx.lineTo(10 * scale, 29 * scale);
-        ctx.lineTo(4 * scale, 24 * scale);
-        ctx.lineTo(3 * scale, 13 * scale);
-        ctx.lineTo(7 * scale, 5 * scale);
-        ctx.closePath();
-        ctx.fill();
-        rect(7, 7, 6, 5, '#243034');
-        rect(8, 8, 4, 2, '#5e6c6e');
-        rect(19, 6, 6, 4, '#5e6c6e');
-        rect(20, 7, 4, 3, '#243034');
-        rect(12, 13, 7, 5, '#243034');
-        rect(13, 14, 5, 3, '#3a484c');
-        rect(23, 16, 5, 6, '#243034');
-        rect(6, 21, 5, 4, '#5e6c6e');
-        rect(16, 23, 6, 5, '#243034');
-        rect(7, 18, 3, 2, '#53dbd3');
-        rect(10, 18, 3, 2, '#53dbd3');
-        rect(13, 17, 3, 2, '#53dbd3');
-        rect(16, 17, 3, 2, '#53dbd3');
-        rect(19, 16, 3, 2, '#53dbd3');
-        rect(22, 8, 3, 3, '#aafff3');
-        rect(5, 22, 3, 3, '#aafff3');
-        ctx.restore();
-        return true;
-      }
-      const iconId = planet.id === 'rust' ? 'planet_rust' : (planet.id === 'spore' ? 'planet_spore' : 'planet_moon');
-      if (this.drawAtlasIcon(iconId, x - 39, y - 39, 78)) return;
+      const iconId = planet && planet.id === 'rust' ? 'planet_rust' : (planet && planet.id === 'spore' ? 'planet_spore' : 'planet_moon');
+      if (this.drawAtlasIcon(iconId, x - 39, y - 39, 78)) return true;
+      // Last-resort fallback keeps the same stepped pixel-sphere silhouette
+      // for all ecosystems. It deliberately has no orbit ring or geometric
+      // marker, so a failed image load cannot reintroduce an old placeholder.
       const ctx = this.ctx;
+      const scale = 78 / 32;
+      const palette = planet && planet.id === 'rust'
+        ? { edge: '#3a211b', body: '#9b4b24', shade: '#5a2c20', hi: '#ff9b3f', accent: '#ffb34f' }
+        : (planet && planet.id === 'spore'
+          ? { edge: '#20152b', body: '#5b3b6f', shade: '#322545', hi: '#a9e95a', accent: '#cf7bff' }
+          : { edge: '#0d1215', body: '#4e5b5f', shade: '#243034', hi: '#aafff3', accent: '#53dbd3' });
+      const rect = (left, top, width, height, color) => {
+        ctx.fillStyle = color;
+        ctx.fillRect(Math.round(left * scale), Math.round(top * scale), Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale)));
+      };
       ctx.save();
-      ctx.translate(x, y);
-      ctx.fillStyle = planet.color;
+      ctx.translate(Math.round(x - 39), Math.round(y - 39));
+      ctx.fillStyle = palette.edge;
       ctx.beginPath();
-      ctx.arc(0, 0, 39, 0, TAU);
+      ctx.moveTo(8 * scale, 1 * scale);
+      ctx.lineTo(24 * scale, 1 * scale);
+      ctx.lineTo(28 * scale, 5 * scale);
+      ctx.lineTo(30 * scale, 11 * scale);
+      ctx.lineTo(31 * scale, 21 * scale);
+      ctx.lineTo(25 * scale, 28 * scale);
+      ctx.lineTo(19 * scale, 30 * scale);
+      ctx.lineTo(9 * scale, 30 * scale);
+      ctx.lineTo(3 * scale, 27 * scale);
+      ctx.lineTo(1 * scale, 23 * scale);
+      ctx.lineTo(1 * scale, 12 * scale);
+      ctx.closePath();
       ctx.fill();
-      ctx.strokeStyle = planet.accent;
-      ctx.lineWidth = 2;
+      ctx.fillStyle = palette.body;
       ctx.beginPath();
-      ctx.ellipse(0, 0, 64, 15, -0.2, 0, TAU);
-      ctx.stroke();
-      ctx.globalAlpha = 0.5;
-      ctx.fillStyle = planet.accent;
-      for (let index = 0; index < 8; index += 1) ctx.fillRect(-25 + (index * 23) % 48, -22 + (index * 17) % 39, 4 + index % 4, 3 + index % 3);
+      ctx.moveTo(9 * scale, 3 * scale);
+      ctx.lineTo(23 * scale, 3 * scale);
+      ctx.lineTo(27 * scale, 7 * scale);
+      ctx.lineTo(29 * scale, 20 * scale);
+      ctx.lineTo(23 * scale, 27 * scale);
+      ctx.lineTo(10 * scale, 29 * scale);
+      ctx.lineTo(4 * scale, 24 * scale);
+      ctx.lineTo(3 * scale, 13 * scale);
+      ctx.lineTo(7 * scale, 5 * scale);
+      ctx.closePath();
+      ctx.fill();
+      rect(7, 7, 6, 5, palette.shade);
+      rect(19, 6, 6, 4, palette.hi);
+      rect(12, 13, 7, 5, palette.shade);
+      rect(23, 16, 5, 6, palette.shade);
+      rect(6, 21, 5, 4, palette.hi);
+      rect(16, 23, 6, 5, palette.shade);
+      rect(7, 18, 3, 2, palette.accent);
+      rect(10, 18, 3, 2, palette.accent);
+      rect(13, 17, 3, 2, palette.accent);
+      rect(16, 17, 3, 2, palette.accent);
+      rect(19, 16, 3, 2, palette.accent);
+      rect(22, 8, 3, 3, palette.hi);
       ctx.restore();
+      return true;
     }
 
     drawPlaying() {
@@ -3838,18 +4009,36 @@
         const orbit = this.getCardLevel('orbit_blade');
         const count = Math.min(7, orbit + (this.hasEvolution('star_ring') ? 3 : 0));
         const radius = this.hasEvolution('star_ring') ? 70 : 54;
+        const orbitSpec = this.assets && this.assets.manifest && this.assets.manifest.vfx && this.assets.manifest.vfx.orbit_blade;
+        const orbitKey = orbitSpec && this.assetImage(orbitSpec.key) ? orbitSpec.key : null;
         for (let index = 0; index < count; index += 1) {
           const angle = this.world.time * (1.4 + this.getCardLevel('attack_speed') * 0.28) + index / count * TAU;
           const x = playerX + Math.cos(angle) * radius;
           const y = playerY + Math.sin(angle) * radius * 0.68;
-          ctx.save();
-          ctx.translate(Math.round(x), Math.round(y));
-          ctx.rotate(angle + Math.PI / 2);
-          ctx.fillStyle = DATA.palette.paper;
-          ctx.fillRect(-2, -9, 4, 14);
-          ctx.fillStyle = DATA.palette.orange;
-          ctx.fillRect(-3, 5, 6, 3);
-          ctx.restore();
+          if (orbitKey) {
+            const frame = Math.floor(this.world.time * orbitSpec.fps + index * 0.7) % orbitSpec.frameCount;
+            ctx.save();
+            ctx.globalCompositeOperation = orbitSpec.blendMode || 'lighter';
+            ctx.globalAlpha = 0.96;
+            ctx.translate(Math.round(x), Math.round(y));
+            // The authored sword points up-right (-45°). Rotate that blade
+            // vector to face radially outward from the astronaut.
+            ctx.rotate(angle + Math.PI / 4);
+            const scale = this.hasEvolution('star_ring') ? 1.08 : 0.92;
+            this.drawFrame(orbitSpec.key, orbitSpec.frameWidth, orbitSpec.frameHeight, frame,
+              -orbitSpec.anchor.x * scale, -orbitSpec.anchor.y * scale,
+              orbitSpec.frameWidth * scale, orbitSpec.frameHeight * scale);
+            ctx.restore();
+          } else {
+            ctx.save();
+            ctx.translate(Math.round(x), Math.round(y));
+            ctx.rotate(angle + Math.PI / 2);
+            ctx.fillStyle = DATA.palette.paper;
+            ctx.fillRect(-2, -9, 4, 14);
+            ctx.fillStyle = DATA.palette.orange;
+            ctx.fillRect(-3, 5, 6, 3);
+            ctx.restore();
+          }
         }
       } else if (this.player.classId === 'mechanic') {
         const count = Math.min(7, 1 + (this.getCardLevel('drone') >= 2 ? 1 : 0) + this.getCardLevel('mech_count') + (this.hasEvolution('swarm_protocol') ? 2 : 0));
@@ -3991,12 +4180,21 @@
           ? this.player.actionDirection
           : { x: Math.cos(angle), y: Math.sin(angle) };
         const frame = this.direction4(actionDirection.x, actionDirection.y);
+        const roleSpec = this.assets && this.assets.manifest && this.assets.manifest.characterRoleSpecs
+          ? this.assets.manifest.characterRoleSpecs[this.characterIdForClass(classData.id)]
+          : null;
+        const directionRowMap = roleSpec && Array.isArray(roleSpec.directionRowMap)
+          ? roleSpec.directionRowMap
+          : [0, 3, 2, 1];
+        const drawRow = clamp(Number(directionRowMap[frame]) || 0, 0, 3);
         const actionSpec = hasRuntimePlayer
           ? (actionState === 'skill'
             ? this.characterActionSpec(classData.id, 'skill', actionSkill)
             : (actionState === 'attack'
               ? this.characterActionSpec(classData.id, 'attack')
-              : (moving ? this.characterActionSpec(classData.id, 'walk') : null)))
+              : (moving
+                ? this.characterActionSpec(classData.id, 'walk')
+                : this.characterActionSpec(classData.id, 'idle'))))
           : null;
         const actionAvailable = Boolean(actionSpec && this.assetImage(actionSpec.key));
         const bob = !actionAvailable && moving ? Math.round(Math.sin(this.player.movePhase || this.now * 6) * 1.2) : 0;
@@ -4008,7 +4206,10 @@
         ctx.fill();
         ctx.globalAlpha = this.player && this.player.invuln > 0 && Math.floor(this.now * 18) % 2 ? 0.55 : 1;
         const actionDrawn = actionAvailable && this.characterActionFrame(classData, actionState, actionSkill, frame, actionElapsed, x, y, scale);
-        if (!actionDrawn) this.drawFrame(characterKey, 64, 64, frame, x - 32 * scale, y - 56 * scale + bob, 64 * scale, 64 * scale);
+        if (!actionDrawn) {
+          this.drawFrame(characterKey, 64, 64, drawRow,
+            x - 32 * scale, y - 56 * scale + bob, 64 * scale, 64 * scale);
+        }
         if (!actionDrawn) {
           ctx.globalAlpha = 0.7;
           ctx.fillStyle = classData.color;
@@ -4068,6 +4269,26 @@
 
     drawProjectile(projectile) {
       const screen = this.worldToScreen(projectile);
+      if (projectile.source === 'wave') {
+        const spec = this.assets && this.assets.manifest && this.assets.manifest.vfx && this.assets.manifest.vfx.sword_wave;
+        if (spec && this.assetImage(spec.key)) {
+          const angle = Math.atan2(projectile.vy || 0, projectile.vx || 1);
+          const frame = Math.min(spec.frameCount - 1, 3);
+          const scale = 0.64;
+          const ctx = this.ctx;
+          ctx.save();
+          ctx.globalCompositeOperation = spec.blendMode || 'source-over';
+          ctx.translate(Math.round(screen.x), Math.round(screen.y));
+          if (Math.abs(angle) > 0.01) ctx.rotate(angle);
+          // A travelling wave is centered on its collision body. The casting
+          // VFX separately uses the sword-core pivot at the player's hand.
+          this.drawFrame(spec.key, spec.frameWidth, spec.frameHeight, frame,
+            -spec.frameWidth * scale / 2, -spec.frameHeight * scale / 2,
+            spec.frameWidth * scale, spec.frameHeight * scale);
+          ctx.restore();
+          return;
+        }
+      }
       let visual = null;
       if (projectile.source === 'gun') {
         if (this.hasEvolution('piercing_star') && projectile.pierce > 0 && projectile.explosion > 0) visual = 'piercing_star_round';
@@ -4414,7 +4635,11 @@
       const overflow = choice.type === 'overflow';
       const classData = DATA.classById[this.player.classId];
       const card = choice.data;
-      const level = evolution ? 'EVOLUTION' : (overflow ? '一次性超载' : `LV.${(this.player.cards[card.id] || 0) + 1}/${LIMITS.skillLevel}`);
+      const currentCardLevel = !evolution && !overflow ? this.getCardLevel(card.id) : 0;
+      const nextCardLevel = currentCardLevel + 1;
+      // Make it explicit that the number is the level reached by choosing
+      // this card. The old "LV.3/3" label looked like an already-maxed card.
+      const level = evolution ? 'EVOLUTION' : (overflow ? '一次性超载' : `当前 Lv.${currentCardLevel}  →  Lv.${nextCardLevel}/${LIMITS.skillLevel}`);
       const color = evolution ? DATA.palette.acid : classData.color;
       const kind = evolution ? 'COMBO TECH' : (overflow ? 'OVERTIME' : `${card.kind.toUpperCase()} TECH`);
       this.panel(10, y, 340, 154, { uiVariant: 'upgrade', fill: evolution ? '#192114' : '#121817', stroke: color, accent: color, accentWidth: 6 });
@@ -4457,7 +4682,15 @@
           this.ctx.fillRect(302 + pip * 10, y + 137, 7, 7);
         }
       }
-      this.buttons.push({ x: 10, y, w: 340, h: 154, disabled: false, action: () => this.chooseUpgrade(choice) });
+      const staleMaxedCard = !evolution && !overflow && currentCardLevel >= LIMITS.skillLevel;
+      this.buttons.push({
+        x: 10,
+        y,
+        w: 340,
+        h: 154,
+        disabled: staleMaxedCard,
+        action: () => this.chooseUpgrade(choice)
+      });
     }
 
     drawResult() {

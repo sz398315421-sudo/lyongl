@@ -1,0 +1,40 @@
+{
+  "id": "sword_wave",
+  "comboId": "rift_slash",
+  "classId": "warrior",
+  "frameWidth": 96,
+  "frameHeight": 96,
+  "frameCount": 8,
+  "fps": 15,
+  "loop": false,
+  "anchor": {
+    "x": 48,
+    "y": 48
+  },
+  "blendMode": "lighter",
+  "eventUnit": "melee_swing",
+  "sheet": "sword_wave.png",
+  "frames": [
+    "frame_00.png",
+    "frame_01.png",
+    "frame_02.png",
+    "frame_03.png",
+    "frame_04.png",
+    "frame_05.png",
+    "frame_06.png",
+    "frame_07.png"
+  ],
+  "previewGif": "sword_wave.gif",
+  "imageSmoothingEnabled": false,
+  "generationModel": "gpt-image-2",
+  "generationProvider": "codex",
+  "generationQuality": "medium",
+  "alphaMethod": "chroma-key",
+  "pixelization": "nearest-neighbor",
+  "palette": "white-cyan blade with orange-red edge",
+  "role": "warrior",
+  "previewImage": "sword_wave_preview.png",
+  "sourceReviewId": "v16_sword_wave",
+  "sourceReviewPath": "assets/concepts/v16_combo_vfx_review/vfx/sword_wave",
+  "runtimePath": "assets/game/skills/warrior/vfx/sword_wave/sword_wave.png"
+}
