@@ -554,6 +554,13 @@
       // file:// preview can otherwise keep an older placeholder icon after
       // the runtime PNG has been replaced.
       this.cacheBust = options.cacheBust ? String(options.cacheBust) : '';
+      // GitHub Pages and mobile browsers can throttle a burst of hundreds of
+      // simultaneous image requests. Keep a small queue so every runtime
+      // asset gets a fair request slot instead of silently falling back.
+      const requestedConcurrency = Number(options.loadConcurrency);
+      this.loadConcurrency = Number.isFinite(requestedConcurrency)
+        ? Math.max(1, Math.floor(requestedConcurrency))
+        : 12;
       this.images = {};
       this.failures = [];
       this.loadedCount = 0;
@@ -594,7 +601,18 @@
     }
 
     async loadAll() {
-      await Promise.all(Object.entries(images).map(([key, path]) => this.loadImage(key, path)));
+      const entries = Object.entries(images);
+      let cursor = 0;
+      const worker = async () => {
+        while (cursor < entries.length) {
+          const index = cursor;
+          cursor += 1;
+          const [key, path] = entries[index];
+          await this.loadImage(key, path);
+        }
+      };
+      const workerCount = Math.min(this.loadConcurrency, entries.length);
+      await Promise.all(Array.from({ length: workerCount }, () => worker()));
       this.ready = true;
       return this;
     }

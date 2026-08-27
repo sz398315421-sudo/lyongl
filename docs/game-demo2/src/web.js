@@ -290,7 +290,8 @@
 
   const assetStore = new window.StarDutyAssets.AssetStore({
     createImage: () => new Image(),
-    cacheBust: 'v85-difficulty-combo-20260827'
+    cacheBust: 'v86-asset-load-queue-20260827',
+    loadConcurrency: 12
   });
   let game = null;
   let loading = true;
