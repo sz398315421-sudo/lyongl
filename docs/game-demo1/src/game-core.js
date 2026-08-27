@@ -680,6 +680,7 @@
       ];
       const objective = this.createObjective(this.contract.mission.id, objectivePositions);
       const cacheSide = random() > 0.5 ? 1 : -1;
+      const difficultyConfig = DATA.difficulty || {};
       const extractionConfig = DATA.extraction || {};
       const extraction = {
         x: 750,
@@ -710,7 +711,7 @@
         comboFeedbackState: {},
         particles: [],
         turrets: [],
-        spawnTimer: 0.35,
+        spawnTimer: Number.isFinite(difficultyConfig.initialSpawnDelay) ? difficultyConfig.initialSpawnDelay : 0.35,
         hazardTimer: 3.5,
         eliteId: null,
         camera: { x: this.player.x - W / 2, y: this.player.y - H / 2 },
@@ -803,6 +804,32 @@
         }
       }
       return weight;
+    }
+
+    getComboDraftTarget(cards) {
+      if (!Array.isArray(cards) || !cards.length) return null;
+      const classData = DATA.classById[this.player.classId];
+      const config = DATA.comboDraft || {};
+      const activationLevel = Number.isFinite(config.activationLevel) ? Math.max(1, config.activationLevel) : 1;
+      const candidates = new Map(cards.map((card) => [card.id, card]));
+      const targets = new Map();
+      for (const evolution of (classData && classData.evolutions) || []) {
+        if (!evolution || this.player.evolutions[evolution.id]) continue;
+        const requires = Array.isArray(evolution.requires) ? evolution.requires : [];
+        const levels = requires.map((id) => this.getCardLevel(id));
+        const hasActiveComponent = levels.some((level) => level >= activationLevel);
+        if (!hasActiveComponent) continue;
+        for (let index = 0; index < requires.length; index += 1) {
+          if (levels[index] >= LIMITS.skillLevel || !candidates.has(requires[index])) continue;
+          const activeCount = levels.filter((level) => level >= activationLevel).length;
+          const current = targets.get(requires[index]);
+          const score = 1 + activeCount * 1.5 + (LIMITS.skillLevel - levels[index]) * 0.25;
+          if (!current || score > current.score) targets.set(requires[index], { card: candidates.get(requires[index]), score });
+        }
+      }
+      if (!targets.size) return null;
+      const weighted = this.drawWeighted([...targets.values()], this.world.random, (target) => target.score);
+      return weighted ? weighted.card : null;
     }
 
     drawWeighted(items, random, weightFn) {
@@ -1222,20 +1249,31 @@
 
     updateSpawning(dt) {
       const world = this.world;
+      const difficultyConfig = DATA.difficulty || {};
       world.spawnTimer -= dt;
-      if (world.spawnTimer > 0 || world.enemies.length >= 145) return;
-      const pressure = clamp(world.time / 420, 0, 1);
+      const maxEnemies = Number.isFinite(difficultyConfig.maxEnemies) ? difficultyConfig.maxEnemies : 145;
+      if (world.spawnTimer > 0 || world.enemies.length >= maxEnemies) return;
+      const pressureRampSeconds = Number.isFinite(difficultyConfig.pressureRampSeconds)
+        ? Math.max(1, difficultyConfig.pressureRampSeconds)
+        : 420;
+      const pressure = clamp(world.time / pressureRampSeconds, 0, 1);
       const extracting = world.missionComplete && dist(this.player, world.extraction) < 130;
       const extractionConfig = DATA.extraction || {};
+      const doubleSpawnChance = Number.isFinite(difficultyConfig.doubleSpawnChance)
+        ? clamp(difficultyConfig.doubleSpawnChance, 0, 1)
+        : 0.30;
       const count = extracting
         ? (world.random() < (Number.isFinite(extractionConfig.extraEnemyChance) ? extractionConfig.extraEnemyChance : 0.5) ? 2 : 1)
-        : (world.random() < pressure * 0.3 ? 2 : 1);
+        : (world.random() < pressure * doubleSpawnChance ? 2 : 1);
       for (let index = 0; index < count; index += 1) this.spawnEnemy();
-      const onboardingPace = world.time < 25 ? 1.22 : 0.85;
+      const earlySpawnPace = Number.isFinite(difficultyConfig.earlySpawnPace) ? difficultyConfig.earlySpawnPace : 1.22;
+      const standardSpawnPace = Number.isFinite(difficultyConfig.standardSpawnPace) ? difficultyConfig.standardSpawnPace : 0.85;
+      const pressureDrop = Number.isFinite(difficultyConfig.pressureDrop) ? difficultyConfig.pressureDrop : 0.5;
+      const onboardingPace = world.time < 25 ? earlySpawnPace : standardSpawnPace;
       const extractionMultiplier = Number.isFinite(extractionConfig.spawnTimerMultiplier)
         ? extractionConfig.spawnTimerMultiplier
         : 0.60;
-      world.spawnTimer = Math.max(0.2, onboardingPace - pressure * 0.5) * (extracting ? extractionMultiplier : 1);
+      world.spawnTimer = Math.max(0.28, onboardingPace - pressure * pressureDrop) * (extracting ? extractionMultiplier : 1);
     }
 
     spawnEnemy(options = {}) {
@@ -1245,12 +1283,23 @@
       const x = clamp(this.player.x + Math.cos(angle) * radius, 24, world.width - 24);
       const y = clamp(this.player.y + Math.sin(angle) * radius, 40, world.height - 24);
       const age = world.time;
+      const difficultyConfig = DATA.difficulty || {};
+      const hpMultiplier = Number.isFinite(difficultyConfig.enemyHpMultiplier) ? difficultyConfig.enemyHpMultiplier : 1;
+      const damageMultiplier = Number.isFinite(difficultyConfig.enemyDamageMultiplier) ? difficultyConfig.enemyDamageMultiplier : 1;
+      const speedMultiplier = Number.isFinite(difficultyConfig.enemySpeedMultiplier) ? difficultyConfig.enemySpeedMultiplier : 1;
+      const growthSeconds = Number.isFinite(difficultyConfig.enemyGrowthSeconds)
+        ? Math.max(1, difficultyConfig.enemyGrowthSeconds)
+        : 900;
+      const xpMultiplier = Number.isFinite(difficultyConfig.xpMultiplier) ? difficultyConfig.xpMultiplier : 1;
       let type = 'swarm';
       const roll = world.random();
-      if (age > 70 && roll > 0.78) type = 'shooter';
-      else if (age > 35 && roll > 0.58) type = 'charger';
-      else if (age > 120 && roll < 0.12) type = 'bloater';
-      const scale = 1 + age / 900;
+      const shooterStartSeconds = Number.isFinite(difficultyConfig.shooterStartSeconds) ? difficultyConfig.shooterStartSeconds : 70;
+      const chargerStartSeconds = Number.isFinite(difficultyConfig.chargerStartSeconds) ? difficultyConfig.chargerStartSeconds : 35;
+      const bloaterStartSeconds = Number.isFinite(difficultyConfig.bloaterStartSeconds) ? difficultyConfig.bloaterStartSeconds : 120;
+      if (age > shooterStartSeconds && roll > 0.78) type = 'shooter';
+      else if (age > chargerStartSeconds && roll > 0.58) type = 'charger';
+      else if (age > bloaterStartSeconds && roll < 0.12) type = 'bloater';
+      const scale = 1 + age / growthSeconds;
       const templates = {
         swarm: { hp: 24, speed: 39, damage: 8, radius: 10, xp: 5 },
         shooter: { hp: 42, speed: 30, damage: 7, radius: 12, xp: 8 },
@@ -1280,12 +1329,20 @@
         eliteDangerVisual: speciesId ? `enemy.eliteDanger.${planetId}.${speciesId}` : null,
         visualType: type,
         elite,
-        hp: elite ? 1450 : Math.round(base.hp * scale),
-        maxHp: elite ? 1450 : Math.round(base.hp * scale),
-        speed: elite ? 27 : base.speed * (1 + age / 1800),
-        damage: elite ? 19 : base.damage * scale,
+        hp: elite
+          ? (Number.isFinite(difficultyConfig.eliteHp) ? difficultyConfig.eliteHp : 1450)
+          : Math.round(base.hp * scale * hpMultiplier),
+        maxHp: elite
+          ? (Number.isFinite(difficultyConfig.eliteHp) ? difficultyConfig.eliteHp : 1450)
+          : Math.round(base.hp * scale * hpMultiplier),
+        speed: elite
+          ? 27 * speedMultiplier
+          : base.speed * speedMultiplier * (1 + age / (growthSeconds * 1.8)),
+        damage: elite
+          ? (Number.isFinite(difficultyConfig.eliteDamage) ? difficultyConfig.eliteDamage : 19)
+          : base.damage * scale * damageMultiplier,
         radius: elite ? 28 : base.radius,
-        xp: elite ? 75 : base.xp,
+        xp: Math.max(1, Math.round((elite ? 75 : base.xp) * xpMultiplier)),
         shootTimer: 1.3 + world.random(),
         chargeTimer: 2 + world.random() * 2,
         orbitCd: 0,
@@ -1318,6 +1375,7 @@
     updateEnemies(dt) {
       const world = this.world;
       const stats = this.currentStats();
+      const difficultyConfig = DATA.difficulty || {};
       for (const enemy of world.enemies) {
         if (enemy.dead) {
           // Keep defeated enemies around for the short death sheet so the
@@ -1366,7 +1424,10 @@
             }
           }
           if (enemy.chargeTimer <= 0) {
-            speed *= enemy.elite ? 4.5 : 5.2;
+            const burstMultiplier = enemy.elite
+              ? (Number.isFinite(difficultyConfig.eliteBurstMultiplier) ? difficultyConfig.eliteBurstMultiplier : 4.5)
+              : (Number.isFinite(difficultyConfig.chargerBurstMultiplier) ? difficultyConfig.chargerBurstMultiplier : 5.2);
+            speed *= burstMultiplier;
             if (enemy.chargeTimer < -0.42) {
               enemy.chargeTimer = enemy.elite ? 2.7 : 3.8;
               enemy.chargeTelegraph = false;
@@ -2186,6 +2247,10 @@
         return level > 0 ? level < LIMITS.skillLevel : slots < LIMITS.skillSlots;
       });
       const random = this.world.random;
+      const comboConfig = DATA.comboDraft || {};
+      const partnerChance = Number.isFinite(comboConfig.partnerChance)
+        ? clamp(comboConfig.partnerChance, 0, 1)
+        : 0.78;
       const choices = [];
       if (readyEvolutions.length) choices.push({ type: 'evolution', data: pick(readyEvolutions, random) });
       const remainingCards = cardCandidates.slice();
@@ -2204,6 +2269,14 @@
           if (remainingIndex >= 0) remainingCards.splice(remainingIndex, 1);
         }
         if (core) choices.push({ type: 'card', data: core });
+      }
+      if (!readyEvolutions.length && choices.length < 3 && random() < partnerChance) {
+        const comboTarget = this.getComboDraftTarget(remainingCards);
+        const comboIndex = comboTarget ? remainingCards.indexOf(comboTarget) : -1;
+        if (comboIndex >= 0) {
+          remainingCards.splice(comboIndex, 1);
+          choices.push({ type: 'card', data: comboTarget });
+        }
       }
       while (choices.length < 3 && remainingCards.length) {
         const card = drawCard();

@@ -32,13 +32,40 @@
       skillSlots: 6
     },
     comboDraft: {
-      relatedWeight: 3,
-      activationLevel: 1
+      // Once one recipe component is owned, bias the next drafts toward its
+      // partner so a run can realistically complete a combo before the pool
+      // fills with unrelated upgrades.
+      relatedWeight: 5,
+      activationLevel: 1,
+      partnerChance: 0.78
+    },
+    difficulty: {
+      // A gentler early curve keeps the first few upgrades playable while the
+      // later pressure still ramps instead of disappearing entirely.
+      initialSpawnDelay: 0.80,
+      earlySpawnPace: 1.38,
+      standardSpawnPace: 0.98,
+      pressureDrop: 0.34,
+      pressureRampSeconds: 540,
+      doubleSpawnChance: 0.20,
+      maxEnemies: 125,
+      enemyHpMultiplier: 0.90,
+      enemyDamageMultiplier: 0.80,
+      enemySpeedMultiplier: 0.94,
+      enemyGrowthSeconds: 1100,
+      xpMultiplier: 1.12,
+      shooterStartSeconds: 85,
+      chargerStartSeconds: 50,
+      bloaterStartSeconds: 145,
+      eliteHp: 1250,
+      eliteDamage: 16,
+      chargerBurstMultiplier: 4.6,
+      eliteBurstMultiplier: 4.0
     },
     extraction: {
       requiredSeconds: 30,
-      spawnTimerMultiplier: 0.60,
-      extraEnemyChance: 0.50
+      spawnTimerMultiplier: 0.78,
+      extraEnemyChance: 0.30
     },
     classes: [
       {

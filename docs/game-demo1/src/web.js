@@ -290,7 +290,7 @@
 
   const assetStore = new window.StarDutyAssets.AssetStore({
     createImage: () => new Image(),
-    cacheBust: 'v84-gpt-image2-combat-vfx-20260827'
+    cacheBust: 'v85-difficulty-combo-20260827'
   });
   let game = null;
   let loading = true;
