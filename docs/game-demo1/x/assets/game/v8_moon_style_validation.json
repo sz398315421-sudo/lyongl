@@ -1,8 +1,0 @@
-{
-  "passed": true,
-  "reviewIcon": "assets/concepts/v8_moon_style_review/planets/moon/planet_moon.png",
-  "reviewCover": "assets/concepts/v8_moon_style_review/planets/moon/moon_cover.png",
-  "runtimeIcon": "assets/game/planets/moon/planet_moon.png",
-  "runtimeCover": "assets/game/planets/moon/moon_cover.png",
-  "errors": []
-}

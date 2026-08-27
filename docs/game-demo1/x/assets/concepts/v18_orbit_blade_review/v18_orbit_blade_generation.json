@@ -1,9 +1,0 @@
-{
-  "id": "v18_orbit_blade",
-  "model": "gpt-image-2",
-  "provider": "codex",
-  "quality": "medium",
-  "source": "tmp\\imagegen\\v18_orbit_blade\\orbit_blade_source.png",
-  "frames": 6,
-  "cli": "scripts/gpt_image_2_skill.cjs"
-}

@@ -8,19 +8,23 @@
     // Local QA switch: keep enabled while testing so all astronauts are
     // immediately selectable. Set false for release to restore the gates.
     runtime: {
-      testUnlockAllClasses: true
+      testUnlockAllClasses: true,
+      // Current build keeps anomaly rules in the data set for future use,
+      // but does not include them in contracts or apply their gameplay effects.
+      anomalyRulesEnabled: false
     },
     palette: {
-      ink: '#090d10',
-      panel: '#141a1d',
-      paper: '#ddd5ba',
-      muted: '#817f72',
-      acid: '#d9ff57',
-      cyan: '#51d9d1',
-      orange: '#ff7547',
-      danger: '#ff4057',
-      rust: '#b9653e',
-      spore: '#ad6ee8'
+      ink: '#05090d',
+      panel: '#0b151a',
+      paper: '#dff8f1',
+      muted: '#789098',
+      acid: '#d6ff45',
+      cyan: '#41e7f4',
+      violet: '#ad76ff',
+      orange: '#ff8067',
+      danger: '#ff4f72',
+      rust: '#c86b49',
+      spore: '#ad76ff'
     },
     limits: {
       skillLevel: 3,

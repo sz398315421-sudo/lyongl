@@ -13,6 +13,7 @@
     'character.gunner_mia': `${prefix}characters/gunner_mia/gunner_mia_4dir.png`,
     'character.warrior_kade': `${prefix}characters/warrior_kade/warrior_kade_4dir.png`,
     'character.mechanic_locke': `${prefix}characters/mechanic_locke/mechanic_locke_4dir.png`,
+    'pet.mechanic_drone': `${prefix}characters/mechanic_locke/pet/mechanic_drone.png`,
     'enemy.swarm': `${prefix}enemies/rust/scrap_mite/scrap_mite_4dir.png`,
     'enemy.shooter': `${prefix}enemies/rust/plasma_watcher/plasma_watcher_4dir.png`,
     'enemy.charger': `${prefix}enemies/rust/rivethorn_ram/rivethorn_ram_4dir.png`,
@@ -28,6 +29,7 @@
     'object.rust_nest': `${prefix}objects/rust/rust_nest/rust_nest.png`,
     'object.spore_nest': `${prefix}objects/spore/spore_nest/spore_nest.png`,
     'object.moon_nest': `${prefix}objects/moon/moon_nest/moon_nest.png`,
+    'object.auto_turret': `${prefix}objects/mechanic/auto_turret/auto_turret.png`,
     'object.company_beacon': `${prefix}objects/rust/company_beacon/company_beacon.png`,
     'object.mining_drill': `${prefix}objects/rust/mining_drill/mining_drill.png`,
     'object.reward_cache': `${prefix}objects/rust/reward_cache/reward_cache.png`,
@@ -39,6 +41,23 @@
     'ui.panel_inset': `${prefix}ui/panels/panel_inset.png`,
     'ui.panel_upgrade': `${prefix}ui/panels/panel_upgrade.png`,
     'ui.panel_result': `${prefix}ui/panels/panel_result.png`,
+    'ui.cockpit.shell': `${prefix}ui/cockpit/cockpit_main_shell.png`,
+    'ui.cockpit.shell_2x': `${prefix}ui/cockpit/cockpit_main_shell_2x.png`,
+    'ui.cockpit.main_info_expanded_shell': `${prefix}ui/cockpit/cockpit_main_info_expanded_shell.png`,
+    'ui.cockpit.main_info_expanded_shell_2x': `${prefix}ui/cockpit/cockpit_main_info_expanded_shell_2x.png`,
+    'ui.cockpit.dispatch_normal': `${prefix}ui/cockpit/cockpit_dispatch_normal.png`,
+    'ui.cockpit.dispatch_pressed': `${prefix}ui/cockpit/cockpit_dispatch_pressed.png`,
+    'ui.cockpit.nav_idle': `${prefix}ui/cockpit/cockpit_nav_idle.png`,
+    'ui.cockpit.nav_active': `${prefix}ui/cockpit/cockpit_nav_active.png`,
+    'ui.cockpit.preview': `${prefix}ui/cockpit/cockpit_main_preview.png`,
+    'ui.cockpit.archive_shell': `${prefix}ui/cockpit/cockpit_archive_shell.png`,
+    'ui.cockpit.archive_shell_2x': `${prefix}ui/cockpit/cockpit_archive_shell_2x.png`,
+    'ui.cockpit.activity_shell': `${prefix}ui/cockpit/cockpit_activity_shell.png`,
+    'ui.cockpit.activity_shell_2x': `${prefix}ui/cockpit/cockpit_activity_shell_2x.png`,
+    'ui.cockpit.tasks_shell': `${prefix}ui/cockpit/cockpit_tasks_shell.png`,
+    'ui.cockpit.tasks_shell_2x': `${prefix}ui/cockpit/cockpit_tasks_shell_2x.png`,
+    'ui.cockpit.upgrade_shell': `${prefix}ui/cockpit/cockpit_upgrade_shell.png`,
+    'ui.cockpit.upgrade_shell_2x': `${prefix}ui/cockpit/cockpit_upgrade_shell_2x.png`,
     'ui.button_primary_normal': `${prefix}ui/buttons/button_primary_normal.png`,
     'ui.button_primary_pressed': `${prefix}ui/buttons/button_primary_pressed.png`,
     'ui.button_primary_disabled': `${prefix}ui/buttons/button_primary_disabled.png`,
@@ -194,9 +213,13 @@
   };
   Object.entries({ warrior: warriorSkills, mechanic: mechanicSkills }).forEach(([classId, skillIds]) => {
     skillIds.forEach((id) => {
-      images[`skill.${classId}.${id}`] = `${prefix}skills/${classId}/icons/${id}.png`;
+      const iconId = classId === 'mechanic' && id === 'shield' ? 'shield_generator' : id;
+      images[`skill.${classId}.${id}`] = `${prefix}skills/${classId}/icons/${iconId}.png`;
     });
   });
+  // Keep the older mechanic shield icon inside the release closure as a
+  // compatibility asset for archived saves and tooling snapshots.
+  images['skill.mechanic.shield_legacy'] = `${prefix}skills/mechanic/icons/shield.png`;
   Object.entries(newComboIcons).forEach(([classId, skillIds]) => {
     skillIds.forEach((id) => {
       images[`skill.${classId}.${id}`] = `${prefix}skills/${classId}/icons/${id}.png`;
@@ -256,7 +279,7 @@
       vfx: {
         drone: 'drone_muzzle', turret: 'turret_deploy', repair_bot: 'repair_pulse', arc: 'drone_arc',
         self_destruct: 'self_destruct_burst', shield: 'shield_pulse', swarm_protocol: 'swarm_protocol',
-        mobile_fortress: 'mobile_fortress', infinite_recycle: 'recycle_burst',
+        mobile_fortress: 'mobile_fortress', infinite_recycle: 'recycle_burst', recycle_heal: 'recycle_heal',
         parallel_overclock: 'parallel_overclock', field_reconstruction: 'field_reconstruction', magnetic_reclaim: 'magnetic_reclaim'
       }
     }
@@ -289,7 +312,7 @@
       else actions[state] = spec;
     };
     actions.skills = {};
-    addAction('idle', null, 4, 8, true);
+    addAction('idle', null, 4, 4, true);
     addAction('walk', null, 6, 10, true);
     addAction('attack', null, roleSpec.combos.includes(roleSpec.skills[0]) ? 6 : 5, 12, false, roleSpec.vfx[roleSpec.skills[0]] || null);
     roleSpec.skills.forEach((skillId) => {
@@ -343,7 +366,7 @@
     mobile_fortress: ['mechanic', 96, 96, 8, 12, true, 'lighter'], muzzle_flash: ['gunner', 32, 32, 4, 18, false, 'source-over'],
     orbit_blade: ['warrior', 64, 64, 6, 14, true, 'lighter'], phantom_counter: ['warrior', 96, 96, 8, 15, false, 'lighter'],
     piercing_star_burst: ['gunner', 96, 96, 8, 16, false, 'source-over'], railgun_beam: ['gunner', 128, 32, 4, 20, true, 'lighter'],
-    recycle_burst: ['mechanic', 128, 128, 8, 15, false, 'lighter'], repair_pulse: ['mechanic', 64, 64, 6, 12, true, 'lighter'],
+    recycle_burst: ['mechanic', 128, 128, 8, 15, false, 'lighter'], recycle_heal: ['mechanic', 128, 128, 8, 15, false, 'lighter'], repair_pulse: ['mechanic', 64, 64, 6, 12, true, 'lighter'],
     self_destruct_burst: ['mechanic', 128, 128, 6, 15, false, 'source-over'], shield_pulse: ['mechanic', 96, 96, 6, 12, true, 'lighter'],
     slash_arc: ['warrior', 64, 64, 5, 16, false, 'source-over'], star_ring: ['warrior', 96, 96, 8, 12, true, 'lighter'],
     swarm_protocol: ['mechanic', 96, 96, 8, 15, false, 'lighter'], sword_wave: ['warrior', 96, 96, 8, 15, false, 'lighter'],
@@ -352,6 +375,7 @@
     burst_overdrive: ['gunner', 96, 96, 8, 15, false, 'lighter'],
     railgun_overcharge: ['gunner', 96, 96, 8, 15, false, 'lighter'],
     critical_dash: ['gunner', 96, 96, 8, 15, false, 'lighter'],
+    radial_damage: ['gunner', 96, 96, 8, 18, false, 'lighter'],
     fury_combo: ['warrior', 96, 96, 8, 15, false, 'lighter'],
     iron_fury: ['warrior', 96, 96, 8, 15, false, 'lighter'],
     blood_oath: ['warrior', 96, 96, 8, 15, false, 'lighter'],
@@ -431,14 +455,45 @@
   iconIds.forEach((id, index) => { icons[id] = index; });
 
   const objects = {
+    auto_turret: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { idle: [0, 1, 0] } },
     rust_nest: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { idle: [0, 4, 7], destroyed: [4, 1, 0] } },
-    spore_nest: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { idle: [0, 4, 7] } },
-    moon_nest: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { idle: [0, 4, 7] } },
+    // The authored spore frames have different transparent margins. Keep the
+    // ground contact and visual center fixed while the idle art animates.
+    spore_nest: {
+      frameWidth: 64,
+      frameHeight: 64,
+      anchor: [32, 56],
+      frameOffsets: { idle: [[-2, 0], [3, 0], [-2, 8], [3, 8]] },
+      states: { idle: [0, 4, 7] }
+    },
+    // Moon frames only need a one-pixel horizontal correction; their ground
+    // line is already consistent across the sequence.
+    moon_nest: {
+      frameWidth: 64,
+      frameHeight: 64,
+      anchor: [32, 56],
+      frameOffsets: { idle: [[0, 0], [1, 0], [0, 0], [1, 0]] },
+      states: { idle: [0, 4, 7] }
+    },
     company_beacon: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { inactive: [0, 1, 0], charging: [1, 4, 8], completed: [5, 1, 0] } },
     mining_drill: { frameWidth: 96, frameHeight: 96, anchor: [48, 84], states: { idle: [0, 1, 0], running: [1, 4, 9], completed: [5, 1, 0] } },
     reward_cache: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { locked: [0, 1, 0], ready: [1, 4, 8], opened: [5, 1, 0] } },
     extraction_terminal: { frameWidth: 64, frameHeight: 64, anchor: [32, 56], states: { offline: [0, 1, 0], uploading: [1, 4, 8], completed: [5, 1, 0] } },
     extraction_field: { frameWidth: 128, frameHeight: 64, anchor: [64, 32], states: { active: [0, 4, 10] } }
+  };
+
+  const pets = {
+    mechanic_drone: {
+      key: 'pet.mechanic_drone',
+      frameWidth: 32,
+      frameHeight: 32,
+      frameCount: 4,
+      directionOrder: ['front', 'right', 'back', 'left'],
+      directionMode: 'orbit-tangent',
+      anchor: { x: 16, y: 16 },
+      suggestedDisplaySize: 20,
+      imageSmoothingEnabled: false
+    }
   };
 
   const props = {};
@@ -460,6 +515,7 @@
     images,
     icons,
     objects,
+    pets,
     props,
     gunnerSkills,
     skillIconSets,

@@ -261,7 +261,7 @@ const raf = canvas.requestAnimationFrame
 
 const assetStore = new AssetStore({
   createImage: () => (canvas.createImage ? canvas.createImage() : wx.createImage()),
-  cacheBust: 'v21-v19-combos-20260814'
+      cacheBust: 'v84-gpt-image2-combat-vfx-20260827'
 });
 let game = null;
 

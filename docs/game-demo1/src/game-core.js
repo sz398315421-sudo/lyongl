@@ -7,7 +7,40 @@
 
   const W = 360;
   const H = 640;
+  const COCKPIT_LAYOUT = Object.freeze({
+    shell: { x: 0, y: 0, w: 360, h: 640 },
+    header: { x: 11, y: 16, w: 338, h: 74 },
+    archiveRoleTabs: { x: 16, y: 91, w: 104, h: 30, gap: 6 },
+    employee: { x: 12, y: 94, w: 143, h: 300 },
+    navigation: { x: 167, y: 94, w: 181, h: 300 },
+    dispatch: { x: 12, y: 446, w: 336, h: 69 },
+    utility: { x: 12, y: 521, w: 336, h: 36 },
+    nav: { x: 11, y: 565, w: 338, h: 70 }
+  });
+  const COCKPIT_MAIN_INFO_EXPANDED_LAYOUT = Object.freeze({
+    employee: { x: 12, y: 94, w: 143, h: 344 },
+    navigation: { x: 167, y: 94, w: 181, h: 344 },
+    status: { x: 31, labelY: 397, pipsY: 407 },
+    characterAnchor: { x: 255, y: 375 },
+    characterClip: { x: 176, y: 119, w: 164, h: 294 }
+  });
+  const COCKPIT_MUSIC_TEXT_Y = 543;
+  const COCKPIT_ARCHIVE_LAYOUT = Object.freeze({
+    skillContent: { x: 28, y: 353, w: 304, h: 148 },
+    skillColumns: [30, 180],
+    skillStartY: 367,
+    skillRowHeight: 25,
+    comboColumns: [30, 181],
+    comboStartY: 365,
+    comboRowHeight: 46
+  });
   const TAU = Math.PI * 2;
+  const TURRET_DRAW_SCALE = 0.82;
+  const TURRET_BASE_START_Y = 32;
+  const TURRET_HEAD_PIVOT_Y = 30;
+  const TURRET_HEAD_END_Y = 35;
+  const TURRET_MUZZLE_Y = 4;
+  const TURRET_SIDE_DEPTH = 0.72;
   const LIMITS = DATA.limits || { skillLevel: 3, moduleLevel: 3, skillSlots: 6 };
   const ENEMY_ASSET_IDS = {
     rust: { swarm: 'scrap_mite', shooter: 'plasma_watcher', charger: 'rivethorn_ram', bloater: 'pressure_bloater' },
@@ -392,6 +425,21 @@
       };
     }
 
+    anomalyRulesEnabled() {
+      // Keep anomaly definitions available for a future build, while making
+      // the current version switch authoritative for generation and effects.
+      return Boolean(DATA.runtime && DATA.runtime.anomalyRulesEnabled === true);
+    }
+
+    anomalyIs(id) {
+      return this.anomalyRulesEnabled()
+        && Boolean(this.contract && this.contract.anomaly && this.contract.anomaly.id === id);
+    }
+
+    disabledAnomaly() {
+      return { id: 'none', name: '', effect: '', tip: '' };
+    }
+
     prepareContract() {
       if (!this.contract) {
         const seed = (Date.now() ^ Math.floor(Math.random() * 0x7fffffff)) >>> 0;
@@ -400,10 +448,11 @@
           seed,
           planet: pick(DATA.planets, random),
           mission: pick(DATA.missions, random),
-          anomaly: pick(DATA.anomalies, random),
-          rewardCode: random() > 0.5 ? '遗失货柜' : '异常样本'
+          anomaly: this.anomalyRulesEnabled() ? pick(DATA.anomalies, random) : this.disabledAnomaly(),
+          rewardCode: random() > 0.5 ? '遗失货柜' : (this.anomalyRulesEnabled() ? '异常样本' : '任务补给')
         };
       }
+      if (!this.anomalyRulesEnabled()) this.contract.anomaly = this.disabledAnomaly();
       this.state = 'briefing';
       this.audio.play('terminal');
       this.syncMusic(true);
@@ -568,6 +617,7 @@
     }
 
     beginRun() {
+      if (!this.anomalyRulesEnabled() && this.contract) this.contract.anomaly = this.disabledAnomaly();
       const random = mulberry32(this.contract.seed);
       const selected = DATA.classById[this.save.selectedClass] || DATA.classes[0];
       const lifeLevel = this.save.modules.life_support || 0;
@@ -673,6 +723,10 @@
       this.audio.play('deploy');
       this.audio.intensity(0.08);
       this.syncMusic(true);
+      if (!this.anomalyRulesEnabled()) {
+        this.notice = null;
+        return;
+      }
       const anomaly = this.anomalyDetails(this.contract.anomaly);
       this.notify(`异常规则 // ${anomaly.name}`, anomaly.effect, this.contract.planet.accent, 3.2);
     }
@@ -681,7 +735,19 @@
       if (id === 'nests') {
         return {
           id,
-          items: positions.map((position, index) => ({ ...position, index, hp: 760, maxHp: 760, dead: false, radius: 34 }))
+          items: positions.map((position, index) => ({
+            ...position,
+            index,
+            // Keep each nest on a stable, deterministic animation phase so
+            // the idle frames do not hop in lockstep. The phase is stored on
+            // the instance, not derived from wall-clock randomness, so a
+            // seeded run remains visually reproducible.
+            animationPhase: this.nestAnimationPhase(position, index),
+            hp: 760,
+            maxHp: 760,
+            dead: false,
+            radius: 34
+          }))
         };
       }
       if (id === 'beacons') {
@@ -695,6 +761,19 @@
         id,
         item: { ...positions[1], progress: 0, required: 90, started: false, radius: 142 }
       };
+    }
+
+    nestAnimationPhase(item, index = 0) {
+      if (item && Number.isFinite(item.animationPhase)) return item.animationPhase;
+      // The active nest sheets are 4 frames at 7 FPS (one cycle is about
+      // 0.57s). Spread the three objective instances across that cycle and
+      // add a small position-derived offset for stable variation between
+      // contracts. No Math.random() is used here.
+      const cycle = 4 / 7;
+      const x = item && Number.isFinite(item.x) ? Math.round(item.x) : 0;
+      const y = item && Number.isFinite(item.y) ? Math.round(item.y) : 0;
+      const positionStep = Math.abs((x * 31 + y * 17) % 11) * 0.012;
+      return (index * (cycle / 3) + positionStep) % cycle;
     }
 
     getCardLevel(id) {
@@ -772,8 +851,8 @@
         dodge += this.getCardLevel('emergency_dash') >= 3 ? 0.5 : 0;
       }
 
-      if (this.contract && this.contract.anomaly.id === 'low_gravity') speed *= 1.08;
-      if (this.world && this.contract.anomaly.id === 'energy_tide' && this.energyTideActive()) {
+      if (this.anomalyIs('low_gravity')) speed *= 1.08;
+      if (this.anomalyIs('energy_tide') && this.energyTideActive()) {
         speed *= 1.2;
         interval *= 0.82;
       }
@@ -1274,7 +1353,7 @@
         const dy = this.player.y - enemy.y;
         const length = Math.max(1, Math.hypot(dx, dy));
         let speed = enemy.speed;
-        if (this.contract.anomaly.id === 'energy_tide' && this.energyTideActive()) speed *= 1.2;
+        if (this.anomalyIs('energy_tide') && this.energyTideActive()) speed *= 1.2;
 
         if (behavior === 'shooter' && length < 230) speed *= -0.25;
         if (behavior === 'charger' || enemy.elite) {
@@ -1553,6 +1632,25 @@
       });
     }
 
+    turretHeadProjection(angle) {
+      const rotation = angle + Math.PI / 2;
+      const sideView = Math.abs(Math.sin(rotation));
+      return {
+        rotation,
+        depth: 1 - sideView * (1 - TURRET_SIDE_DEPTH)
+      };
+    }
+
+    turretMuzzlePosition(turret, angle) {
+      const projection = this.turretHeadProjection(angle);
+      const muzzleDistance = (TURRET_HEAD_PIVOT_Y - TURRET_MUZZLE_Y)
+        * TURRET_DRAW_SCALE * projection.depth;
+      return {
+        x: turret.x + Math.cos(angle) * muzzleDistance,
+        y: turret.y + Math.sin(angle) * muzzleDistance
+      };
+    }
+
     updateWarrior(dt, stats) {
       const player = this.player;
       const cleave = this.getCardLevel('cleave');
@@ -1683,7 +1781,14 @@
       if (turretLevel > 0 && !this.hasEvolution('mobile_fortress')) {
         player.turretTimer -= dt;
         if (player.turretTimer <= 0) {
-          this.world.turrets.push({ x: player.x, y: player.y, life: 18 + this.getCardLevel('quick_deploy') * 4, shot: 0.2, level: turretLevel });
+          this.world.turrets.push({
+            x: player.x,
+            y: player.y,
+            life: 18 + this.getCardLevel('quick_deploy') * 4,
+            shot: 0.2,
+            level: turretLevel,
+            aimAngle: -Math.PI / 2
+          });
           const maxTurrets = 1 + (turretLevel >= 2 ? 1 : 0);
           while (this.world.turrets.length > maxTurrets) this.world.turrets.shift();
           player.turretTimer = Math.max(4, 12 - this.getCardLevel('quick_deploy') * 2.2);
@@ -1710,10 +1815,21 @@
         turret.life -= dt;
         turret.shot -= dt;
         const turretTarget = this.nearestTarget(turret.x, turret.y, 260);
+        if (turretTarget) {
+          const targetAngle = Math.atan2(turretTarget.ref.y - turret.y, turretTarget.ref.x - turret.x);
+          const currentAngle = Number.isFinite(turret.aimAngle) ? turret.aimAngle : -Math.PI / 2;
+          let delta = targetAngle - currentAngle;
+          while (delta > Math.PI) delta -= TAU;
+          while (delta < -Math.PI) delta += TAU;
+          turret.aimAngle = currentAngle + delta * Math.min(1, dt * 12);
+        }
         if (turret.shot <= 0 && turretTarget) {
-          const angle = Math.atan2(turretTarget.ref.y - turret.y, turretTarget.ref.x - turret.x);
-          this.spawnPlayerProjectile(turret.x, turret.y, angle, stats.damage * (0.7 + turret.level * 0.18), 'drone');
-          this.emitWorldVfx(null, 'drone_muzzle', turret.x, turret.y, {
+          const angle = Number.isFinite(turret.aimAngle)
+            ? turret.aimAngle
+            : Math.atan2(turretTarget.ref.y - turret.y, turretTarget.ref.x - turret.x);
+          const muzzle = this.turretMuzzlePosition(turret, angle);
+          this.spawnPlayerProjectile(muzzle.x, muzzle.y, angle, stats.damage * (0.7 + turret.level * 0.18), 'drone');
+          this.emitWorldVfx(null, 'drone_muzzle', muzzle.x, muzzle.y, {
             layer: 'over',
             duration: 0.22,
             scale: 0.9,
@@ -1818,7 +1934,7 @@
           }
           if (projectile.knockback > 0) {
             const length = Math.max(1, Math.hypot(projectile.vx, projectile.vy));
-            const multiplier = this.contract.anomaly.id === 'low_gravity' ? 1.55 : 1;
+            const multiplier = this.anomalyIs('low_gravity') ? 1.55 : 1;
             this.moveActorWithPropCollision(
               hit.ref,
               projectile.vx / length * projectile.knockback * 7 * multiplier,
@@ -1901,7 +2017,7 @@
           kind: 'xp'
         });
       }
-      if (this.contract.anomaly.id === 'spore_bloom' && Math.random() < 0.16) {
+      if (this.anomalyIs('spore_bloom') && Math.random() < 0.16) {
         const pool = { type: 'pool', x: enemy.x, y: enemy.y, radius: 27, warmup: 0.7, life: 5.5, tick: 0 };
         const poolFx = this.emitWorldVfx('spore', 'spore_pool', pool.x, pool.y, { layer: 'under', duration: pool.life, scale: 0.9 });
         pool.vfxToken = poolFx && poolFx.token;
@@ -1926,7 +2042,13 @@
           const needed = recycle >= 2 ? 15 : 20;
           if (recycle > 0 && this.player.scrapHeal >= needed) {
             this.player.scrapHeal = 0;
+            const previousHp = this.player.hp;
             this.player.hp = Math.min(this.player.maxHp, this.player.hp + 3 + recycle * 2);
+            if (this.player.hp > previousHp) {
+              const played = this.triggerCharacterSkill('recycle_heal', { minGap: 0.22, vfxScale: 1.05 });
+              if (!played) this.emitCharacterVfx('recycle_heal', { scale: 1.05 });
+              if (this.hasEvolution('magnetic_reclaim')) this.emitComboFeedback('magnetic_reclaim', this.player.x, this.player.y);
+            }
           }
         }
       }
@@ -2146,7 +2268,7 @@
 
     updateHazards(dt) {
       const world = this.world;
-      if (this.contract.anomaly.id === 'meteor') {
+      if (this.anomalyIs('meteor')) {
         world.hazardTimer -= dt;
         if (world.hazardTimer <= 0) {
           const hazard = {
@@ -2352,6 +2474,30 @@
       return image && image.width ? image : null;
     }
 
+    drawImageAsset(key, x, y, width, height) {
+      const image = this.assetImage(key);
+      if (!image) return false;
+      this.ctx.save();
+      this.ctx.imageSmoothingEnabled = false;
+      this.ctx.drawImage(image, Math.round(x), Math.round(y), Math.round(width), Math.round(height));
+      this.ctx.restore();
+      return true;
+    }
+
+    drawImageRegionAsset(key, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height) {
+      const image = this.assetImage(key);
+      if (!image) return false;
+      this.ctx.save();
+      this.ctx.imageSmoothingEnabled = false;
+      this.ctx.drawImage(
+        image,
+        Math.round(sourceX), Math.round(sourceY), Math.round(sourceWidth), Math.round(sourceHeight),
+        Math.round(x), Math.round(y), Math.round(width), Math.round(height)
+      );
+      this.ctx.restore();
+      return true;
+    }
+
     drawFrame(key, frameWidth, frameHeight, frameIndex, x, y, width = frameWidth, height = frameHeight) {
       const image = this.assetImage(key);
       if (!image) return false;
@@ -2523,16 +2669,6 @@
           this.drawFrame(effect.key, effect.frameWidth, effect.frameHeight, frame,
             screen.x - effect.anchor.x * scale, screen.y - effect.anchor.y * scale,
             effect.frameWidth * scale, effect.frameHeight * scale);
-          if (effect.id === 'meteor_warning') {
-            // Six hard-edged countdown pips make the warning readable even
-            // when the animated sheet is viewed at phone scale.
-            const progress = clamp(effect.elapsed / Math.max(0.01, effect.duration), 0, 1);
-            ctx.fillStyle = '#ff6b43';
-            for (let pip = 0; pip < 6; pip += 1) {
-              if (pip / 6 <= progress) continue;
-              ctx.fillRect(Math.round(screen.x - 23 + pip * 8), Math.round(screen.y + 22), 5, 2);
-            }
-          }
         } else {
           const angle = Math.atan2(effect.dirY || 0, effect.dirX || 1);
           ctx.translate(Math.round(screen.x), Math.round(screen.y - 20));
@@ -2571,11 +2707,115 @@
       );
     }
 
+    drawTurretDeployReticle(x, y, elapsed, duration) {
+      const ctx = this.ctx;
+      const progress = clamp(elapsed / Math.max(0.01, duration), 0, 1);
+      const fade = clamp(Math.min(progress * 8, (1 - progress) * 7), 0, 1);
+      const pulse = Math.sin(this.now * 18) * 0.5 + 0.5;
+      const radiusX = 24 + progress * 18;
+      const radiusY = 15 + progress * 12;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = fade * (0.68 + pulse * 0.22);
+      ctx.strokeStyle = DATA.palette.cyan;
+      ctx.lineWidth = 2;
+      for (let segment = 0; segment < 8; segment += 1) {
+        if ((segment + Math.floor(this.now * 12)) % 3 === 0) continue;
+        const start = segment / 8 * TAU + 0.08;
+        ctx.beginPath();
+        ctx.ellipse(Math.round(x), Math.round(y + 2), radiusX, radiusY, 0, start, start + 0.24);
+        ctx.stroke();
+      }
+      ctx.fillStyle = DATA.palette.acid;
+      const pip = 3 + Math.round(pulse);
+      ctx.fillRect(Math.round(x - radiusX - 2), Math.round(y - 1), pip, 3);
+      ctx.fillRect(Math.round(x + radiusX - 1), Math.round(y - 1), pip, 3);
+      ctx.fillRect(Math.round(x - 1), Math.round(y - radiusY - 2), 3, pip);
+      ctx.fillRect(Math.round(x - 1), Math.round(y + radiusY - 1), 3, pip);
+      ctx.globalAlpha = fade * 0.72;
+      ctx.fillStyle = DATA.palette.cyan;
+      ctx.fillRect(Math.round(x - 2), Math.round(y - 2), 4, 4);
+      ctx.restore();
+    }
+
+    drawShieldPulseFx(x, y, elapsed, duration) {
+      const ctx = this.ctx;
+      const progress = clamp(elapsed / Math.max(0.01, duration), 0, 1);
+      const fade = clamp(Math.min(progress * 6, (1 - progress) * 5), 0, 1);
+      const radius = 24 + progress * 26;
+      const points = [
+        [0, -radius], [radius * 0.72, -radius * 0.58], [radius * 0.86, radius * 0.14],
+        [radius * 0.42, radius * 0.72], [0, radius], [-radius * 0.42, radius * 0.72],
+        [-radius * 0.86, radius * 0.14], [-radius * 0.72, -radius * 0.58]
+      ];
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = fade * 0.86;
+      ctx.strokeStyle = DATA.palette.cyan;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      points.forEach((point, index) => {
+        if (index === 0) ctx.moveTo(Math.round(x + point[0]), Math.round(y - 26 + point[1]));
+        else ctx.lineTo(Math.round(x + point[0]), Math.round(y - 26 + point[1]));
+      });
+      ctx.closePath();
+      ctx.stroke();
+      ctx.globalAlpha = fade * 0.95;
+      ctx.fillStyle = DATA.palette.acid;
+      for (let index = 0; index < points.length; index += 2) {
+        const point = points[index];
+        ctx.fillRect(Math.round(x + point[0] - 2), Math.round(y - 26 + point[1] - 2), 4, 4);
+      }
+      ctx.restore();
+    }
+
+    drawPlayerShieldOverlay() {
+      if (!this.player || this.player.classId !== 'mechanic' || this.getCardLevel('shield') <= 0) return;
+      const screen = this.worldToScreen(this.player);
+      const ctx = this.ctx;
+      const level = this.getCardLevel('shield');
+      const radiusX = 21 + level * 4;
+      const radiusY = 28 + level * 4;
+      const pulse = Math.sin(this.now * 3.2) * 0.5 + 0.5;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.24 + pulse * 0.14;
+      ctx.strokeStyle = DATA.palette.cyan;
+      ctx.lineWidth = 1;
+      for (let segment = 0; segment < 8; segment += 1) {
+        if ((segment + Math.floor(this.now * 4)) % 4 === 0) continue;
+        const start = segment / 8 * TAU + 0.06;
+        ctx.beginPath();
+        ctx.ellipse(Math.round(screen.x), Math.round(screen.y - 25), radiusX, radiusY, 0, start, start + 0.28);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 0.52 + pulse * 0.22;
+      ctx.fillStyle = DATA.palette.acid;
+      ctx.fillRect(Math.round(screen.x - 2), Math.round(screen.y - 25 - radiusY - 2), 4, 4);
+      ctx.fillRect(Math.round(screen.x - 2), Math.round(screen.y - 25 + radiusY - 2), 4, 4);
+      ctx.fillStyle = DATA.palette.cyan;
+      ctx.fillRect(Math.round(screen.x - radiusX - 2), Math.round(screen.y - 27), 4, 4);
+      ctx.fillRect(Math.round(screen.x + radiusX - 2), Math.round(screen.y - 27), 4, 4);
+      ctx.restore();
+    }
+
     drawCharacterVfx() {
       if (!this.player || !this.player.activeVfx || !this.world) return false;
       const active = this.player.activeVfx;
       const spec = this.assets && this.assets.manifest && this.assets.manifest.vfx && this.assets.manifest.vfx[active.id];
       if (!spec) return false;
+      if (active.id === 'turret_deploy') {
+        const screen = this.worldToScreen(this.player);
+        this.drawTurretDeployReticle(screen.x, screen.y, active.elapsed, active.duration);
+        return true;
+      }
+      if (active.id === 'shield_pulse') {
+        const screen = this.worldToScreen(this.player);
+        if (!this.assetImage(spec.key)) {
+          this.drawShieldPulseFx(screen.x, screen.y, active.elapsed, active.duration);
+          return true;
+        }
+      }
       const image = this.assetImage(spec.key);
       if (!image) return false;
       const frame = spec.loop
@@ -2625,13 +2865,17 @@
       const frame = start + (count > 1 ? Math.floor((this.now + timeOffset) * fps) % count : 0);
       const width = spec.frameWidth * scale;
       const height = spec.frameHeight * scale;
+      const frameOffsets = spec.frameOffsets && spec.frameOffsets[state];
+      const frameOffset = frameOffsets && frameOffsets[frame]
+        ? frameOffsets[frame]
+        : [0, 0];
       return this.drawFrame(
         `object.${id}`,
         spec.frameWidth,
         spec.frameHeight,
         frame,
-        x - spec.anchor[0] * scale,
-        y - spec.anchor[1] * scale,
+        x - spec.anchor[0] * scale + frameOffset[0] * scale,
+        y - spec.anchor[1] * scale + frameOffset[1] * scale,
         width,
         height
       );
@@ -2721,49 +2965,71 @@
       if (lineIndex < maxLines) ctx.fillText(line, x, y + lineIndex * lineHeight);
     }
 
+    techPath(x, y, w, h, cut = 5) {
+      const ctx = this.ctx;
+      const safeCut = Math.max(2, Math.min(cut, Math.floor(Math.min(w, h) / 3)));
+      ctx.beginPath();
+      ctx.moveTo(Math.round(x + safeCut), Math.round(y));
+      ctx.lineTo(Math.round(x + w - safeCut), Math.round(y));
+      ctx.lineTo(Math.round(x + w), Math.round(y + safeCut));
+      ctx.lineTo(Math.round(x + w), Math.round(y + h - safeCut));
+      ctx.lineTo(Math.round(x + w - safeCut), Math.round(y + h));
+      ctx.lineTo(Math.round(x + safeCut), Math.round(y + h));
+      ctx.lineTo(Math.round(x), Math.round(y + h - safeCut));
+      ctx.lineTo(Math.round(x), Math.round(y + safeCut));
+      ctx.closePath();
+    }
+
     panel(x, y, w, h, options = {}) {
       const ctx = this.ctx;
-      const variant = options.uiVariant || 'standard';
-      const panelImage = this.assetImage(`ui.panel_${variant}`) || this.assetImage('ui.panel_standard');
-      if (panelImage) {
-        ctx.fillStyle = 'rgba(0,0,0,0.48)';
-        ctx.fillRect(x + 3, y + 4, w, h);
-        this.drawNineSlice(panelImage, x, y, w, h, 12);
-        if (options.accent) {
-          ctx.fillStyle = options.accent;
-          ctx.fillRect(x + 8, y + 3, Math.min(32, w - 18), 2);
-          ctx.fillRect(x + w - 24, y + h - 4, 15, 2);
-          if ((options.accentWidth || 0) >= 5) ctx.fillRect(x + 3, y + 12, 2, h - 24);
-        }
-        return;
-      }
-      const stroke = options.stroke || '#4a4a40';
-      const fill = options.fill || 'rgba(15,20,23,0.96)';
-      const inset = options.inset || '#252d2b';
-      ctx.fillStyle = 'rgba(0,0,0,0.58)';
-      ctx.fillRect(x + 3, y + 4, w, h);
+      const stroke = options.stroke || '#31515b';
+      const fill = options.fill || 'rgba(7,14,18,0.95)';
+      const accent = options.accent || DATA.palette.cyan;
+      const cut = options.cut || 5;
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.62)';
+      this.techPath(x + 3, y + 4, w, h, cut);
+      ctx.fill();
       ctx.fillStyle = stroke;
-      ctx.fillRect(x, y, w, h);
+      this.techPath(x, y, w, h, cut);
+      ctx.fill();
       ctx.fillStyle = fill;
-      ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
-      ctx.fillStyle = inset;
-      ctx.fillRect(x + 5, y + 5, w - 10, 1);
-      ctx.fillRect(x + 5, y + h - 6, w - 10, 1);
-      ctx.fillStyle = DATA.palette.ink;
-      ctx.fillRect(x, y, 5, 5);
-      ctx.fillRect(x + w - 5, y, 5, 5);
-      ctx.fillRect(x, y + h - 5, 5, 5);
-      ctx.fillRect(x + w - 5, y + h - 5, 5, 5);
-      const accent = options.accent;
-      if (accent) {
-        ctx.fillStyle = accent;
-        ctx.fillRect(x + 2, y + 5, options.accentWidth || 4, h - 10);
-        ctx.fillRect(x + 8, y + 2, Math.min(30, w - 18), 3);
-        ctx.fillRect(x + w - 13, y + h - 5, 7, 2);
+      this.techPath(x + 2, y + 2, w - 4, h - 4, Math.max(2, cut - 2));
+      ctx.fill();
+      // The v24 cockpit language uses a shallow CRT-like hatch inside every
+      // hardware panel. Keep it clipped to the inset so it reads as a
+      // material surface instead of a page-wide overlay.
+      ctx.save();
+      this.techPath(x + 4, y + 4, w - 8, h - 8, Math.max(1, cut - 3));
+      ctx.clip();
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = DATA.palette.cyan;
+      ctx.lineWidth = 1;
+      for (let scanY = y + 9; scanY < y + h - 8; scanY += 7) {
+        ctx.beginPath();
+        ctx.moveTo(x + 5, scanY + 0.5);
+        ctx.lineTo(x + w - 5, scanY + 0.5);
+        ctx.stroke();
       }
-      ctx.fillStyle = options.rivet || '#747568';
-      ctx.fillRect(x + 8, y + 9, 2, 2);
-      ctx.fillRect(x + w - 10, y + 9, 2, 2);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+      ctx.fillStyle = 'rgba(65,231,244,0.08)';
+      ctx.fillRect(Math.round(x + 7), Math.round(y + 7), Math.max(1, Math.round(w - 14)), 1);
+      ctx.fillStyle = 'rgba(223,248,241,0.08)';
+      ctx.fillRect(Math.round(x + 7), Math.round(y + h - 7), Math.max(1, Math.round(w - 14)), 1);
+      ctx.fillStyle = accent;
+      ctx.fillRect(Math.round(x + 8), Math.round(y + 2), Math.min(40, Math.max(12, Math.round(w - 18))), 2);
+      ctx.fillRect(Math.round(x + w - 20), Math.round(y + h - 4), 12, 2);
+      if ((options.accentWidth || 0) >= 5) ctx.fillRect(Math.round(x + 2), Math.round(y + 9), 2, Math.max(1, Math.round(h - 18)));
+      ctx.fillStyle = options.rivet || '#6d949b';
+      ctx.fillRect(Math.round(x + 8), Math.round(y + 10), 2, 2);
+      ctx.fillRect(Math.round(x + w - 10), Math.round(y + 10), 2, 2);
+      ctx.fillStyle = 'rgba(223,248,241,0.32)';
+      ctx.fillRect(Math.round(x + 8), Math.round(y + h - 11), 2, 2);
+      ctx.fillRect(Math.round(x + w - 10), Math.round(y + h - 11), 2, 2);
+      ctx.fillStyle = 'rgba(173,118,255,0.55)';
+      ctx.fillRect(Math.round(x + w - 8), Math.round(y + h - 9), 2, 2);
+      ctx.restore();
     }
 
     button(x, y, w, h, label, action, options = {}) {
@@ -2777,52 +3043,103 @@
       }
       const pressed = !disabled && this.uiPress && this.now < this.uiPress.until
         && this.uiPress.x === x && this.uiPress.y === y && this.uiPress.w === w && this.uiPress.h === h;
-      const visualState = disabled ? 'disabled' : (pressed ? 'pressed' : 'normal');
-      const customButtonKey = options.buttonAsset ? `${options.buttonAsset}_${visualState}` : null;
-      const buttonImage = (customButtonKey && this.assetImage(customButtonKey))
-        || this.assetImage(`ui.button_${theme}_${visualState}`);
-      const imageTextColors = {
-        primary: DATA.palette.acid,
-        secondary: DATA.palette.paper,
-        danger: '#ffd1c7',
-        locked: '#c5c9b8'
-      };
-      const drawButtonLabel = (labelX, labelY, color, size) => {
-        this.text(label, labelX + 1, labelY + 1, size, DATA.palette.ink, 'center', true);
-        this.text(label, labelX, labelY, size, color, 'center', true);
-      };
-      if (buttonImage) {
-        ctx.fillStyle = 'rgba(0,0,0,0.58)';
-        ctx.fillRect(x + 4, y + 5, w, h);
-        this.drawNineSlice(buttonImage, x, y, w, h, options.nineSliceInset || 12);
-        const color = disabled
-          ? (options.disabledText || imageTextColors[theme] || '#c5c9b8')
-          : (options.imageText || imageTextColors[theme] || DATA.palette.paper);
-        drawButtonLabel(x + w / 2, y + h / 2 + 5, color, options.size || 14);
-        this.buttons.push({ x, y, w, h, disabled, action });
+      const solid = Boolean(options.solid);
+      const accent = disabled ? '#35505a' : (options.stroke || (theme === 'danger' ? DATA.palette.danger : theme === 'primary' ? DATA.palette.acid : DATA.palette.cyan));
+      const fill = disabled
+        ? '#111c21'
+        : solid
+          ? (options.solidFill || '#b8e33f')
+          : (options.fill && options.fill !== DATA.palette.acid && options.fill !== DATA.palette.danger ? options.fill : (theme === 'primary' ? '#20351a' : theme === 'danger' ? '#351821' : '#10242b'));
+      const color = disabled
+        ? (options.disabledText || '#6d8084')
+        : solid
+          ? (options.text || DATA.palette.ink)
+          : (options.text || (theme === 'primary' ? DATA.palette.acid : theme === 'danger' ? '#ffd5d0' : DATA.palette.paper));
+      // Active tabs use the dark ink directly on their bright face. A second
+      // offset ink pass reads as a blurry duplicate at this pixel scale, so
+      // selected-state labels stay single-pass while ordinary labels retain
+      // the cockpit's subtle projected lettering.
+      const crispText = options.crispText !== undefined
+        ? Boolean(options.crispText)
+        : options.text === DATA.palette.ink;
+      const drawX = pressed ? x + 1 : x;
+      const drawY = pressed ? y + 1 : y;
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.68)';
+      this.techPath(drawX + 3, drawY + 4, w, h, 5);
+      ctx.fill();
+      ctx.fillStyle = accent;
+      this.techPath(drawX, drawY, w, h, 5);
+      ctx.fill();
+      ctx.fillStyle = fill;
+      this.techPath(drawX + 2, drawY + 2, w - 4, h - 4, 3);
+      ctx.fill();
+      ctx.fillStyle = accent;
+      ctx.globalAlpha = disabled ? 0.4 : 0.9;
+      ctx.fillRect(Math.round(drawX + 8), Math.round(drawY + 3), Math.min(30, Math.max(12, w - 20)), 2);
+      ctx.fillRect(Math.round(drawX + w - 18), Math.round(drawY + h - 5), 10, 2);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = color;
+      ctx.fillRect(Math.round(drawX + 2), Math.round(drawY + 7), 3, Math.max(1, Math.round(h - 14)));
+      if (crispText) {
+        this.text(label, drawX + w / 2, drawY + h / 2 + 4, options.size || 14, color, 'center', true);
+      } else {
+        this.text(label, drawX + w / 2 + 1, drawY + h / 2 + 5, options.size || 14, DATA.palette.ink, 'center', true);
+        this.text(label, drawX + w / 2, drawY + h / 2 + 4, options.size || 14, color, 'center', true);
+      }
+      ctx.restore();
+      this.buttons.push({ x, y, w, h, disabled, action });
+    }
+
+    cockpitAssetButton(x, y, w, h, label, action, options = {}) {
+      const disabled = Boolean(options.disabled);
+      const pressed = !disabled && this.uiPress && this.now < this.uiPress.until
+        && this.uiPress.x === x && this.uiPress.y === y && this.uiPress.w === w && this.uiPress.h === h;
+      const normalKey = options.normalKey || 'ui.cockpit.dispatch_normal';
+      const pressedKey = options.pressedKey || 'ui.cockpit.dispatch_pressed';
+      const image = this.assetImage(pressed ? pressedKey : normalKey) || this.assetImage(normalKey);
+      if (!image || disabled) {
+        this.button(x, y, w, h, label, action, options);
         return;
       }
-      const fill = disabled ? '#242728' : (options.fill || DATA.palette.acid);
-      const stroke = disabled ? '#404443' : (options.stroke || '#f2ffd1');
-      const ink = disabled ? '#555956' : (options.ink || DATA.palette.ink);
-      ctx.fillStyle = '#020405';
-      ctx.fillRect(x + 4, y + 5, w, h);
-      ctx.fillStyle = stroke;
-      ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = fill;
-      ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
-      ctx.fillStyle = ink;
-      ctx.fillRect(x + 2, y + 2, 5, h - 4);
-      ctx.fillRect(x + 9, y + 6, 16, 3);
-      ctx.fillRect(x + w - 18, y + h - 9, 10, 3);
-      ctx.fillStyle = DATA.palette.ink;
-      ctx.fillRect(x, y, 5, 5);
-      ctx.fillRect(x + w - 5, y + h - 5, 5, 5);
-      const fallbackText = disabled
-        ? (options.disabledText || '#c5c9b8')
-        : (options.text || (theme === 'primary' ? DATA.palette.ink : DATA.palette.paper));
-      drawButtonLabel(x + w / 2 + 2, y + h / 2 + 5, fallbackText, options.size || 14);
+      const drawX = pressed ? x + 1 : x;
+      const drawY = pressed ? y + 1 : y;
+      this.drawImageAsset(pressed ? pressedKey : normalKey, drawX, drawY, w, h);
+      const size = options.size || 16;
+      const color = options.text || DATA.palette.ink;
+      this.text(label, drawX + w / 2 + 1, drawY + h / 2 + 5, size, DATA.palette.paper, 'center', true);
+      this.text(label, drawX + w / 2, drawY + h / 2 + 4, size, color, 'center', true);
       this.buttons.push({ x, y, w, h, disabled, action });
+    }
+
+    cockpitFrameButton(x, y, w, h, label, action, options = {}) {
+      if (!this.assetImage('ui.cockpit.shell')) {
+        this.button(x, y, w, h, label, action, options);
+        return;
+      }
+      const disabled = Boolean(options.disabled);
+      const pressed = !disabled && this.uiPress && this.now < this.uiPress.until
+        && this.uiPress.x === x && this.uiPress.y === y && this.uiPress.w === w && this.uiPress.h === h;
+      if (pressed) {
+        this.ctx.fillStyle = options.pressFill || 'rgba(81,217,209,0.18)';
+        this.ctx.fillRect(x + 4, y + 4, Math.max(1, w - 8), Math.max(1, h - 8));
+      }
+      const textX = options.textX === undefined ? x + w / 2 : options.textX;
+      this.text(label, textX, y + (options.baseline || 27), options.size || 9, options.text || DATA.palette.paper, 'center', true, true);
+      this.buttons.push({ x, y, w, h, disabled, action });
+    }
+
+    drawCockpitUtilityIndicators(x, y) {
+      const ctx = this.ctx;
+      const blockSize = 5;
+      const blockStep = 13;
+      const blockCount = 10;
+      const rowWidth = blockSize + (blockCount - 1) * blockStep;
+      const startX = x + Math.round((143 - rowWidth) / 2);
+      for (let index = 0; index < blockCount; index += 1) {
+        ctx.fillStyle = index < 5 ? DATA.palette.cyan : DATA.palette.acid;
+        ctx.fillRect(startX + index * blockStep, y + 13, blockSize, blockSize);
+      }
     }
 
     hazardStripe(x, y, w, h, color = DATA.palette.orange) {
@@ -2985,6 +3302,22 @@
         ctx.fillRect(star.x, star.y, star.size, star.size);
       }
       ctx.globalAlpha = 1;
+      // Quiet chassis geometry keeps the secondary HQ pages inside the same
+      // cockpit world as the main dispatch screen.
+      ctx.strokeStyle = 'rgba(65,231,244,0.11)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(13, 0); ctx.lineTo(13, H);
+      ctx.moveTo(W - 14, 0); ctx.lineTo(W - 14, H);
+      ctx.moveTo(18, 63); ctx.lineTo(W - 18, 63);
+      ctx.moveTo(18, H - 84); ctx.lineTo(W - 18, H - 84);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(65,231,244,0.2)';
+      ctx.fillRect(9, 101, 3, 28);
+      ctx.fillRect(W - 12, 182, 3, 17);
+      ctx.fillStyle = 'rgba(214,255,69,0.24)';
+      ctx.fillRect(9, H - 128, 3, 18);
+      ctx.fillRect(W - 12, H - 176, 3, 26);
       ctx.strokeStyle = 'rgba(217,255,87,0.07)';
       ctx.beginPath();
       ctx.moveTo(0, 430);
@@ -3008,6 +3341,35 @@
       this.text('CREDIT', 284, 29, 6, DATA.palette.muted, 'left', true, true);
       this.drawAtlasIcon('credits', 282, 31, 16);
       this.text(String(this.save.credits), 333, 43, 14, DATA.palette.paper, 'right', true, true);
+    }
+
+    drawCockpitHeader(section) {
+      if (this.assetImage('ui.cockpit.shell')) {
+        // Match the reference header: section title and credit value share
+        // one optical baseline inside the common top frame.
+        this.text(section, 70, 61, 16, DATA.palette.paper, 'left', true);
+        this.text(String(this.save.credits), 331, 61, 16, DATA.palette.paper, 'right', true, true);
+        return;
+      }
+      const ctx = this.ctx;
+      this.panel(15, 35, 330, 59, { uiVariant: 'standard', fill: '#0d1518', stroke: '#465454', accent: DATA.palette.cyan, accentWidth: 3 });
+
+      // The cyan company mark is larger here than on secondary pages. It is
+      // the visual anchor that makes the dispatch tab feel like a console.
+      this.drawCorpLogo(25, 47, 31, DATA.palette.cyan);
+      ctx.fillStyle = DATA.palette.cyan;
+      ctx.fillRect(61, 49, 28, 2);
+      ctx.fillRect(61, 86, 42, 2);
+      this.text(section, 69, 76, 14, DATA.palette.paper, 'left', true);
+
+      // Credit counter: a separate hardware module, with a bright cyan
+      // meter and enough contrast to survive 9:16 phone scaling.
+      this.panel(267, 43, 77, 42, { uiVariant: 'standard', fill: '#0b1214', stroke: '#3c4b4d', accent: DATA.palette.cyan, accentWidth: 2 });
+      this.drawAtlasIcon('credits', 276, 53, 18);
+      this.text(String(this.save.credits), 332, 70, 14, DATA.palette.paper, 'right', true, true);
+      ctx.fillStyle = DATA.palette.cyan;
+      ctx.fillRect(278, 78, 50, 3);
+
     }
 
     drawIndustrialHQ(classData) {
@@ -3119,27 +3481,165 @@
 
     drawHQMain() {
       const classData = DATA.classById[this.save.selectedClass] || DATA.classes[0];
-      this.drawHeader('飞船驾驶舱 // 外勤调度');
+      if (this.drawHQMainCockpitRefined(classData)) return;
       this.drawCockpitBackground(classData);
-      this.panel(16, 80, 143, 236, { uiVariant: 'inset', fill: 'rgba(8,14,16,0.96)', stroke: classData.color, accent: classData.color, accentWidth: 4 });
-      this.text('CURRENT EMPLOYEE', 28, 101, 7, DATA.palette.muted, 'left', true, true);
-      this.text(classData.employee, 28, 130, 18, classData.color, 'left', true);
-      this.text(classData.name, 28, 151, 11, DATA.palette.paper, 'left', true);
-      this.wrap(classData.role, 28, 178, 112, 15, 10, DATA.palette.paper, 3);
-      this.text('STATUS // ON DUTY', 28, 257, 7, DATA.palette.acid, 'left', true, true);
-      this.text('意识链路稳定', 28, 278, 9, DATA.palette.muted, 'left');
-      this.drawAstronaut(246, 322, classData, 4.4, Math.PI / 2);
-      this.text('驾驶台已锁定当前打印体', 180, 424, 9, DATA.palette.muted, 'center', true);
+      this.drawCockpitHeader('飞船驾驶舱 // 外勤调度');
+
+      // Left status module: a large employee identifier over a quiet,
+      // almost black information well, matching the concept's hierarchy.
+      this.text('当前员工', 38, 123, 8, DATA.palette.muted, 'left', true, true);
+      this.text(classData.employee, 37, 159, 19, classData.color, 'left', true);
+      this.text(classData.name, 38, 186, 13, DATA.palette.paper, 'left', true);
+      this.wrap(classData.role, 38, 218, 112, 17, 10, DATA.palette.paper, 2);
+      this.text('状态 // 值勤中', COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.x, COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.labelY, 9, DATA.palette.acid, 'left', true, true);
+      this.text('链路已接入 · 绩效稳定', COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.x, 416, 7, DATA.palette.muted, 'left');
+
       const pendingContract = Boolean(this.contract && !this.contract.started);
-      this.button(25, 445, 310, 57, pendingContract ? '继续查看派遣简报  >>' : '接受随机派遣  >>', () => this.prepareContract(), { fill: DATA.palette.acid, size: 16 });
-      this.button(25, 511, 150, 35, this.save.settings.musicEnabled ? '背景音乐 // 开' : '背景音乐 // 关', () => this.setMusicEnabled(!this.save.settings.musicEnabled), { fill: '#20292c', ink: DATA.palette.paper, text: DATA.palette.paper, stroke: '#59666a', size: 9 });
-      this.text(`已完成撤离 ${this.save.successes || 0} 次`, 194, 533, 9, DATA.palette.muted, 'left', true);
+      this.button(26, 446, 308, 67, pendingContract ? '继续查看派遣简报  >>' : '接受随机派遣  >>', () => this.prepareContract(), { fill: DATA.palette.acid, solid: true, size: 16 });
+      this.button(27, 521, 154, 36, this.save.settings.musicEnabled ? '背景音乐 // 开' : '背景音乐 // 关', () => this.setMusicEnabled(!this.save.settings.musicEnabled), { fill: '#10262a', ink: DATA.palette.paper, text: DATA.palette.paper, stroke: DATA.palette.cyan, size: 9 });
+
+      const ctx = this.ctx;
+      ctx.fillStyle = DATA.palette.cyan;
+      for (let index = 0; index < 6; index += 1) {
+        ctx.fillRect(32 + index * 9, COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.pipsY, 6, 3);
+      }
+      this.panel(190, 521, 143, 36, { uiVariant: 'standard', fill: '#11191b', stroke: '#3c4b4d', accent: DATA.palette.orange, accentWidth: 2 });
+      this.text('撤离回收', 205, 538, 7, DATA.palette.muted, 'left', true, true);
+      this.text(String(this.save.successes || 0).padStart(2, '0'), 320, 544, 13, DATA.palette.paper, 'right', true, true);
+      this.drawCockpitUtilityIndicators(190, 521);
+
       const musicActive = this.audio && typeof this.audio.isMusicActive === 'function' && this.audio.isMusicActive();
       const musicStatus = !this.save.settings.musicEnabled
         ? '背景音乐 // 已关闭'
         : (musicActive ? '背景音乐 // 播放中' : '点击屏幕启动背景音乐');
-      this.text(musicStatus, 194, 544, musicActive ? 7 : 6, musicActive ? DATA.palette.acid : DATA.palette.orange, 'left', true, true);
-      this.text('打印体损失将计入个人季度绩效', 180, 557, 8, DATA.palette.orange, 'center', true, true);
+      this.text(musicStatus, 104, COCKPIT_MUSIC_TEXT_Y, musicActive ? 6 : 5.5, musicActive ? DATA.palette.acid : DATA.palette.orange, 'center', true, true);
+    }
+
+    drawHQMainCockpitRefined(classData) {
+      const shell = this.assetImage('ui.cockpit.main_info_expanded_shell');
+      if (!shell) return false;
+      this.drawCockpitBackground(classData);
+      this.drawCockpitHeader('飞船驾驶舱 // 外勤调度');
+
+      // The refined master has a taller employee well. Keep the live save
+      // values aligned to its original typographic hierarchy.
+      this.text('当前员工', 31, 135, 10, DATA.palette.muted, 'left', true, true);
+      this.text(classData.employee, 31, 181, 20, classData.color, 'left', true);
+      this.text(classData.name, 31, 216, 14, DATA.palette.paper, 'left', true);
+      this.wrap(classData.role, 31, 246, 118, 16, 9.5, DATA.palette.paper, 2);
+      this.text('状态 // 值勤中', COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.x, COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.labelY, 11, DATA.palette.acid, 'left', true, true);
+
+      const ctx = this.ctx;
+      ctx.fillStyle = DATA.palette.cyan;
+      for (let index = 0; index < 6; index += 1) ctx.fillRect(32 + index * 9, COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.pipsY, 6, 3);
+
+      const pendingContract = Boolean(this.contract && !this.contract.started);
+      this.cockpitAssetButton(
+        COCKPIT_LAYOUT.dispatch.x,
+        COCKPIT_LAYOUT.dispatch.y,
+        COCKPIT_LAYOUT.dispatch.w,
+        COCKPIT_LAYOUT.dispatch.h,
+        pendingContract ? '继续查看派遣简报  >>' : '接受随机派遣  >>',
+        () => this.prepareContract(),
+        { size: 20, text: DATA.palette.ink }
+      );
+
+      const musicEnabled = Boolean(this.save.settings.musicEnabled);
+      this.cockpitFrameButton(12, 521, 164, 36, musicEnabled ? '背景音乐 // 开' : '背景音乐 // 关', () => {
+        this.setMusicEnabled(!this.save.settings.musicEnabled);
+      }, { size: 11, baseline: COCKPIT_MUSIC_TEXT_Y - 521, textX: 94 });
+
+      this.drawCockpitUtilityIndicators(190, 521);
+
+      // Foreground portrait layer: draw after every shell and live control so
+      // the selected class always sits visibly above the bay background.
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterClip.x,
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterClip.y,
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterClip.w,
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterClip.h
+      );
+      ctx.clip();
+      this.drawAstronaut(
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterAnchor.x,
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterAnchor.y,
+        classData,
+        4.3,
+        Math.PI / 2,
+        true
+      );
+      ctx.restore();
+      return true;
+    }
+
+    drawHQMainCockpit(classData) {
+      if (!this.assetImage('ui.cockpit.shell')) return false;
+      this.drawCockpitBackground(classData);
+      this.drawCockpitHeader('飞船驾驶舱 // 外勤调度');
+
+      // Live employee data is intentionally kept inside the cleared left
+      // well, leaving the shell itself fully image-driven.
+      this.text('当前员工', 53, 123, 8, DATA.palette.muted, 'left', true, true);
+      this.text(classData.employee, 53, 159, 19, classData.color, 'left', true);
+      this.text(classData.name, 53, 186, 13, DATA.palette.paper, 'left', true);
+      this.wrap(classData.role, 53, 218, 102, 17, 10, DATA.palette.paper, 2);
+      this.text('状态 // 值勤中', COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.x, COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.labelY, 9, DATA.palette.acid, 'left', true, true);
+      this.text('链路已接入 · 绩效稳定', COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.x, 416, 7, DATA.palette.muted, 'left');
+
+      // The character bay receives only the selected class sprite. Its
+      // background is continuous and intentionally carries no title strip.
+      this.ctx.save();
+      this.ctx.beginPath();
+      this.ctx.rect(
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterClip.x,
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterClip.y,
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterClip.w,
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterClip.h
+      );
+      this.ctx.clip();
+      this.drawAstronaut(
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterAnchor.x,
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterAnchor.y,
+        classData,
+        3.1,
+        Math.PI / 2,
+        true
+      );
+      this.ctx.restore();
+      const ctx = this.ctx;
+      ctx.fillStyle = DATA.palette.cyan;
+      for (let index = 0; index < 6; index += 1) {
+        ctx.fillRect(32 + index * 9, COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.status.pipsY, 6, 3);
+      }
+
+      const pendingContract = Boolean(this.contract && !this.contract.started);
+      this.cockpitAssetButton(
+        COCKPIT_LAYOUT.dispatch.x,
+        COCKPIT_LAYOUT.dispatch.y,
+        COCKPIT_LAYOUT.dispatch.w,
+        COCKPIT_LAYOUT.dispatch.h,
+        pendingContract ? '继续查看派遣简报  >>' : '接受随机派遣  >>',
+        () => this.prepareContract(),
+        { size: 16, text: DATA.palette.ink }
+      );
+
+      const musicEnabled = Boolean(this.save.settings.musicEnabled);
+      this.cockpitFrameButton(27, 521, 154, 36, musicEnabled ? '背景音乐 // 开' : '背景音乐 // 关', () => {
+        this.setMusicEnabled(!this.save.settings.musicEnabled);
+      }, { size: 8, baseline: COCKPIT_MUSIC_TEXT_Y - 521 });
+
+      this.text('撤离回收', 204, 538, 7, DATA.palette.muted, 'left', true, true);
+      this.text(String(this.save.successes || 0).padStart(2, '0'), 320, 544, 13, DATA.palette.paper, 'right', true, true);
+      this.drawCockpitUtilityIndicators(190, 521);
+
+      const musicActive = this.audio && typeof this.audio.isMusicActive === 'function' && this.audio.isMusicActive();
+      const musicStatus = !musicEnabled
+        ? '背景音乐 // 已关闭'
+        : (musicActive ? '背景音乐 // 播放中' : '点击屏幕启动背景音乐');
+      this.text(musicStatus, 104, COCKPIT_MUSIC_TEXT_Y, musicActive ? 6 : 5.5, musicActive ? DATA.palette.acid : DATA.palette.orange, 'center', true, true);
+      return true;
     }
 
     drawCrewPage() {
@@ -3149,7 +3649,7 @@
         const unlocked = this.isClassUnlocked(classData);
         const selected = this.save.selectedClass === classData.id;
         this.panel(18, y, 324, 136, { fill: unlocked ? '#141b1e' : '#111416', stroke: selected ? classData.color : '#3d4442', accent: unlocked ? classData.color : '#4a4d49' });
-        this.drawAstronaut(67, y + 82, classData, 1.55, -0.3);
+        this.drawAstronaut(67, y + 82, classData, 1.55, -0.3, true);
         this.text(classData.name, 111, y + 28, 19, unlocked ? DATA.palette.paper : DATA.palette.muted, 'left', true);
         this.text(classData.employee, 111, y + 47, 9, classData.color, 'left', true, true);
         this.text(classData.role, 111, y + 68, 10, DATA.palette.muted, 'left', true);
@@ -3190,100 +3690,147 @@
     }
 
     drawCockpitBackground(classData) {
-      const ctx = this.ctx;
-      ctx.fillStyle = '#12181a';
-      ctx.fillRect(0, 61, W, 500);
-      ctx.fillStyle = '#202b2d';
-      ctx.fillRect(0, 62, W, 4);
-      ctx.fillStyle = '#0a1115';
-      ctx.fillRect(164, 76, 180, 235);
-      ctx.strokeStyle = '#526463';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(168, 80, 172, 227);
-      ctx.fillStyle = 'rgba(37,89,100,0.45)';
-      ctx.fillRect(174, 86, 160, 214);
-      ctx.globalAlpha = 0.8;
-      for (let index = 0; index < 18; index += 1) {
-        const sx = 178 + (index * 43) % 148;
-        const sy = 91 + (index * 29) % 196;
-        ctx.fillStyle = index % 4 === 0 ? DATA.palette.acid : DATA.palette.paper;
-        ctx.fillRect(sx, sy, index % 5 === 0 ? 2 : 1, index % 5 === 0 ? 2 : 1);
+      const shellKey = this.hqPage === 'main'
+        ? 'ui.cockpit.main_info_expanded_shell'
+        : 'ui.cockpit.shell';
+      const shell = this.assetImage(shellKey);
+      if (shell) {
+        this.ctx.save();
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.drawImage(shell, COCKPIT_LAYOUT.shell.x, COCKPIT_LAYOUT.shell.y, COCKPIT_LAYOUT.shell.w, COCKPIT_LAYOUT.shell.h);
+        this.ctx.restore();
+        return true;
       }
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = 'rgba(81,217,209,0.4)';
+      this.drawCockpitBackgroundFallback(classData);
+      return false;
+    }
+
+    drawCockpitBackgroundFallback(classData) {
+      const ctx = this.ctx;
+
+      // Keep a quiet scanline field behind the live fallback panels. The
+      // separate outer armor rim is intentionally omitted to match the
+      // resource-backed cockpit after the review pass.
+      ctx.fillStyle = '#070b0d';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#0a1215';
+      ctx.fillRect(0, 0, W, 36);
+      ctx.fillStyle = 'rgba(15,30,33,0.9)';
+      for (let y = 8; y < 36; y += 8) ctx.fillRect(0, y, W, 1);
+      ctx.fillStyle = '#0b1113';
+      ctx.fillRect(19, 31, W - 38, 526);
+      ctx.fillStyle = 'rgba(81,217,209,0.045)';
+      for (let y = 102; y < 558; y += 8) ctx.fillRect(20, y, W - 40, 1);
+
+      // Main status and navigation wells. The dispatch page uses the freed
+      // instrument height to extend both portrait cards while the lower
+      // controls remain at their original coordinates.
+      this.panel(22, 99, 139, 339, { uiVariant: 'inset', fill: '#071013', stroke: '#59615a', accent: classData.color, accentWidth: 4 });
+      this.panel(166, 99, 172, 339, { uiVariant: 'inset', fill: '#07151b', stroke: '#506365', accent: DATA.palette.cyan, accentWidth: 3 });
+      ctx.fillStyle = 'rgba(18,75,84,0.34)';
+      ctx.fillRect(176, 135, 152, 288);
+      ctx.strokeStyle = 'rgba(81,217,209,0.22)';
+      ctx.lineWidth = 1;
+      for (let y = 143; y < 421; y += 13) {
+        ctx.beginPath(); ctx.moveTo(178, y); ctx.lineTo(326, y); ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(81,217,209,0.38)';
       ctx.beginPath();
-      ctx.moveTo(182, 254); ctx.lineTo(225, 216); ctx.lineTo(274, 238); ctx.lineTo(327, 178);
+      ctx.moveTo(182, 164); ctx.lineTo(191, 151); ctx.lineTo(191, 142);
+      ctx.moveTo(325, 164); ctx.lineTo(316, 151); ctx.lineTo(316, 142);
+      ctx.moveTo(182, 395); ctx.lineTo(191, 408); ctx.lineTo(191, 417);
+      ctx.moveTo(325, 395); ctx.lineTo(316, 408); ctx.lineTo(316, 417);
+      ctx.stroke();
+      ctx.fillStyle = DATA.palette.cyan;
+      ctx.fillRect(179, 114, 9, 3); ctx.fillRect(318, 114, 9, 3);
+      ctx.fillRect(179, 421, 9, 3); ctx.fillRect(318, 421, 9, 3);
+      ctx.fillStyle = DATA.palette.acid;
+      ctx.fillRect(29, 106, 49, 4);
+      ctx.fillRect(139, 423, 16, 3);
+
+      // A chunky route trace gives the right well a little motion without
+      // competing with the astronaut silhouette.
+      ctx.strokeStyle = 'rgba(81,217,209,0.42)';
+      ctx.beginPath();
+      ctx.moveTo(183, 284); ctx.lineTo(217, 252); ctx.lineTo(254, 268); ctx.lineTo(313, 211);
       ctx.stroke();
       ctx.fillStyle = DATA.palette.acid;
-      ctx.fillRect(222, 214, 4, 4);
-      ctx.fillRect(271, 236, 4, 4);
-      ctx.fillRect(324, 176, 4, 4);
-      this.text('NAVIGATION // ROUTE LOCKED', 178, 98, 7, DATA.palette.cyan, 'left', true, true);
-      this.text('RX // HQ-04', 178, 294, 7, DATA.palette.muted, 'left', true, true);
-      ctx.fillStyle = '#0c1112';
-      ctx.fillRect(0, 326, W, 108);
-      ctx.fillStyle = '#353d3d';
-      ctx.fillRect(0, 326, W, 5);
-      ctx.fillStyle = '#252d2d';
-      ctx.fillRect(0, 430, W, 5);
-      this.drawPipe([[0, 350], [56, 350], [72, 380], [112, 380]], '#4d5c58', 5);
-      this.drawPipe([[360, 345], [315, 345], [300, 371], [278, 371]], classData.color, 4);
-      ctx.fillStyle = '#1f292a';
-      ctx.fillRect(170, 351, 168, 63);
-      ctx.fillStyle = '#3d4b49';
-      ctx.fillRect(176, 356, 156, 4);
-      ctx.fillStyle = classData.color;
-      ctx.fillRect(183, 371, 54, 3);
-      ctx.fillRect(183, 382, 92, 3);
-      ctx.fillStyle = DATA.palette.orange;
-      ctx.fillRect(296, 371, 18, 3);
-      ctx.fillStyle = DATA.palette.acid;
-      ctx.fillRect(296, 382, 28, 3);
-      for (let index = 0; index < 9; index += 1) {
-        ctx.fillStyle = index % 3 === 0 ? DATA.palette.orange : '#66706a';
-        ctx.fillRect(20 + index * 13, 458, 7, 4);
+      ctx.fillRect(214, 249, 4, 4); ctx.fillRect(251, 265, 4, 4); ctx.fillRect(310, 208, 4, 4);
+      this.drawAstronaut(
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterAnchor.x,
+        COCKPIT_MAIN_INFO_EXPANDED_LAYOUT.characterAnchor.y,
+        classData,
+        4.25,
+        Math.PI / 2,
+        true
+      );
+    }
+
+    drawCockpitNavAssets() {
+      const idle = this.assetImage('ui.cockpit.nav_idle');
+      const active = this.assetImage('ui.cockpit.nav_active');
+      if (!idle || !active) return false;
+      this.drawImageRegionAsset('ui.cockpit.shell', 0, 557, W, 83, 0, 557, W, 83);
+      const labels = ['档案', '活动', '派遣', '任务', '升级'];
+      const pages = ['archive', 'activity', 'main', 'tasks', 'upgrade'];
+      for (let index = 0; index < labels.length; index += 1) {
+        const selected = pages[index] === this.hqPage;
+        const x = 11 + index * 68;
+        const y = selected ? 563 : 565;
+        const width = selected ? 66 : 64;
+        const height = selected ? 73 : 70;
+        this.drawImageAsset(selected ? 'ui.cockpit.nav_active' : 'ui.cockpit.nav_idle', x, y, width, height);
+        // The tile's usable text well is above the indicator pips. Keep one
+        // shared baseline for all five states so the label is optically
+        // centered instead of sitting against the lower rail.
+        this.text(labels[index], x + width / 2, 599, 15, selected ? DATA.palette.acid : '#d0cbb6', 'center', true);
+        this.buttons.push({
+          x: index * 68 + 7, y: 563, w: 68, h: 77, disabled: false,
+          action: () => {
+            if (pages[index] === 'archive' && this.hqPage !== 'archive') {
+              this.archiveSkillTab = 'skills';
+            }
+            this.hqPage = pages[index];
+          }
+        });
       }
-      ctx.fillStyle = '#0b1011';
-      ctx.fillRect(32, 475, 106, 37);
-      ctx.fillRect(221, 475, 107, 37);
-      ctx.strokeStyle = '#4c5956';
-      ctx.strokeRect(32, 475, 106, 37);
-      ctx.strokeRect(221, 475, 107, 37);
-      this.text('FLIGHT CONTROL', 40, 491, 7, DATA.palette.muted, 'left', true, true);
-      this.text('PRINT POD', 229, 491, 7, DATA.palette.muted, 'left', true, true);
-      ctx.fillStyle = classData.color;
-      ctx.fillRect(48, 500, 38, 3);
-      ctx.fillStyle = DATA.palette.acid;
-      ctx.fillRect(238, 500, 55, 3);
+      return true;
     }
 
     drawHQNav() {
+      if (this.assetImage('ui.cockpit.shell') && this.drawCockpitNavAssets()) return;
+      if (this.hqPage !== 'main' && this.assetImage(`ui.cockpit.${this.hqPage}_shell`) && this.drawCockpitNavHotspots()) return;
       const labels = ['档案', '活动', '派遣', '任务', '升级'];
       const pages = ['archive', 'activity', 'main', 'tasks', 'upgrade'];
       const ctx = this.ctx;
       ctx.fillStyle = '#080b0c';
-      ctx.fillRect(0, 568, W, 72);
+      ctx.fillRect(0, 557, W, 83);
       ctx.fillStyle = '#273033';
-      ctx.fillRect(0, 568, W, 3);
+      ctx.fillRect(13, 557, 334, 3);
       ctx.fillStyle = '#111819';
-      ctx.fillRect(0, 575, W, 65);
+      ctx.fillRect(13, 562, 334, 72);
       for (let index = 0; index < labels.length; index += 1) {
-        const x = index * 72;
+        const x = 17 + index * 66;
+        const y = 566;
+        const w = 58;
+        const h = 65;
         const selected = pages[index] === this.hqPage;
         const dispatch = index === 2;
-        ctx.fillStyle = '#050708';
-        ctx.fillRect(x + 5, 579, 62, 58);
-        ctx.fillStyle = selected ? (dispatch ? DATA.palette.acid : DATA.palette.cyan) : '#59625d';
-        ctx.fillRect(x + 4, 572, 64, 5);
-        ctx.fillStyle = selected ? (dispatch ? '#c6e84d' : '#263d40') : '#1d2728';
-        ctx.fillRect(x + 4, 577, 64, 58);
-        ctx.fillStyle = selected ? (dispatch ? DATA.palette.ink : DATA.palette.paper) : DATA.palette.paper;
-        ctx.fillRect(x + 9, 585, 3, 39);
-        ctx.fillStyle = selected ? (dispatch ? DATA.palette.ink : DATA.palette.cyan) : '#414b49';
-        ctx.fillRect(x + 57, 585, 3, 39);
-        this.text(labels[index], x + 36, 612, 14, selected ? (dispatch ? DATA.palette.ink : DATA.palette.paper) : '#c8c3aa', 'center', true);
+        this.panel(x, y, w, h, { uiVariant: 'standard', fill: selected && dispatch ? '#b8e33f' : '#101719', stroke: selected ? (dispatch ? DATA.palette.acid : DATA.palette.cyan) : '#535b57', accent: selected ? (dispatch ? DATA.palette.acid : DATA.palette.cyan) : '#4b5652', accentWidth: selected ? 3 : 1 });
+        if (selected && dispatch) {
+          ctx.fillStyle = '#d7f75a';
+          ctx.fillRect(x + 7, y + 7, w - 14, h - 14);
+          ctx.fillStyle = '#89b72d';
+          ctx.fillRect(x + 9, y + h - 13, w - 18, 3);
+          ctx.fillRect(x + 9, y + 9, 13, 2);
+          ctx.fillRect(x + w - 22, y + 9, 13, 2);
+        }
+        const textColor = selected ? (dispatch ? DATA.palette.ink : DATA.palette.paper) : '#d0cbb6';
+        this.text(labels[index], x + w / 2, y + 31, 13, textColor, 'center', true);
+        ctx.fillStyle = selected && dispatch ? DATA.palette.ink : DATA.palette.cyan;
+        for (let pip = 0; pip < (selected ? 3 : 2); pip += 1) ctx.fillRect(x + 17 + pip * 9, y + 55, 6, 3);
         this.buttons.push({
-          x, y: 568, w: 72, h: 72, disabled: false,
+          x: index * 66 + 10, y: 557, w: 66, h: 83, disabled: false,
           action: () => {
             if (pages[index] === 'archive' && this.hqPage !== 'archive') {
               this.archiveSkillTab = 'skills';
@@ -3306,34 +3853,165 @@
 
     drawArchiveSkillTab(classData) {
       const skillCards = Array.isArray(classData.cards) ? classData.cards : [];
-      this.text(`代表技能 // ${skillCards.length} 项`, 30, 326, 8.5, DATA.palette.muted, 'left', true, true);
-      const columns = [30, 180];
-      const startY = 345;
-      const rowHeight = 28;
+      const layout = COCKPIT_ARCHIVE_LAYOUT;
+      const clip = layout.skillContent;
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(clip.x, clip.y, clip.w, clip.h);
+      ctx.clip();
+      // Reintroduce the reference panel's quiet row cadence after the live
+      // content well has been cleaned from the bitmap shell.
+      ctx.fillStyle = 'rgba(64, 92, 91, 0.22)';
+      for (let row = 0; row < 5; row += 1) {
+        ctx.fillRect(31, layout.skillStartY + 11 + row * layout.skillRowHeight, 298, 1);
+      }
       skillCards.forEach((card, index) => {
-        const x = columns[index % columns.length];
-        const y = startY + Math.floor(index / columns.length) * rowHeight;
+        const x = layout.skillColumns[index % layout.skillColumns.length];
+        const y = layout.skillStartY + Math.floor(index / layout.skillColumns.length) * layout.skillRowHeight;
         const iconColor = card.kind === 'survival' ? DATA.palette.cyan : classData.color;
-        this.drawPixelIcon(card.id, x, y - 10, 18, iconColor, classData.id);
-        this.text(card.name, x + 23, y + 3, 8, DATA.palette.paper, 'left', true);
+        this.drawPixelIcon(card.id, x, y - 9, 16, iconColor, classData.id);
+        this.text(card.name, x + 22, y + 3, 9.5, DATA.palette.paper, 'left', true);
       });
+      ctx.restore();
     }
 
     drawArchiveComboTab(classData) {
       const evolutions = Array.isArray(classData.evolutions) ? classData.evolutions : [];
-      this.text('组合技 // 两项技能均达到 Lv.3', 30, 326, 7.5, DATA.palette.muted, 'left', true, true);
-      const startY = 337;
-      const rowHeight = 30;
+      const layout = COCKPIT_ARCHIVE_LAYOUT;
+      const clip = layout.skillContent;
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(clip.x, clip.y, clip.w, clip.h);
+      ctx.clip();
+      ctx.fillStyle = 'rgba(64, 92, 91, 0.22)';
+      ctx.fillRect(178, clip.y + 3, 1, clip.h - 6);
+      for (let row = 0; row < 2; row += 1) {
+        ctx.fillRect(31, layout.comboStartY + 33 + row * layout.comboRowHeight, 298, 1);
+      }
       evolutions.forEach((evolution, index) => {
-        const y = startY + index * rowHeight;
-        this.drawPixelIcon(evolution.id, 28, y - 11, 18, DATA.palette.acid, classData.id);
-        this.text(evolution.name, 56, y, 8.5, DATA.palette.acid, 'left', true);
-        this.text(this.evolutionRecipeText(classData, evolution), 56, y + 10, 6.8, DATA.palette.paper, 'left');
-        this.wrap(String(evolution.desc || '效果待补充'), 56, y + 20, 276, 8, 6.8, DATA.palette.muted, 2);
+        const x = layout.comboColumns[index % layout.comboColumns.length];
+        const y = layout.comboStartY + Math.floor(index / layout.comboColumns.length) * layout.comboRowHeight;
+        this.drawPixelIcon(evolution.id, x, y - 10, 16, DATA.palette.acid, classData.id);
+        this.text(evolution.name, x + 21, y, 8, DATA.palette.acid, 'left', true);
+        this.wrap(this.evolutionRecipeText(classData, evolution), x + 21, y + 10, 124, 7, 6.2, DATA.palette.paper, 1);
+        this.wrap(String(evolution.desc || '效果待补充'), x + 21, y + 20, 124, 8, 6.4, DATA.palette.muted, 2);
       });
+      ctx.restore();
+    }
+
+    drawCockpitSubpageShell(page) {
+      const shellKey = `ui.cockpit.${page}_shell`;
+      if (!this.assetImage(shellKey)) return false;
+      this.drawImageAsset(shellKey, 0, 0, W, H);
+      // Keep the same physical header as dispatch. Only the section title
+      // changes between the five HQ modules; the logo, credit bay, and frame
+      // remain pixel-aligned across every page.
+      this.drawImageRegionAsset('ui.cockpit.shell', 0, 0, W, 94, 0, 0, W, 94);
+      const titles = {
+        archive: '员工档案 // 角色资料',
+        activity: '活动 // 外勤出勤签到',
+        tasks: '任务 // 每日绩效',
+        upgrade: '升级 // 飞船模块'
+      };
+      this.drawCockpitHeader(titles[page] || '飞船驾驶舱 // 外勤调度');
+      return true;
+    }
+
+    drawCockpitNavHotspots() {
+      const pages = ['archive', 'activity', 'main', 'tasks', 'upgrade'];
+      for (let index = 0; index < pages.length; index += 1) {
+        this.buttons.push({
+          x: index * 68 + 7,
+          y: 563,
+          w: 68,
+          h: 77,
+          disabled: false,
+          action: () => {
+            if (pages[index] === 'archive' && this.hqPage !== 'archive') this.archiveSkillTab = 'skills';
+            this.hqPage = pages[index];
+          }
+        });
+      }
+      return true;
+    }
+
+    drawArchivePageCockpit() {
+      if (!this.drawCockpitSubpageShell('archive')) return false;
+      const activeId = this.archiveClassId || this.save.selectedClass;
+      const classData = DATA.classById[activeId] || DATA.classes[0];
+      const unlocked = this.isClassUnlocked(classData);
+      const skillCards = Array.isArray(classData.cards) ? classData.cards : [];
+      const evolutions = Array.isArray(classData.evolutions) ? classData.evolutions : [];
+
+      DATA.classes.forEach((item, index) => {
+        const x = COCKPIT_LAYOUT.archiveRoleTabs.x + index * (COCKPIT_LAYOUT.archiveRoleTabs.w + COCKPIT_LAYOUT.archiveRoleTabs.gap);
+        const active = item.id === classData.id;
+        this.button(x, COCKPIT_LAYOUT.archiveRoleTabs.y, COCKPIT_LAYOUT.archiveRoleTabs.w, COCKPIT_LAYOUT.archiveRoleTabs.h, item.name, () => { this.archiveClassId = item.id; }, {
+          fill: active ? item.color : '#20292c',
+          text: active ? DATA.palette.ink : DATA.palette.paper,
+          ink: active ? DATA.palette.ink : DATA.palette.paper,
+          stroke: active ? item.color : '#59666a',
+          size: 10
+        });
+      });
+
+      // Match the taller reference profile: the standing portrait owns the
+      // left half while the employee copy follows a relaxed right-column
+      // rhythm inside the same chassis.
+      // Keep the sprite's visible right edge clear of the text column. The
+      // reference profile gives the portrait its own left bay, with a quiet
+      // breathing gap before the employee copy begins at x=130.
+      this.drawAstronaut(74, 284, classData, 2.5, Math.PI / 2, true);
+      this.text(classData.employee, 130, 158, 20, unlocked ? classData.color : DATA.palette.muted, 'left', true);
+      this.text(classData.name, 130, 179, 13, DATA.palette.paper, 'left', true);
+      this.text('人物介绍', 130, 201, 8, DATA.palette.muted, 'left', true, true);
+      this.wrap(classData.quote || '', 130, 220, 198, 15, 10, DATA.palette.paper, 3);
+      this.text('战斗风格', 130, 269, 8, DATA.palette.muted, 'left', true, true);
+      this.wrap(classData.role, 130, 288, 198, 15, 10, classData.color, 2);
+
+      const skillsActive = this.archiveSkillTab !== 'combos';
+      this.button(24, 313, 145, 35, '代表技能', () => {
+        this.archiveSkillTab = 'skills';
+      }, {
+        fill: skillsActive ? classData.color : '#20292c',
+        text: skillsActive ? DATA.palette.ink : DATA.palette.paper,
+        ink: skillsActive ? DATA.palette.ink : DATA.palette.paper,
+        stroke: skillsActive ? classData.color : '#59666a',
+        size: 8
+      });
+      this.button(191, 313, 145, 35, '组合技', () => {
+        this.archiveSkillTab = 'combos';
+      }, {
+        fill: !skillsActive ? classData.color : '#20292c',
+        text: !skillsActive ? DATA.palette.ink : DATA.palette.paper,
+        ink: !skillsActive ? DATA.palette.ink : DATA.palette.paper,
+        stroke: !skillsActive ? classData.color : '#59666a',
+        size: 8
+      });
+      if (skillsActive) this.drawArchiveSkillTab(classData);
+      else this.drawArchiveComboTab(classData);
+
+      this.cockpitFrameButton(24, 512, 312, 38,
+        unlocked
+          ? (this.save.selectedClass === classData.id ? '当前出勤员工' : '设为当前员工')
+          : '档案待解锁',
+        () => {
+          if (unlocked) {
+            this.save.selectedClass = classData.id;
+            this.persist();
+          } else {
+            this.unlockClass(classData);
+          }
+        },
+        { size: 11, baseline: 24, text: unlocked ? classData.color : DATA.palette.muted, disabled: !unlocked || this.save.selectedClass === classData.id }
+      );
+      return true;
     }
 
     drawArchivePage() {
+      if (this.drawArchivePageCockpit()) return;
       this.drawHeader('员工档案 // 角色资料');
       const activeId = this.archiveClassId || this.save.selectedClass;
       const classData = DATA.classById[activeId] || DATA.classes[0];
@@ -3356,7 +4034,7 @@
       });
       const unlocked = this.isClassUnlocked(classData);
       this.panel(16, 112, 328, 157, { uiVariant: 'inset', fill: '#11191b', stroke: unlocked ? classData.color : '#4a4d49', accent: unlocked ? classData.color : '#4a4d49', accentWidth: 4 });
-      this.drawAstronaut(73, 246, classData, 2.2, Math.PI / 2);
+      this.drawAstronaut(73, 246, classData, 2.2, Math.PI / 2, true);
       this.text(classData.employee, 125, 140, 20, unlocked ? classData.color : DATA.palette.muted, 'left', true);
       this.text(classData.name, 125, 160, 12, DATA.palette.paper, 'left', true);
       this.text('人物介绍', 125, 186, 8, DATA.palette.muted, 'left', true, true);
@@ -3368,7 +4046,7 @@
       const evolutions = Array.isArray(classData.evolutions) ? classData.evolutions : [];
       this.panel(16, 280, 328, 242, { fill: '#101719', stroke: '#4d5752', accent: classData.color });
       const skillsActive = this.archiveSkillTab !== 'combos';
-      this.button(24, 289, 145, 24, `代表技能 ${skillCards.length}`, () => {
+      this.button(24, 289, 145, 24, '代表技能', () => {
         this.archiveSkillTab = 'skills';
       }, {
         fill: skillsActive ? classData.color : '#20292c',
@@ -3378,7 +4056,7 @@
         stroke: skillsActive ? classData.color : '#59666a',
         size: 8
       });
-      this.button(191, 289, 145, 24, `组合技 ${evolutions.length}`, () => {
+      this.button(191, 289, 145, 24, '组合技', () => {
         this.archiveSkillTab = 'combos';
       }, {
         fill: !skillsActive ? classData.color : '#20292c',
@@ -3405,7 +4083,48 @@
       }
     }
 
+    drawActivityPageCockpit() {
+      if (!this.drawCockpitSubpageShell('activity')) return false;
+      const key = this.ensureDailyState().cycleKey;
+      const activity = this.save.activity;
+      // Match the reference card's internal hierarchy: the section kicker,
+      // streak value, and refresh line sit inside the tall upper well instead
+      // of straddling its top frame.
+      this.text('7-DAY FIELD ATTENDANCE', 30, 120, 8, DATA.palette.muted, 'left', true, true);
+      this.text(`连续签到 ${activity.streak || 0} 天`, 30, 161, 18, DATA.palette.paper, 'left', true);
+      this.text(`刷新周期 ${key} // 04:00`, 30, 190, 9, DATA.palette.muted, 'left');
+      for (let index = 0; index < 7; index += 1) {
+        const x = 18 + index * 46;
+        const claimed = (activity.claimedDays || []).includes(key) && index < ((activity.streak - 1) % 7) + 1;
+        const current = index === ((activity.streak || 1) - 1) % 7 && activity.lastClaimKey !== key;
+        this.panel(x, 214, 40, 75, {
+          fill: claimed ? '#314329' : '#182123',
+          stroke: current ? DATA.palette.acid : '#47514c',
+          accent: current ? DATA.palette.acid : '#47514c',
+          accentWidth: current ? 3 : 1
+        });
+        this.text(`D${index + 1}`, x + 20, 243, 8, current ? DATA.palette.acid : DATA.palette.muted, 'center', true, true);
+        this.text(`+${DATA.activityRewards[index]}`, x + 20, 274, 11, claimed ? DATA.palette.acid : DATA.palette.paper, 'center', true);
+      }
+      this.cockpitFrameButton(24, 303, 312, 54,
+        activity.lastClaimKey === key ? '今日已签到' : '领取今日签到奖励',
+        () => this.claimCheckIn(),
+        // The source button's text well is vertically centered around the
+        // inner green face, not the outer chassis height.
+        { disabled: activity.lastClaimKey === key, size: 16, baseline: 34, text: DATA.palette.ink }
+      );
+      // Align the live announcement copy to the source panel's inner wells.
+      // The previous baselines belonged to the compact fallback page and
+      // placed the copy above the pixel-backed announcement frame.
+      this.text('外勤公告', 30, 397, 9, DATA.palette.muted, 'left', true, true);
+      this.text('本周任务回收率持续上升', 30, 430, 13, DATA.palette.paper, 'left', true);
+      this.wrap('连续签到会提高下一次任务工资。中断签到不会影响已获得金币，但会重新计算本周奖励序列。', 30, 457, 292, 16, 10, DATA.palette.muted, 4);
+      this.text('活动奖励仅存在本机档案', 30, 508, 8, DATA.palette.orange, 'left', true, true);
+      return true;
+    }
+
     drawActivityPage() {
+      if (this.drawActivityPageCockpit()) return;
       this.drawHeader('活动 // 外勤出勤签到');
       const key = this.ensureDailyState().cycleKey;
       const activity = this.save.activity;
@@ -3429,7 +4148,51 @@
       this.text('活动奖励仅保存在本机档案', 30, 487, 8, DATA.palette.orange, 'left', true, true);
     }
 
+    drawTasksPageCockpit() {
+      if (!this.drawCockpitSubpageShell('tasks')) return false;
+      const daily = this.ensureDailyState();
+      this.text(`今日活跃点 ${this.dailyActivePoints()}/3`, 22, 105, 11, DATA.palette.acid, 'left', true);
+      DATA.dailyTasks.forEach((task, index) => {
+        const y = 116 + index * 100;
+        const progress = Math.min(task.target, daily.progress[task.metric] || 0);
+        const complete = daily.claimedTasks.includes(task.id);
+        const color = complete ? DATA.palette.acid : DATA.palette.orange;
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(31, y + 4, complete ? 52 : 38, 2);
+        // The reference card uses a larger title well and a taller right
+        // action chassis than the compact fallback layout.
+        this.text(task.label, 30, y + 32, 12, DATA.palette.paper, 'left', true);
+        this.text(`${progress}/${task.target}`, 320, y + 32, 10, complete ? DATA.palette.acid : DATA.palette.muted, 'right', true, true);
+        this.drawSmallBar(30, y + 45, 184, progress / task.target, color);
+        this.button(220, y + 34, 110, 40, complete ? '已领取' : `领取 +${task.reward}`, () => this.claimDailyTask(task.id), {
+          disabled: complete || progress < task.target,
+          fill: complete ? '#27342a' : DATA.palette.acid,
+          text: complete ? DATA.palette.acid : DATA.palette.ink,
+          ink: complete ? DATA.palette.acid : DATA.palette.ink,
+          stroke: complete ? DATA.palette.acid : DATA.palette.acid,
+          size: 11
+        });
+      });
+      this.text('活跃度阶段奖励', 30, 443, 9, DATA.palette.cyan, 'left', true, true);
+      DATA.activityMilestones.forEach((milestone, index) => {
+        const x = 30 + index * 145;
+        const complete = daily.claimedMilestones.includes(milestone.id);
+        this.text(`${milestone.points} 项`, x, 470, 10, complete ? DATA.palette.acid : DATA.palette.paper, 'left', true);
+        this.button(x, 480, 120, 30, complete ? '已领取' : `领取 +${milestone.reward}`, () => this.claimActivityMilestone(milestone.id), {
+          disabled: complete || this.dailyActivePoints() < milestone.points,
+          fill: complete ? '#27342a' : '#202b2d',
+          text: complete ? DATA.palette.acid : DATA.palette.paper,
+          ink: complete ? DATA.palette.acid : DATA.palette.paper,
+          stroke: DATA.palette.cyan,
+          size: 9
+        });
+      });
+      this.text('每日任务将在 04:00 自动刷新', 30, 529, 8, DATA.palette.muted, 'left', true, true);
+      return true;
+    }
+
     drawTasksPage() {
+      if (this.drawTasksPageCockpit()) return;
       this.drawHeader('任务 // 每日绩效');
       const daily = this.ensureDailyState();
       this.text(`今日活跃点 ${this.dailyActivePoints()}/3`, 22, 78, 11, DATA.palette.acid, 'left', true);
@@ -3454,7 +4217,36 @@
       this.text('每日任务将在 04:00 自动刷新', 30, 487, 8, DATA.palette.muted, 'left', true, true);
     }
 
+    drawUpgradePageCockpit() {
+      if (!this.drawCockpitSubpageShell('upgrade')) return false;
+      DATA.shipModules.forEach((moduleData, index) => {
+        // The normalized upgrade master keeps the large module icon in the
+        // left rail and starts the live copy at x=90. Keep the five rows on
+        // the same 84px cadence as the source cards.
+        const y = 100 + index * 84;
+        const textX = 90;
+        const level = clamp(Math.floor(Number(this.save.modules[moduleData.id]) || 0), 0, LIMITS.moduleLevel);
+        const maxed = level >= LIMITS.moduleLevel;
+        const cost = maxed ? 0 : moduleData.costs[level];
+        this.text(moduleData.name, textX, y + 23, 13, DATA.palette.paper, 'left', true);
+        this.text(moduleData.desc, textX, y + 43, 9, DATA.palette.muted, 'left');
+        this.text(`LV ${level}/${LIMITS.moduleLevel}`, textX, y + 60, 9, maxed || level ? DATA.palette.acid : DATA.palette.muted, 'left', true, true);
+        this.button(244, y + 11, 88, 44, maxed ? '已满级' : (this.save.credits < cost ? '金币不足' : `升级 ${cost}`), () => this.upgradeModule(moduleData), {
+          disabled: maxed || this.save.credits < cost,
+          fill: DATA.palette.acid,
+          solid: true,
+          solidFill: '#b8e33f',
+          text: DATA.palette.ink,
+          disabledText: DATA.palette.paper,
+          size: 11
+        });
+      });
+      this.text('功能升级只影响未来任务，不改变随机派遣结果', 180, 551, 8, DATA.palette.muted, 'center', true);
+      return true;
+    }
+
     drawUpgradePage() {
+      if (this.drawUpgradePageCockpit()) return;
       this.drawHeader('升级 // 飞船模块');
       DATA.shipModules.forEach((moduleData, index) => {
         const y = 72 + index * 84;
@@ -3508,7 +4300,8 @@
       this.text(mission.name, 79, 369, 17, DATA.palette.paper, 'left', true);
       this.wrap(mission.brief, 79, 391, 236, 14, 10, DATA.palette.muted, 2);
 
-      this.panel(22, 421, 316, 96, { fill: '#15181b', stroke: '#55544e', accent: scanner > 0 ? planet.accent : '#55554e' });
+      if (this.anomalyRulesEnabled()) {
+        this.panel(22, 421, 316, 96, { fill: '#15181b', stroke: '#55544e', accent: scanner > 0 ? planet.accent : '#55554e' });
       this.text('ANOMALY // 异常规则', 41, 444, 8, DATA.palette.muted, 'left', true, true);
       if (scanner >= 0) {
         this.drawAtlasIcon(anomalyInfo.id, 39, 456, 28);
@@ -3521,6 +4314,7 @@
         this.text('着陆后观察预警并保持移动', 76, 490, 8, DATA.palette.muted, 'left');
       }
 
+      }
       this.button(25, 527, 145, 56, '返回驾驶舱', () => {
         this.returnToHQ();
       }, { fill: '#242d30', text: DATA.palette.paper, ink: DATA.palette.paper, stroke: '#59666a', size: 11 });
@@ -3608,7 +4402,7 @@
       ctx.translate(sx, sy);
       this.drawWorld();
       ctx.restore();
-      this.drawHUD();
+      this.drawFutureHUD();
       if (this.notice) this.drawNotice();
       if (this.save.firstRun) this.drawTutorial();
       if (this.state === 'playing' && !this.save.firstRun) this.drawExitButton();
@@ -3667,6 +4461,7 @@
       // the transparent action frame stays clean and the effect can overlap
       // the astronaut without being baked into the sprite sheet.
       this.drawCharacterVfx();
+      this.drawPlayerShieldOverlay();
       this.drawWorldVfx('over');
       for (const projectile of this.world.projectiles) this.drawProjectile(projectile);
       for (const projectile of this.world.enemyProjectiles) this.drawEnemyProjectile(projectile);
@@ -3791,11 +4586,15 @@
     }
 
     drawNest(x, y, item) {
-      if (this.contract.planet.id === 'rust' && this.drawAnchoredObject('rust_nest', 'idle', x, y, 1, item.index * 0.17)) return;
-      if (this.contract.planet.id === 'spore' && this.drawAnchoredObject('spore_nest', 'idle', x, y, 1, item.index * 0.17)) return;
-      if (this.contract.planet.id === 'moon' && this.drawAnchoredObject('moon_nest', 'idle', x, y, 1, item.index * 0.17)) return;
+      const animationPhase = this.nestAnimationPhase(item, item.index);
+      if (this.contract.planet.id === 'rust' && this.drawAnchoredObject('rust_nest', 'idle', x, y, 1, animationPhase)) return;
+      if (this.contract.planet.id === 'spore' && this.drawAnchoredObject('spore_nest', 'idle', x, y, 1, animationPhase)) return;
+      if (this.contract.planet.id === 'moon' && this.drawAnchoredObject('moon_nest', 'idle', x, y, 1, animationPhase)) return;
       const ctx = this.ctx;
-      const pulse = Math.sin(this.now * 4 + item.index) * 2;
+      // Keep the fallback silhouette grounded as well. The authored idle
+      // sheets carry their own motion; a second fallback bob would make a
+      // missing asset look like the nest is changing world position.
+      const pulse = 0;
       ctx.fillStyle = '#08090a';
       ctx.beginPath();
       ctx.ellipse(x, y + 4, 33, 13, 0, 0, TAU);
@@ -3965,36 +4764,47 @@
       const ctx = this.ctx;
       if (hazard.visualOnly) return;
       if (hazard.type === 'meteor') {
-        // Last-resort warning remains a segmented scan with a trajectory, not
-        // the old ellipse-plus-cross placeholder.
-        const pulse = Math.floor(this.now * 12) % 6;
-        ctx.globalAlpha = hazard.exploded ? clamp(hazard.life * 2, 0, 1) : 0.72;
-        ctx.strokeStyle = hazard.exploded ? DATA.palette.orange : DATA.palette.danger;
-        ctx.lineWidth = 2;
-        for (let segment = 0; segment < 8; segment += 1) {
-          if ((segment + pulse) % 3 === 0) continue;
-          const angle = segment / 8 * TAU;
-          const inner = hazard.radius * 0.55;
-          const outer = hazard.radius * 0.9;
-          ctx.beginPath();
-          ctx.moveTo(screen.x + Math.cos(angle) * inner, screen.y + Math.sin(angle) * inner * 0.46);
-          ctx.lineTo(screen.x + Math.cos(angle) * outer, screen.y + Math.sin(angle) * outer * 0.46);
-          ctx.stroke();
-        }
-        ctx.fillStyle = DATA.palette.orange;
-        ctx.fillRect(Math.round(screen.x - 2), Math.round(screen.y - 2), 4, 4);
+        // The authored warning/impact sheets are preferred.  This fallback
+        // deliberately uses detached angular shards so a missing image can
+        // never resurrect the old red ellipse-and-cross placeholder.
+        const warning = !hazard.exploded;
+        const fallbackColor = warning ? DATA.palette.cyan : DATA.palette.orange;
+        const fallbackAlpha = warning ? 0.72 : clamp(hazard.life * 2, 0, 1);
+        this.drawOpenShardFallback(
+          screen.x,
+          screen.y,
+          hazard.radius * (warning ? 0.82 : 1.18),
+          fallbackColor,
+          fallbackAlpha,
+          warning ? 'warning' : 'impact'
+        );
         ctx.strokeStyle = DATA.palette.orange;
+        ctx.globalAlpha = fallbackAlpha;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(screen.x + 25, screen.y - 24);
         ctx.lineTo(screen.x + 34, screen.y - 30);
         ctx.lineTo(screen.x + 41, screen.y - 35);
         ctx.stroke();
       } else {
-        ctx.fillStyle = '#6f3a85';
+        // The spore-pool sheet normally supplies this organic footprint.  If
+        // it is unavailable, keep the gameplay hazard readable with a loose
+        // field of purple pixel clumps rather than a filled ellipse.
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
         ctx.globalAlpha = hazard.warmup > 0 ? 0.25 : 0.55;
-        ctx.beginPath();
-        ctx.ellipse(screen.x, screen.y, hazard.radius, hazard.radius * 0.48, 0, 0, TAU);
-        ctx.fill();
+        ctx.imageSmoothingEnabled = false;
+        for (let index = 0; index < 18; index += 1) {
+          const phase = this.now * 0.7 + index * 2.17;
+          const spread = hazard.radius * (0.24 + (index % 5) * 0.13);
+          const px = Math.round(screen.x + Math.cos(phase) * spread);
+          const py = Math.round(screen.y + Math.sin(phase * 1.31) * spread * 0.62);
+          const size = 2 + (index % 3);
+          ctx.fillStyle = index % 4 === 0 ? '#b86bdb' : '#6f3a85';
+          ctx.fillRect(px, py, size, size);
+          if (index % 3 === 0) ctx.fillRect(px - 2, py + size, Math.max(2, size - 1), 2);
+        }
+        ctx.restore();
       }
       ctx.globalAlpha = 1;
     }
@@ -4022,6 +4832,54 @@
     drawTurret(turret) {
       const screen = this.worldToScreen(turret);
       const ctx = this.ctx;
+      const objectSpec = this.assets && this.assets.manifest && this.assets.manifest.objects
+        ? this.assets.manifest.objects.auto_turret
+        : null;
+      const image = objectSpec ? this.assetImage('object.auto_turret') : null;
+      if (objectSpec && image) {
+        const scale = TURRET_DRAW_SCALE;
+        const angle = Number.isFinite(turret.aimAngle) ? turret.aimAngle : -Math.PI / 2;
+        const projection = this.turretHeadProjection(angle);
+        const frameWidth = objectSpec.frameWidth;
+        const frameHeight = objectSpec.frameHeight;
+        const anchorX = objectSpec.anchor[0];
+        const anchorY = objectSpec.anchor[1];
+        // The source is one combined sprite. Keep the lower chassis fixed and
+        // rotate only the upper head around its mechanical joint.
+        const frameX = Math.round(screen.x - anchorX * scale);
+        const frameY = Math.round(screen.y - anchorY * scale);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(frameX, frameY + TURRET_BASE_START_Y * scale, frameWidth * scale, (frameHeight - TURRET_BASE_START_Y) * scale);
+        ctx.clip();
+        ctx.drawImage(image, frameX, frameY, frameWidth * scale, frameHeight * scale);
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(Math.round(screen.x), Math.round(screen.y + (TURRET_HEAD_PIVOT_Y - anchorY) * scale));
+        // The authored cannon points upward; rotate only the head around the
+        // joint, leaving the grounded chassis at the deployment position.
+        ctx.rotate(projection.rotation);
+        // The source is a perspective view, not a flat top-down disc. When
+        // the head turns broadside, shorten its local depth so it reads as a
+        // mounted 3D head turning on a vertical joint instead of a sticker
+        // spinning on the canvas plane.
+        ctx.scale(1, projection.depth);
+        ctx.beginPath();
+        ctx.rect(-anchorX * scale, -TURRET_HEAD_PIVOT_Y * scale, frameWidth * scale, TURRET_HEAD_END_Y * scale);
+        ctx.clip();
+        ctx.drawImage(image,
+          -anchorX * scale,
+          -TURRET_HEAD_PIVOT_Y * scale,
+          frameWidth * scale,
+          frameHeight * scale
+        );
+        ctx.restore();
+        return;
+      }
+      const angle = Number.isFinite(turret.aimAngle) ? turret.aimAngle : -Math.PI / 2;
+      const projection = this.turretHeadProjection(angle);
       ctx.fillStyle = '#06090a';
       ctx.beginPath();
       ctx.ellipse(screen.x, screen.y + 3, 12, 5, 0, 0, TAU);
@@ -4030,6 +4888,15 @@
       ctx.fillRect(screen.x - 8, screen.y - 10, 16, 12);
       ctx.fillStyle = DATA.palette.acid;
       ctx.fillRect(screen.x - 2, screen.y - 8, 4, 4);
+      ctx.save();
+      ctx.translate(screen.x, screen.y - 5);
+      ctx.rotate(projection.rotation);
+      ctx.scale(1, projection.depth);
+      ctx.fillStyle = '#758476';
+      ctx.fillRect(-4, -13, 8, 14);
+      ctx.fillStyle = DATA.palette.cyan;
+      ctx.fillRect(-2, -16, 4, 5);
+      ctx.restore();
     }
 
     drawCompanions(playerX, playerY) {
@@ -4071,17 +4938,37 @@
         }
       } else if (this.player.classId === 'mechanic') {
         const count = Math.min(7, 1 + (this.getCardLevel('drone') >= 2 ? 1 : 0) + this.getCardLevel('mech_count') + (this.hasEvolution('swarm_protocol') ? 2 : 0));
+        const petSpec = this.assets && this.assets.manifest && this.assets.manifest.pets
+          ? this.assets.manifest.pets.mechanic_drone
+          : null;
+        const petKey = petSpec && this.assetImage(petSpec.key) ? petSpec.key : null;
         for (let index = 0; index < count; index += 1) {
           const angle = this.world.time * 1.2 + index / count * TAU;
           const x = playerX + Math.cos(angle) * 38;
-          const y = playerY + Math.sin(angle) * 25;
-          ctx.fillStyle = '#0a0e0f';
-          ctx.fillRect(Math.round(x - 7), Math.round(y - 4), 14, 8);
-          ctx.fillStyle = DATA.palette.acid;
-          ctx.fillRect(Math.round(x - 2), Math.round(y - 3), 4, 3);
-          ctx.fillStyle = '#71857c';
-          ctx.fillRect(Math.round(x - 11), Math.round(y - 1), 4, 2);
-          ctx.fillRect(Math.round(x + 7), Math.round(y - 1), 4, 2);
+          const bob = Math.sin(this.world.time * 7 + index * 1.7) * 1.2;
+          const y = playerY + Math.sin(angle) * 25 + bob;
+          if (petKey) {
+            const size = petSpec.suggestedDisplaySize || 24;
+            // The pet faces its instantaneous orbit tangent, using the same
+            // front/right/back/left direction semantics as actors.
+            const petDirection = petSpec.frameCount > 1
+              ? this.direction4(-Math.sin(angle), Math.cos(angle))
+              : 0;
+            ctx.save();
+            ctx.globalAlpha = 0.98;
+            ctx.translate(Math.round(x), Math.round(y));
+            this.drawFrame(petKey, petSpec.frameWidth, petSpec.frameHeight, petDirection,
+              -size / 2, -size / 2, size, size);
+            ctx.restore();
+          } else {
+            ctx.fillStyle = '#0a0e0f';
+            ctx.fillRect(Math.round(x - 7), Math.round(y - 4), 14, 8);
+            ctx.fillStyle = DATA.palette.acid;
+            ctx.fillRect(Math.round(x - 2), Math.round(y - 3), 4, 3);
+            ctx.fillStyle = '#71857c';
+            ctx.fillRect(Math.round(x - 11), Math.round(y - 1), 4, 2);
+            ctx.fillRect(Math.round(x + 7), Math.round(y - 1), 4, 2);
+          }
         }
       }
     }
@@ -4196,15 +5083,18 @@
       }
     }
 
-    drawAstronaut(x, y, classData, scale, angle) {
+    drawAstronaut(x, y, classData, scale, angle, animateIdle = false) {
       const ctx = this.ctx;
       const characterKey = classData.id === 'gunner' ? 'character.gunner_mia' : (classData.id === 'warrior' ? 'character.warrior_kade' : 'character.mechanic_locke');
       if (this.assetImage(characterKey)) {
         const hasRuntimePlayer = Boolean(this.player && this.world && (this.state === 'playing' || this.state === 'levelup') && this.player.classId === classData.id);
+        const useIdleLoop = animateIdle && !hasRuntimePlayer;
         const moving = hasRuntimePlayer && this.player.moving;
         const actionState = hasRuntimePlayer ? this.player.actionState : 'idle';
         const actionSkill = hasRuntimePlayer ? this.player.actionSkill : null;
-        const actionElapsed = hasRuntimePlayer ? this.player.actionElapsed : 0;
+        const actionElapsed = hasRuntimePlayer ? this.player.actionElapsed : (useIdleLoop ? this.now : 0);
+        const renderActionState = hasRuntimePlayer ? actionState : (useIdleLoop ? 'idle' : null);
+        const renderActionSkill = hasRuntimePlayer ? actionSkill : null;
         const actionDirection = hasRuntimePlayer && (actionState === 'attack' || actionState === 'skill') && this.player.actionDirection
           ? this.player.actionDirection
           : { x: Math.cos(angle), y: Math.sin(angle) };
@@ -4224,8 +5114,13 @@
               : (moving
                 ? this.characterActionSpec(classData.id, 'walk')
                 : this.characterActionSpec(classData.id, 'idle'))))
-          : null;
+          : (useIdleLoop ? this.characterActionSpec(classData.id, 'idle') : null);
         const actionAvailable = Boolean(actionSpec && this.assetImage(actionSpec.key));
+        // UI portraits use the authored idle sequence sheet. The visible
+        // breathing motion is contained in those generated frames, so the
+        // sprite anchor stays fixed and never drifts as a whole.
+        const renderX = x;
+        const renderY = y;
         const bob = !actionAvailable && moving ? Math.round(Math.sin(this.player.movePhase || this.now * 6) * 1.2) : 0;
         ctx.save();
         ctx.globalAlpha = 0.52;
@@ -4234,17 +5129,18 @@
         ctx.ellipse(Math.round(x), Math.round(y + scale * 2), 11 * scale, 4 * scale, 0, 0, TAU);
         ctx.fill();
         ctx.globalAlpha = this.player && this.player.invuln > 0 && Math.floor(this.now * 18) % 2 ? 0.55 : 1;
-        const actionDrawn = actionAvailable && this.characterActionFrame(classData, actionState, actionSkill, frame, actionElapsed, x, y, scale);
+        const actionDrawn = actionAvailable && renderActionState
+          && this.characterActionFrame(classData, renderActionState, renderActionSkill, frame, actionElapsed, renderX, renderY, scale);
         if (!actionDrawn) {
           this.drawFrame(characterKey, 64, 64, drawRow,
-            x - 32 * scale, y - 56 * scale + bob, 64 * scale, 64 * scale);
+            renderX - 32 * scale, renderY - 56 * scale + bob, 64 * scale, 64 * scale);
         }
         if (!actionDrawn) {
           ctx.globalAlpha = 0.7;
           ctx.fillStyle = classData.color;
           const footShift = moving ? Math.sin((this.player.movePhase || this.now * 6) + Math.PI) * 1.2 : 0;
-          ctx.fillRect(Math.round(x - 7 * scale + footShift), Math.round(y - 2 * scale), Math.max(1, Math.round(3 * scale)), Math.max(1, Math.round(2 * scale)));
-          ctx.fillRect(Math.round(x + 4 * scale - footShift), Math.round(y - 2 * scale), Math.max(1, Math.round(3 * scale)), Math.max(1, Math.round(2 * scale)));
+          ctx.fillRect(Math.round(renderX - 7 * scale + footShift), Math.round(renderY - 2 * scale), Math.max(1, Math.round(3 * scale)), Math.max(1, Math.round(2 * scale)));
+          ctx.fillRect(Math.round(renderX + 4 * scale - footShift), Math.round(renderY - 2 * scale), Math.max(1, Math.round(3 * scale)), Math.max(1, Math.round(2 * scale)));
         }
         ctx.restore();
         return;
@@ -4351,6 +5247,43 @@
       ctx.globalAlpha = 1;
     }
 
+    drawOpenShardFallback(x, y, radius, color, alpha = 1, mode = 'burst') {
+      const ctx = this.ctx;
+      const safeRadius = Math.max(8, Number(radius) || 8);
+      const phase = Math.floor(this.now * (mode === 'warning' ? 9 : 14));
+      const count = mode === 'warning' ? 8 : 12;
+      const requested = String(color || '').toLowerCase();
+      const danger = String(DATA.palette.danger || '#ff4f72').toLowerCase();
+      const primary = requested === danger ? DATA.palette.orange : (color || DATA.palette.cyan);
+      const colors = [primary, DATA.palette.cyan, DATA.palette.acid, '#f2e4c6'];
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = clamp(alpha, 0, 1);
+      ctx.imageSmoothingEnabled = false;
+      for (let index = 0; index < count; index += 1) {
+        const angle = index / count * TAU + (phase % 11) * 0.035;
+        const inner = safeRadius * (0.22 + ((index * 13 + phase * 3) % 15) / 100);
+        const outer = safeRadius * (0.56 + ((index * 19 + phase * 5) % 28) / 100);
+        const width = 1.5 + (index % 3);
+        const ux = Math.cos(angle);
+        const uy = Math.sin(angle);
+        const px = -uy * width;
+        const py = ux * width;
+        ctx.fillStyle = colors[(index + phase) % colors.length];
+        ctx.beginPath();
+        ctx.moveTo(Math.round(x + ux * inner - px), Math.round(y + uy * inner - py));
+        ctx.lineTo(Math.round(x + ux * outer + px), Math.round(y + uy * outer + py));
+        ctx.lineTo(Math.round(x + ux * (outer * 0.68)), Math.round(y + uy * (outer * 0.68)));
+        ctx.lineTo(Math.round(x + ux * inner + px), Math.round(y + uy * inner + py));
+        ctx.fill();
+        if (index % 2 === 0) {
+          const spark = outer + 3 + ((index + phase) % 5);
+          ctx.fillRect(Math.round(x + ux * spark - 1), Math.round(y + uy * spark - 1), 2 + index % 2, 2 + index % 2);
+        }
+      }
+      ctx.restore();
+    }
+
     drawParticle(particle) {
       const screen = this.worldToScreen(particle);
       const ctx = this.ctx;
@@ -4362,11 +5295,28 @@
         ctx.fillStyle = particle.color;
         ctx.fillRect(screen.x, screen.y, particle.size, particle.size);
       } else if (particle.type === 'ring') {
-        ctx.strokeStyle = particle.color;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.ellipse(screen.x, screen.y, particle.radius * (1.2 - alpha * 0.2), particle.radius * 0.45, 0, 0, TAU);
-        ctx.stroke();
+        const spec = this.assets && this.assets.manifest && this.assets.manifest.vfx
+          ? this.assets.manifest.vfx.radial_damage
+          : null;
+        const frameWidth = spec && spec.frameWidth ? spec.frameWidth : 96;
+        const frameHeight = spec && spec.frameHeight ? spec.frameHeight : 96;
+        const frameCount = spec && spec.frameCount ? spec.frameCount : 8;
+        const progress = clamp(1 - alpha, 0, 1);
+        const frame = Math.min(frameCount - 1, Math.floor(progress * frameCount));
+        const size = Math.max(30, Math.round(particle.radius * (1.92 + progress * 0.24)));
+        if (this.assetImage('vfx.radial_damage')) {
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = alpha * 0.94;
+          ctx.imageSmoothingEnabled = false;
+          this.drawFrame('vfx.radial_damage', frameWidth, frameHeight, frame,
+            screen.x - size / 2, screen.y - size / 2, size, size);
+          ctx.restore();
+        } else {
+          // Optional-asset load failure still gets the same language as the
+          // authored sheet: detached, angular pixel fragments, never a ring.
+          this.drawOpenShardFallback(screen.x, screen.y, size * 0.52, particle.color, alpha * 0.94, 'splash');
+        }
       } else if (particle.type === 'slash') {
         ctx.strokeStyle = particle.color;
         ctx.lineWidth = 5;
@@ -4395,15 +5345,32 @@
     }
 
     drawProgressBar(x, y, w, ratio, type = 'mission', height = 10) {
-      const frame = this.assetImage('ui.progress_frame');
-      const fill = this.assetImage(`ui.progress_${type}`);
-      if (!frame || !fill) return false;
+      const ctx = this.ctx;
       const value = clamp(ratio, 0, 1);
-      this.ctx.drawImage(frame, Math.round(x), Math.round(y), Math.round(w), Math.round(height));
-      if (value > 0) {
-        const sourceWidth = Math.max(1, Math.floor(fill.width * value));
-        const innerWidth = Math.max(1, (w - 4) * value);
-        this.ctx.drawImage(fill, 0, 0, sourceWidth, fill.height, Math.round(x + 2), Math.round(y + 2), Math.round(innerWidth), Math.max(2, Math.round(height - 4)));
+      const colors = {
+        health: '#ff4f72',
+        xp: DATA.palette.violet || '#ad76ff',
+        mission: DATA.palette.cyan,
+        extraction: DATA.palette.acid
+      };
+      const color = colors[type] || DATA.palette.cyan;
+      const segments = Math.max(4, Math.floor(w / 9));
+      const gap = 2;
+      const segmentWidth = Math.max(2, Math.floor((w - gap * (segments - 1)) / segments));
+      ctx.fillStyle = '#03080b';
+      ctx.fillRect(Math.round(x - 2), Math.round(y - 2), Math.round(w + 4), Math.round(height + 4));
+      for (let index = 0; index < segments; index += 1) {
+        const segmentStart = index / segments;
+        const segmentRatio = clamp((value - segmentStart) * segments, 0, 1);
+        const segmentX = Math.round(x + index * (segmentWidth + gap));
+        ctx.fillStyle = '#1b3037';
+        ctx.fillRect(segmentX, Math.round(y), segmentWidth, Math.max(2, Math.round(height)));
+        if (segmentRatio > 0) {
+          ctx.fillStyle = color;
+          ctx.globalAlpha = 0.45 + segmentRatio * 0.55;
+          ctx.fillRect(segmentX + 1, Math.round(y + 1), Math.max(1, Math.round((segmentWidth - 2) * segmentRatio)), Math.max(1, Math.round(height - 2)));
+          ctx.globalAlpha = 1;
+        }
       }
       return true;
     }
@@ -4425,12 +5392,7 @@
       ctx.save();
       ctx.fillStyle = 'rgba(2,5,7,0.78)';
       ctx.fillRect(0, 0, W, H);
-      const panelImage = this.assetImage('ui.exit.warning_panel');
-      if (panelImage) {
-        this.drawNineSlice(panelImage, 40, 206, 280, 196, 8);
-      } else {
-        this.panel(40, 206, 280, 196, { uiVariant: 'inset', fill: '#0c1619', stroke: DATA.palette.danger, accent: DATA.palette.cyan });
-      }
+      this.panel(40, 206, 280, 196, { uiVariant: 'inset', fill: '#0c1619', stroke: DATA.palette.danger, accent: DATA.palette.cyan, accentWidth: 5 });
       const warningIcon = this.assetImage('ui.exit.loss_icon');
       if (warningIcon) ctx.drawImage(warningIcon, 58, 226, 32, 32);
       this.text('退出外勤？', 180, 241, 17, DATA.palette.danger, 'center', true);
@@ -4467,8 +5429,10 @@
       this.drawAtlasIcon('cargo', 241, 10, 19);
       this.text('CARGO', 265, 21, 6, DATA.palette.muted, 'left', true, true);
       this.text(String(this.player.loot), 344, 35, 16, DATA.palette.orange, 'right', true, true);
-      this.drawAtlasIcon(this.contract.anomaly.id, 241, 37, 15);
-      this.text(this.contract.anomaly.name, 344, 49, 7, this.contract.planet.accent, 'right', true);
+      if (this.anomalyRulesEnabled()) {
+        this.drawAtlasIcon(this.contract.anomaly.id, 241, 37, 15);
+        this.text(this.contract.anomaly.name, 344, 49, 7, this.contract.planet.accent, 'right', true);
+      }
 
       this.panel(47, 65, 266, 30, { fill: 'rgba(7,10,12,0.91)', stroke: this.world.missionComplete ? DATA.palette.acid : '#575a52', accent: this.world.missionComplete ? DATA.palette.acid : DATA.palette.orange, accentWidth: 4 });
       const missionIcon = this.world.missionComplete ? 'success' : (this.world.objective.id === 'nests' ? 'mission_nest' : (this.world.objective.id === 'beacons' ? 'mission_beacon' : 'mission_drill'));
@@ -4483,7 +5447,8 @@
       this.drawObjectiveArrow();
       this.drawCacheArrow();
       this.drawJoystick();
-      const anomalyInfo = this.anomalyDetails(this.contract.anomaly);
+      if (this.anomalyRulesEnabled()) {
+        const anomalyInfo = this.anomalyDetails(this.contract.anomaly);
       const tideActive = anomalyInfo.id === 'energy_tide' && this.energyTideActive();
       const anomalyColor = tideActive ? DATA.palette.acid : this.contract.planet.accent;
       const anomalyLabel = tideActive
@@ -4491,12 +5456,90 @@
         : `${anomalyInfo.name} // ${anomalyInfo.effect}`;
       this.panel(36, 103, 288, 25, { fill: 'rgba(7,10,12,0.9)', stroke: anomalyColor, accent: anomalyColor });
       this.drawAtlasIcon(anomalyInfo.id, 44, 106, 18);
-      this.text(anomalyLabel, 190, 120, 7, anomalyColor, 'center', true);
+        this.text(anomalyLabel, 190, 120, 7, anomalyColor, 'center', true);
+      }
       if (this.world.missionComplete && this.world.extraction.progress > 0) {
         const ratio = clamp(this.world.extraction.progress / this.world.extraction.required, 0, 1);
         ctx.fillStyle = 'rgba(7,10,12,0.92)';
         ctx.fillRect(56, 606, 248, 24);
         this.drawProgressBar(61, 610, 238, ratio, 'extraction', 10);
+        this.text('UPLINK // 保持在撤离区', 180, 627, 7, DATA.palette.paper, 'center', true, true);
+      }
+    }
+
+    drawFutureHUD() {
+      const ctx = this.ctx;
+      const classData = DATA.classById[this.player.classId];
+      const classColor = classData.color || DATA.palette.cyan;
+      const objectiveColor = this.world.missionComplete ? DATA.palette.acid : DATA.palette.orange;
+      const panelFill = 'rgba(5,13,18,0.94)';
+
+      this.panel(5, 5, 143, 55, { fill: panelFill, stroke: classColor, accent: classColor, accentWidth: 5 });
+      this.drawAtlasIcon('health', 10, 10, 21);
+      this.text(`LIFE // ${classData.name}`, 36, 20, 7, classColor, 'left', true, true);
+      this.text(`LV.${this.player.level}`, 137, 20, 8, DATA.palette.paper, 'right', true, true);
+      this.text('VITAL', 36, 29, 5, DATA.palette.muted, 'left', true, true);
+      this.drawProgressBar(58, 24, 77, this.player.hp / this.player.maxHp, 'health', 7);
+      this.drawAtlasIcon('xp', 14, 40, 16);
+      this.text('SYNC', 36, 48, 5, DATA.palette.muted, 'left', true, true);
+      this.drawProgressBar(58, 43, 77, this.player.xp / this.player.nextXp, 'xp', 7);
+
+      this.panel(153, 5, 76, 55, { fill: panelFill, stroke: DATA.palette.cyan, accent: DATA.palette.cyan, accentWidth: 3 });
+      this.drawAtlasIcon('timer', 159, 10, 18);
+      this.text('MISSION', 183, 18, 6, DATA.palette.muted, 'left', true, true);
+      ctx.fillStyle = this.world.time > 600 ? DATA.palette.orange : DATA.palette.acid;
+      ctx.fillRect(215, 14, 3, 3);
+      this.text(formatTime(this.world.time), 191, 46, 17, DATA.palette.paper, 'center', true, true);
+      this.text('FIELD CLOCK', 191, 55, 5, DATA.palette.muted, 'center', true, true);
+
+      this.panel(234, 5, 121, 55, { fill: panelFill, stroke: DATA.palette.orange, accent: DATA.palette.orange, accentWidth: 4 });
+      this.drawAtlasIcon('cargo', 241, 10, 19);
+      this.text('CARGO // RAW', 265, 18, 6, DATA.palette.muted, 'left', true, true);
+      this.text(String(this.player.loot).padStart(2, '0'), 344, 40, 17, DATA.palette.orange, 'right', true, true);
+      ctx.fillStyle = DATA.palette.orange;
+      ctx.fillRect(265, 47, 48, 2);
+      if (this.anomalyRulesEnabled()) {
+        this.drawAtlasIcon(this.contract.anomaly.id, 241, 37, 15);
+        this.text(this.contract.anomaly.name, 344, 50, 7, this.contract.planet.accent, 'right', true);
+      } else if (this.getCardLevel('shield') > 0) {
+        const shieldLevel = this.getCardLevel('shield');
+        this.drawPixelIcon('shield', 264, 36, 13, DATA.palette.cyan, this.player.classId);
+        this.text(`SHIELD L${shieldLevel}`, 282, 49, 6, DATA.palette.cyan, 'left', true, true);
+      } else {
+        this.text('SEALED // 08-R', 265, 51, 5, DATA.palette.muted, 'left', true, true);
+      }
+
+      this.panel(45, 65, 270, 31, { fill: panelFill, stroke: objectiveColor, accent: objectiveColor, accentWidth: 5 });
+      const missionIcon = this.world.missionComplete
+        ? 'success'
+        : (this.world.objective.id === 'nests' ? 'mission_nest' : (this.world.objective.id === 'beacons' ? 'mission_beacon' : 'mission_drill'));
+      this.drawAtlasIcon(missionIcon, 52, 70, 21);
+      this.text('OBJECTIVE', 82, 76, 5, DATA.palette.muted, 'left', true, true);
+      this.text(this.missionStatus(), 190, 87, 9, this.world.missionComplete ? DATA.palette.acid : DATA.palette.paper, 'center', true);
+      if (this.world.objective.id === 'beacons') {
+        const beacon = this.world.objective.items[this.world.objective.current] || this.world.objective.items[this.world.objective.items.length - 1];
+        if (beacon) this.drawProgressBar(108, 89, 146, beacon.charge / beacon.required, 'mission', 5);
+      }
+
+      this.drawBeaconOverlay();
+      this.drawObjectiveArrow();
+      this.drawCacheArrow();
+      this.drawJoystick();
+      if (this.anomalyRulesEnabled()) {
+        const anomalyInfo = this.anomalyDetails(this.contract.anomaly);
+        const tideActive = anomalyInfo.id === 'energy_tide' && this.energyTideActive();
+        const anomalyColor = tideActive ? DATA.palette.acid : this.contract.planet.accent;
+        const anomalyLabel = tideActive
+          ? `${anomalyInfo.name} // 双向加速`
+          : `${anomalyInfo.name} // ${anomalyInfo.effect}`;
+        this.panel(36, 103, 288, 25, { fill: panelFill, stroke: anomalyColor, accent: anomalyColor });
+        this.drawAtlasIcon(anomalyInfo.id, 44, 106, 18);
+        this.text(anomalyLabel, 190, 120, 7, anomalyColor, 'center', true);
+      }
+      if (this.world.missionComplete && this.world.extraction.progress > 0) {
+        const ratio = clamp(this.world.extraction.progress / this.world.extraction.required, 0, 1);
+        this.panel(54, 604, 252, 27, { fill: panelFill, stroke: DATA.palette.acid, accent: DATA.palette.acid, accentWidth: 5 });
+        this.drawProgressBar(62, 610, 236, ratio, 'extraction', 8);
         this.text('UPLINK // 保持在撤离区', 180, 627, 7, DATA.palette.paper, 'center', true, true);
       }
     }
@@ -4579,34 +5622,33 @@
       const y = this.pointer.active ? this.pointer.originY : 560;
       const dx = this.pointer.active ? clamp(this.pointer.x - x, -38, 38) : 0;
       const dy = this.pointer.active ? clamp(this.pointer.y - y, -38, 38) : 0;
-      ctx.globalAlpha = this.pointer.active ? 0.82 : 0.3;
-      const base = this.assetImage('ui.joystick_base');
-      const knob = this.assetImage('ui.joystick_knob');
-      if (base && knob) {
-        ctx.drawImage(base, Math.round(x - 48), Math.round(y - 48), 96, 96);
-        ctx.drawImage(knob, Math.round(x + dx - 20), Math.round(y + dy - 20), 40, 40);
-        ctx.globalAlpha = 1;
-        return;
-      }
-      ctx.fillStyle = '#050708';
+      ctx.save();
+      ctx.globalAlpha = this.pointer.active ? 0.9 : 0.36;
+      ctx.strokeStyle = this.pointer.active ? DATA.palette.acid : DATA.palette.cyan;
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.arc(x, y, 43, 0, TAU);
-      ctx.fill();
-      ctx.strokeStyle = '#a6a38f';
-      ctx.lineWidth = 3;
       ctx.stroke();
-      ctx.fillStyle = '#3a3e39';
-      ctx.fillRect(x - 3, y - 37, 6, 11);
-      ctx.fillRect(x - 3, y + 26, 6, 11);
-      ctx.fillRect(x - 37, y - 3, 11, 6);
-      ctx.fillRect(x + 26, y - 3, 11, 6);
-      ctx.fillStyle = this.pointer.active ? DATA.palette.acid : '#76796c';
+      ctx.globalAlpha *= 0.58;
       ctx.beginPath();
-      ctx.arc(x + dx, y + dy, 16, 0, TAU);
+      ctx.arc(x, y, 29, 0, TAU);
+      ctx.stroke();
+      ctx.globalAlpha *= 0.72;
+      ctx.fillStyle = DATA.palette.cyan;
+      ctx.fillRect(Math.round(x - 2), Math.round(y - 48), 4, 6);
+      ctx.fillRect(Math.round(x - 2), Math.round(y + 42), 4, 6);
+      ctx.fillRect(Math.round(x - 48), Math.round(y - 2), 6, 4);
+      ctx.fillRect(Math.round(x + 42), Math.round(y - 2), 6, 4);
+      ctx.globalAlpha = this.pointer.active ? 0.96 : 0.62;
+      ctx.fillStyle = this.pointer.active ? DATA.palette.acid : '#203b43';
+      this.techPath(x + dx - 16, y + dy - 16, 32, 32, 5);
       ctx.fill();
-      ctx.fillStyle = '#111514';
-      ctx.fillRect(x + dx - 5, y + dy - 5, 10, 10);
-      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#071217';
+      this.techPath(x + dx - 10, y + dy - 10, 20, 20, 3);
+      ctx.fill();
+      ctx.fillStyle = this.pointer.active ? DATA.palette.acid : DATA.palette.cyan;
+      ctx.fillRect(Math.round(x + dx - 2), Math.round(y + dy - 2), 4, 4);
+      ctx.restore();
     }
 
     drawNotice() {
@@ -4697,12 +5739,16 @@
         if (recipe) {
           const other = recipe.requires.find((id) => id !== card.id);
           const otherCard = classData.cards.find((entry) => entry.id === other);
-          this.text(`配方：${card.name} Lv.3 + ${otherCard.name} Lv.3`, 125, y + 131, 7, DATA.palette.muted, 'left', true);
-          this.text(`→ ${recipe.name}`, 125, y + 144, 8, color, 'left', true);
+          // The recipe is supporting information, but it is still the key
+          // reason to choose this card. Give it enough contrast to survive
+          // the scanlines and keep the resulting-combo line as the strongest
+          // secondary cue without competing with the card title.
+          this.text(`配方：${card.name} Lv.3 + ${otherCard.name} Lv.3`, 125, y + 131, 8, DATA.palette.paper, 'left', true);
+          this.text(`→ ${recipe.name}`, 125, y + 144, 9, color, 'left', true);
         }
       } else if (evolution) {
-        this.text('两项技能均达到 Lv.3', 125, y + 126, 7, DATA.palette.muted, 'left', true);
-        this.text(this.evolutionRecipeText(classData, card), 125, y + 140, 7, DATA.palette.acid, 'left', true);
+        this.text('两项技能均达到 Lv.3', 125, y + 126, 8, DATA.palette.paper, 'left', true);
+        this.text(this.evolutionRecipeText(classData, card), 125, y + 140, 8, DATA.palette.acid, 'left', true);
       }
       if (!evolution && !overflow) {
         const currentLevel = (this.player.cards[card.id] || 0) + 1;
@@ -4763,9 +5809,13 @@
     drawScanlines() {
       const ctx = this.ctx;
       ctx.globalAlpha = 0.035;
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = DATA.palette.paper;
       for (let y = 0; y < H; y += 4) ctx.fillRect(0, y, W, 1);
-      ctx.globalAlpha = 0.08;
+      ctx.globalAlpha = 0.05;
+      ctx.fillStyle = DATA.palette.cyan;
+      ctx.fillRect(0, 74, W, 1);
+      ctx.fillRect(0, H - 76, W, 1);
+      ctx.globalAlpha = 0.09;
       const gradient = ctx.createRadialGradient(W / 2, H / 2, 100, W / 2, H / 2, 390);
       gradient.addColorStop(0, 'rgba(0,0,0,0)');
       gradient.addColorStop(1, '#000000');

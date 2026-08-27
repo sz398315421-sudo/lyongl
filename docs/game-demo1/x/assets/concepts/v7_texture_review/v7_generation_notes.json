@@ -1,6 +1,0 @@
-{
-  "sourceReference": "assets/concepts/v6_enemy_vfx_review/imagegen_enemy_reference.png",
-  "style": "hard-edge 8-bit pixel art, deterministic nearest-neighbour processing",
-  "imagegenAttempt": "network_error_fallback_to_existing_v6_reference",
-  "runtimeModified": false
-}
