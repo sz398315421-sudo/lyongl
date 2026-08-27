@@ -264,6 +264,10 @@ const assetStore = new AssetStore({
       cacheBust: 'v84-gpt-image2-combat-vfx-20260827'
 });
 let game = null;
+let runtimePackageStatus = 'idle';
+let runtimePackageProgress = 0;
+let runtimePackageError = '';
+let runtimeAssetLoadPromise = null;
 
 function drawBootScreen() {
   if (game) return;
@@ -277,11 +281,26 @@ function drawBootScreen() {
   context.setTransform(scale, 0, 0, scale, offsetX, offsetY);
   context.fillStyle = '#141a1d';
   context.fillRect(24, 278, 312, 84);
+  const assetProgress = assetStore.loadedCount / Math.max(1, assetStore.totalCount);
+  const packageProgress = runtimePackageStatus === 'ready' ? 1 : runtimePackageProgress;
+  const progress = runtimePackageStatus === 'ready'
+    ? 0.35 + assetProgress * 0.65
+    : packageProgress * 0.35;
   context.fillStyle = '#51d9d1';
-  context.fillRect(34, 334, 292 * (assetStore.loadedCount / Math.max(1, assetStore.totalCount)), 6);
+  context.fillRect(34, 334, 292 * Math.max(0, Math.min(1, progress)), 6);
   context.fillStyle = '#ddd5ba';
   context.font = '12px sans-serif';
-  context.fillText('LOADING FIELD ASSETS', 38, 309);
+  const label = runtimePackageStatus === 'error'
+    ? 'RUNTIME PACKAGE FAILED'
+    : runtimePackageStatus === 'ready'
+      ? 'LOADING FIELD ASSETS'
+      : 'LOADING RUNTIME PACKAGE';
+  context.fillText(label, 38, 309);
+  if (runtimePackageStatus === 'error') {
+    context.fillStyle = '#ffad73';
+    context.font = '9px sans-serif';
+    context.fillText('TAP TO RETRY', 38, 322);
+  }
   raf(drawBootScreen);
 }
 
@@ -294,16 +313,74 @@ function loadPixelFont() {
   }
 }
 
-drawBootScreen();
-assetStore.loadAll().then(() => {
-  game = new StarDutyGame(canvas, {
-    storage,
-    assets: assetStore,
-    fontFamily: loadPixelFont(),
-    audio: new WeChatSynthAudio(),
-    raf
+function loadRuntimeAssets() {
+  if (runtimeAssetLoadPromise) return runtimeAssetLoadPromise;
+  runtimePackageStatus = 'loading';
+  runtimePackageProgress = 0;
+  runtimePackageError = '';
+  runtimeAssetLoadPromise = new Promise((resolve, reject) => {
+    if (typeof wx.loadSubpackage !== 'function') {
+      // Older local runtimes may not expose subpackage loading. The normal
+      // package still works there, while production builds use the configured
+      // runtime_assets package.
+      runtimePackageStatus = 'ready';
+      runtimePackageProgress = 1;
+      resolve();
+      return;
+    }
+    let task = null;
+    let settled = false;
+    const succeed = () => {
+      if (settled) return;
+      settled = true;
+      runtimePackageStatus = 'ready';
+      runtimePackageProgress = 1;
+      resolve();
+    };
+    const fail = (error) => {
+      if (settled) return;
+      settled = true;
+      runtimePackageStatus = 'error';
+      runtimePackageError = String(error && (error.errMsg || error.message) || error || 'unknown error');
+      reject(error instanceof Error ? error : new Error(runtimePackageError));
+    };
+    try {
+      task = wx.loadSubpackage({
+        name: 'runtime_assets',
+        success: succeed,
+        fail
+      });
+      if (task && typeof task.onProgressUpdate === 'function') {
+        task.onProgressUpdate((result) => {
+          const value = Number(result && result.progress);
+          if (Number.isFinite(value)) runtimePackageProgress = Math.max(0, Math.min(1, value / 100));
+        });
+      }
+    } catch (error) {
+      fail(error);
+    }
+  }).then(() => assetStore.loadAll()).then(() => {
+    if (!game) {
+      game = new StarDutyGame(canvas, {
+        storage,
+        assets: assetStore,
+        fontFamily: loadPixelFont(),
+        audio: new WeChatSynthAudio(),
+        raf
+      });
+    }
+    return game;
+  }).catch((error) => {
+    runtimePackageStatus = 'error';
+    runtimePackageError = String(error && (error.message || error.errMsg) || error || 'unknown error');
+    runtimeAssetLoadPromise = null;
+    throw error;
   });
-});
+  return runtimeAssetLoadPromise;
+}
+
+drawBootScreen();
+loadRuntimeAssets().catch(() => {});
 
 function logicalPoint(touch) {
   const pixelX = touch.clientX * pixelRatio;
@@ -318,7 +395,10 @@ function logicalPoint(touch) {
 }
 
 wx.onTouchStart((event) => {
-  if (!game) return;
+  if (!game) {
+    if (runtimePackageStatus === 'error') loadRuntimeAssets().catch(() => {});
+    return;
+  }
   for (const touch of event.changedTouches) {
     const point = logicalPoint(touch);
     game.pointerDown(point.x, point.y, touch.identifier || 0);
