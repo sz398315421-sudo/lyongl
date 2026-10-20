@@ -13,3 +13,32 @@
 #scene-motion-progress::-webkit-progress-bar { background:var(--control-surface); border-radius:2px; }
 #scene-motion-progress::-webkit-progress-value { background:#007aff; border-radius:2px; }
 #scene-motion-progress::-moz-progress-bar { background:#007aff; border-radius:2px; }
+.workspace .road-assist-control { margin-top:24px; }
+.road-assist-control[hidden] { display:none; }
+.road-assist-buttons { display:flex; gap:8px; margin-bottom:4px; }
+.road-assist-buttons[hidden] { display:none; }
+.workspace .road-assist-buttons button { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px 8px; min-height:44px; border:0; border-radius:var(--ui-radius); background:var(--control-surface); color:var(--text); font:inherit; font-size:13px; cursor:pointer; white-space:nowrap; }
+.workspace .road-assist-buttons button:disabled { opacity:.36; cursor:default; }
+.workspace .road-assist-buttons button[aria-pressed=true] { color:#007aff; opacity:.8; }
+.workspace .road-assist-buttons button:not(:disabled):hover { background:var(--control-hover); }
+.workspace .road-assist-buttons button:focus-visible { outline:2px solid #007aff; outline-offset:3px; }
+.guidance-color-control { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:var(--control-height,48px); padding:12px 0; border-top:1px solid var(--line); }
+.guidance-color-options { display:flex; align-items:center; gap:6px; }
+.workspace .guidance-color-swatch { display:grid; place-items:center; flex:0 0 26px; width:26px; height:26px; padding:0; background:transparent; border:1px solid transparent; border-radius:50%; cursor:pointer; }
+.guidance-color-swatch::before { content:''; width:16px; height:16px; border-radius:50%; background:var(--swatch); box-shadow:inset 0 0 0 1px #0001; }
+.workspace .guidance-color-swatch[aria-pressed=true] { border-color:var(--text); }
+.workspace .guidance-color-swatch:focus-visible,.guidance-custom-color:focus-visible { outline:2px solid #007aff; outline-offset:3px; }
+.guidance-custom-color { appearance:none; width:28px; height:26px; padding:3px; border:1px solid var(--line); border-radius:5px; background:transparent; cursor:pointer; }
+.guidance-custom-color::-webkit-color-swatch-wrapper { padding:0; }
+.guidance-custom-color::-webkit-color-swatch { border:0; border-radius:2px; }
+.guidance-custom-color::-moz-color-swatch { border:0; border-radius:2px; }
+.guidance-color-options :disabled { opacity:.4; cursor:default; }
+
+/* A restrained cockpit layer: the manoeuvre stays the visual focus. */
+.parking-hmi{position:absolute;inset:0;z-index:3;pointer-events:none;color:#202b36;font-family:"Bahnschrift","Microsoft YaHei UI",sans-serif;--parking-accent:#248cff}
+.parking-hmi[hidden]{display:none}
+.parking-hmi-heading{position:absolute;left:4%;top:8%}
+.parking-hmi-title{font-size:clamp(14px,1.6vw,25px);font-weight:500;line-height:1.25;letter-spacing:.05em}
+.parking-hmi[data-phase=complete]{--parking-accent:#18af88}
+:root[data-theme=dark] .parking-hmi{color:#edf4fb}
+@media(max-width:760px){.parking-hmi-title{font-size:13px}}

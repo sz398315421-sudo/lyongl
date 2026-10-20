@@ -1,6 +1,6 @@
 # Downloadable vehicle models
 
-This folder makes the five downloaded vehicle models available to another computer without access to the original local workspace. It contains complete original assets, four prepared delivery models, previews, provenance and SHA-256 checksums. These files are independent of the website's currently selected vehicle.
+This folder contains nine downloaded vehicle models, eight prepared delivery models, previews, provenance and SHA-256 checksums. These files are independent of the website's currently selected vehicle. BMW X6 is stored separately at the project root.
 
 ## Download and use
 
@@ -10,9 +10,9 @@ After cloning this repository, run this command from its root:
 python3 vehicle-library/download.py --output vehicle-models
 ```
 
-The script uses only the Python standard library. It downloads and verifies all five original models, reassembles split archives automatically, and restores the original relative paths. The Porsche includes `scene.gltf`, `scene.bin` and `textures/znack1_baseColor.png`; keep them together.
+The script uses only the Python standard library. It copies locally available models or downloads missing files, verifies checksums, reassembles split archives automatically, and restores the original relative paths. The Taycan includes `scene.gltf`, `scene.bin` and `textures/znack1_baseColor.png`; keep them together.
 
-To download the four smaller prepared models, with the original Model Y as a fallback:
+To restore the eight smaller prepared models, with the original Model Y as a fallback:
 
 ```sh
 python3 vehicle-library/download.py --variant prepared --output vehicle-models
@@ -35,6 +35,14 @@ You can also download only this script from GitHub and run it; it retrieves the 
 | `model-3` | Tesla Model 3, 2024 | `model-3/2024_tesla_model_3.glb` | [GLB.gz](prepared/model-3/model.glb.gz) · [Preview](prepared/model-3/preview.webp) |
 | `model-y` | Tesla Model Y | `model-y/source.glb` | Original asset only |
 | `taycan` | Porsche Taycan | `taycan/scene.gltf` | [GLB.gz](prepared/taycan/model.glb.gz) · [Preview](prepared/taycan/preview.webp) |
+| `clk-gtr` | Mercedes-Benz CLK GTR AMG | `clk-gtr/source.glb` | [GLB.gz](prepared/clk-gtr/model.glb.gz) · [Preview](prepared/clk-gtr/preview.webp) |
+| `artura` | McLaren Artura | `artura/source.glb` | [GLB.gz](prepared/artura/model.glb.gz) · [Preview](prepared/artura/preview.webp) |
+| `911-gt3-r` | Porsche 911 GT3 R Rennsport (992) | `911-gt3-r/source.glb` | [GLB.gz](prepared/911-gt3-r/model.glb.gz) · [Preview](prepared/911-gt3-r/preview.webp) |
+| `lynk-05` | Lynk & Co 05 | `lynk-05/source.glb` | [GLB.gz](prepared/lynk-05/model.glb.gz) · [Preview](prepared/lynk-05/preview.webp) |
+
+The four additions above were downloaded through Sketchfab's signed-in download dialog on 2026-10-20. Their exact downloaded GLBs are preserved in `sources/<id>/source.glb.gz.partNNN` (4 MiB parts, joined by the downloader); the downloader restores them losslessly. These additions are local to this project and are not present at the upstream repository URL. Use the local checkout for downloading/copying them, or set `--base-url` to a server that contains this project's library. They are included in the live selector; Model Y and Taycan remain library-only. The supplied Lynk & Co 02 page did not offer downloads, so that model was skipped.
+
+To reproduce an addition from a downloaded GLB: `node scripts/import-sketchfab-vehicle.mjs <id> <downloaded.glb>`. Run `npm run build` after updating the model and its previews.
 
 Original archives are losslessly compressed. Large archives use numbered `.partNNN` files to keep individual Git files small; the downloader joins them in order before extraction. Do not extract a single part by itself. [manifest.json](manifest.json) records every part and every original file, including checksums.
 

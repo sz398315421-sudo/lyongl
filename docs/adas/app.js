@@ -10,13 +10,17 @@ import {initExportControls} from './export-controls.js';
 import {cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadme} from './export-scene.js';
 import {canvasPng,depthPng,zipFiles,downloadFile} from './export-files.js';
 import {initVehicleSelector} from './vehicle-selector.js';
-import {vehicleSpec,vehicleReadme} from './vehicle-catalog.js';
+import {vehicleCatalog,vehicleSpec,vehicleReadme} from './vehicle-catalog.js';
+import {createParkingVehiclePool} from './parking-vehicle-pool.js';
+import {refreshParkedVehicleModels} from './parked-vehicles.js';
 import {loadPreparedVehicle} from './vehicle-library/three/load-prepared.js';
 import {savePreviewSnapshot,savePreviewSnapshotAsync,previewSnapshotKey,previewSnapshotSearch} from './preview-snapshot.js';
 import {vehicleFrame} from './framing.js';
 import {createVehicleCache} from './vehicle-cache.js';
 import {prepareVehicleChoice} from './prepare-vehicle-choice.js';
 import {createScenePlayback,initScenePlaybackControls} from './scene-playback.js';
+import {initRoadAssistControls,roadLaneState,guidanceScenes,normalizeGuidanceColor,defaultGuidanceColor} from './road-assist.js';
+import {initParkingHmi} from './parking-maneuver.js';
 initAnalyticsChoice();
 const $=id=>document.getElementById(id),preview=$('preview');
 const siteHeader=document.querySelector('header');
@@ -38,7 +42,7 @@ headerLayoutObserver.observe(sceneLayout);headerLayoutObserver.observe(siteHeade
 syncHeaderLayout();
 const query=new URLSearchParams(location.search),requested=query.get('scene'),initial=legacyScenes[requested]||requested;
 const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures[0];
-const preferences=new Map(structures.map(s=>[s.key,{id:s.layouts[0][0],buildings:!!s.buildings,waterfront:s.key==='road'&&requested==='13',trees:false,vehicle:true,roadworks:false}]));
+const preferences=new Map(structures.map(s=>[s.key,{id:s.layouts[0][0],buildings:!!s.buildings,waterfront:s.key==='road'&&requested==='13',trees:false,vehicle:true,roadworks:false,parkedCars:true}]));
 preferences.get(first.key).id=initial&&first.layouts.some(([id])=>id===initial)?initial:first.layouts[0][0];
 Object.assign(preferences.get('road'),{laneCount:initial==='09'?2:6,cameraView:first.key==='road'&&query.get('view')==='high'?'high':'low'});
 preferences.get('junction').cameraView=first.key==='junction'&&query.get('view')==='low'?'low':'high';
@@ -49,19 +53,30 @@ preferences.get('ramp').cameraView=first.key==='ramp'&&query.get('view')==='high
 if(['2','4','6'].includes(query.get('lanes')))preferences.get('road').laneCount=Number(query.get('lanes'));
 if(requested==='01')preferences.get(first.key).buildings=false;
 if(requested==='12')preferences.get(first.key).roadworks=true;
-for(const key of ['buildings','waterfront','trees','roadworks'])if(query.has(key))preferences.get(first.key)[key]=query.get(key)==='1';
-for(const preference of preferences.values())for(const key of ['buildings','waterfront','trees','vehicle','roadworks'])preference[key]=preferences.get(first.key)[key];
+for(const key of ['buildings','waterfront','trees','roadworks','parkedCars'])if(query.has(key))preferences.get(first.key)[key]=query.get(key)==='1';
+for(const preference of preferences.values())for(const key of ['buildings','waterfront','trees','vehicle','roadworks','parkedCars'])preference[key]=preferences.get(first.key)[key];
 let savedTheme;try{savedTheme=localStorage.getItem('sr-theme');}catch{}
 const initialTheme=query.get('mode')||savedTheme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
 let selected=first.key,mode=initialTheme==='dark'?'dark':'light',displayedReference=false;
 const comparingNav=false; // Production uses the selected grouped navigation; studies remain in the local scene project.
 let navDesign=comparingNav&&['1','2','3'].includes(query.get('nav'))?query.get('nav'):'1';
-const optionIds=['buildings','waterfront','trees','vehicle','roadworks'];
+const optionIds=['buildings','waterfront','trees','vehicle','roadworks','parkedCars'];
 const environmentIds=optionIds.filter(key=>key!=='vehicle');
 let vehicleReady=false,vehicleFullReady=false,junctionRequested=false,vehicleChanging=false;
 let selectedVehicle=vehicleSpec(query.get('model')).id;
-function loadVehicle(id){return id==='x6'?createVehicle():loadPreparedVehicle(id,{url:new URL(`./vehicle-library/prepared/${id}/model.glb.gz`,import.meta.url),signal:AbortSignal.timeout(30000)});}
+let roadGuidanceEnabled=query.get('guidance')!=='0';
+let savedGuidanceColor;try{savedGuidanceColor=localStorage.getItem('sr-guidance-color');}catch{}
+let roadGuidanceColor=normalizeGuidanceColor(query.get('guideColor'),normalizeGuidanceColor(savedGuidanceColor));
+async function loadVehicle(id){const car=await (id==='x6'?createVehicle():loadPreparedVehicle(id,{url:new URL(`./vehicle-library/prepared/${id}/model.glb.gz`,import.meta.url),signal:AbortSignal.timeout(30000)}));car.userData.vehicleSpec.id=id;return car;}
 const vehicleCache=createVehicleCache({load:loadVehicle,dispose:disposeVehicle,maxEntries:matchMedia('(max-width:760px)').matches?2:4});
+const parkingPool=createParkingVehiclePool({ids:vehicleCatalog.map(model=>model.id),load:id=>vehicleCache.get(id),retain:id=>vehicleCache.retain(id),count:matchMedia('(max-width:760px)').matches?2:3});
+let pendingParkingRender=null;
+function needsParkingModels(){return active()?.group==='closed'&&preferences.get(selected).parkedCars;}
+function parkingModelsReady(){return !needsParkingModels()||parkingPool.ready(selectedVehicle);}
+async function prepareParkingModels(egoId){
+ const pool=await parkingPool.ensure(egoId);if(!pool)return false;
+ world.parkingVehicleModels=pool.models;world.parkingVehicleAssignment=pool.assignment;return true;
+}
 const readyVehicles=new WeakSet(),warmingVehicles=new WeakMap();let preparationQueue=Promise.resolve();
 function prepareChoice(car){
  if(readyVehicles.has(car))return Promise.resolve();if(warmingVehicles.has(car))return warmingVehicles.get(car);
@@ -79,7 +94,12 @@ $('scene-canvas').addEventListener('webglcontextlost',()=>{
  world.suspended=true;world.clearLayoutTransition();world.stopCameraMotion();world.stopEnvironmentMotion();world.stopLayoutMotion(false);
  scenePlayback.pause();syncScenePlayback();
 });
+world.retainVehicle=id=>vehicleCache.retain(id);
 world.initializingScene=true;
+world.roadGuidance.enabled=roadGuidanceEnabled;
+world.roadGuidance.setColor(roadGuidanceColor);
+let roadAssistControls;
+const parkingHmi=initParkingHmi(preview);
 const scenePlayback=createScenePlayback(world,{onChange:snapshot=>{
  syncScenePlayback(snapshot);
  preview.dataset.sceneMotion=JSON.stringify({...snapshot,car:world.car.position.toArray(),camera:world.camera.position.toArray()});
@@ -92,8 +112,23 @@ const sceneMotionControls=initScenePlaybackControls({onToggle:()=>{
  document.querySelectorAll('.frame-cover').forEach(element=>element.remove());activeCover=null;
  scenePlayback.play(selected);
 },onReset:()=>scenePlayback.reset()});
+roadAssistControls=initRoadAssistControls({guidance:roadGuidanceEnabled,color:roadGuidanceColor,onLaneChange:direction=>{
+ if(!guidanceScenes.includes(selected)||!vehicleFullReady||vehicleChanging||world.suspended||exporting||preview.dataset.renderPending==='true')return;
+ world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();
+ document.querySelectorAll('.frame-cover').forEach(element=>element.remove());activeCover=null;
+ scenePlayback.changeLane(direction);
+},onGuidanceChange:enabled=>{
+ roadGuidanceEnabled=enabled;world.roadGuidance.enabled=enabled;
+ if(!world.suspended)world.renderFrame();updateURL();rememberPreview();
+},onColorChange:color=>{
+ roadGuidanceColor=world.roadGuidance.setColor(color);
+ try{localStorage.setItem('sr-guidance-color',roadGuidanceColor);}catch{}
+ if(!world.suspended)world.renderFrame();updateURL();rememberPreview();
+}});
 function syncScenePlayback(snapshot=scenePlayback.snapshot()){
- sceneMotionControls.sync(selected,vehicleFullReady&&!vehicleChanging&&!world.suspended&&!exporting&&preview.dataset.renderPending!=='true',snapshot);
+ const ready=vehicleFullReady&&!vehicleChanging&&!world.suspended&&!exporting&&preview.dataset.renderPending!=='true'&&parkingModelsReady();
+ sceneMotionControls.sync(selected,ready,snapshot);roadAssistControls?.sync(selected,ready,snapshot,world);
+ parkingHmi.sync(selected,snapshot);
 }
 const vehicleSelector=initVehicleSelector({selected:selectedVehicle,onPreview:async id=>{
  if(vehicleChanging||world.suspended)return;const release=vehicleCache.retain(id);
@@ -104,10 +139,11 @@ const vehicleSelector=initVehicleSelector({selected:selectedVehicle,onPreview:as
  syncScenePlayback();
  const release=vehicleCache.retain(id),timings={id,start:performance.now(),cacheHit:!!vehicleCache.peek(id)};let phase=timings.start;const mark=name=>{const now=performance.now();timings[name]=now-phase;phase=now;};
  try{
-  car=await vehicleCache.get(id);mark('load');timings.loader=car.userData.loadTimings;await prepareChoice(car);mark('prepare');
+  car=await vehicleCache.get(id);mark('load');timings.loader=car.userData.loadTimings;await prepareChoice(car);mark('prepare');if(needsParkingModels()||parkingPool.current)await prepareParkingModels(id);
   selectedVehicle=id;world.setVehicle(car,{disposePrevious:false,preserveScene:true});mark('replace');world.update(state(),{deferRender:true});mark('update');world.renderFrame();mark('frame');vehicleCache.activate(id);
  }catch(error){
   selectedVehicle=previousId;
+  if(parkingPool.current&&!parkingPool.ready(previousId))await prepareParkingModels(previousId);
   if(car&&world.car===car){world.setVehicle(previousCar,{disposePrevious:false,preserveScene:true});world.update(state(),{deferRender:true});world.renderFrame();}vehicleCache.invalidate(id);
   throw error;
  }finally{release();vehicleChanging=false;render(false);mark('ui');rememberPreview();mark('snapshot');timings.total=performance.now()-timings.start;timings.cache=vehicleCache.stats();if(query.has('qa')){const records=JSON.parse(preview.dataset.vehiclePerformance||'[]');records.push(timings);preview.dataset.vehiclePerformance=JSON.stringify(records.slice(-12));}}
@@ -134,7 +170,7 @@ function rememberPreview(immediate=false){
 window.addEventListener('pagehide',()=>rememberPreview(true));
 function active(){return structures.find(s=>s.key===selected);}
 function state(){const st={...preferences.get(selected),mode,vehicle:true};for(const key of environmentIds)st[key]=!!active()[key]&&!!st[key];if(selected==='road')st.id=st.laneCount===2?'09':'02';return st;}
-function updateURL(){const q=new URLSearchParams();q.set('scene',selected==='reference'?'reference':state().id);q.set('mode',mode);if(selected==='road')q.set('lanes',state().laneCount);if(['road','ramp','junction','elevated'].includes(selected))q.set('view',state().cameraView);if(selected==='junction')q.set('position',state().junctionPosition);for(const key of optionIds)q.set(key,state()[key]?'1':'0');if(selectedVehicle!=='x6')q.set('model',selectedVehicle);if(comparingNav){q.set('study','1');q.set('nav',navDesign);}if(query.has('motion'))q.set('motion',query.get('motion'));if(query.has('qa'))q.set('qa','1');if(document.getElementById('credits-view')&&!document.getElementById('credits-view').hidden)q.set('page','credits');history.replaceState(null,'',`?${q}`);}
+function updateURL(){const q=new URLSearchParams();q.set('scene',selected==='reference'?'reference':state().id);q.set('mode',mode);if(selected==='road')q.set('lanes',state().laneCount);if(['road','ramp','junction','elevated'].includes(selected))q.set('view',state().cameraView);if(selected==='junction')q.set('position',state().junctionPosition);for(const key of optionIds)q.set(key,(key==='parkedCars'?preferences.get(selected)[key]:state()[key])?'1':'0');if(selectedVehicle!=='x6')q.set('model',selectedVehicle);if(guidanceScenes.includes(selected)){if(!roadGuidanceEnabled)q.set('guidance','0');if(roadGuidanceColor!==defaultGuidanceColor)q.set('guideColor',roadGuidanceColor.slice(1));}if(comparingNav){q.set('study','1');q.set('nav',navDesign);}if(query.has('motion'))q.set('motion',query.get('motion'));if(query.has('qa'))q.set('qa','1');if(document.getElementById('credits-view')&&!document.getElementById('credits-view').hidden)q.set('page','credits');history.replaceState(null,'',`?${q}`);}
 const sceneButtons=new Map(),sceneGroups=new Map(),categoryButtons=new Map();
 const groupSelection=new Map([['open',first.group==='open'?selected:'road'],['closed',first.group==='closed'?selected:'parking']]);
 const folderSVG='<svg class="folder-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2.5 6V4.75A1.5 1.5 0 0 1 4 3.25h3.1c.4 0 .78.16 1.06.44l1.62 1.62a.75.75 0 0 0 .53.22H16A1.5 1.5 0 0 1 17.5 7.03v8.22A1.5 1.5 0 0 1 16 16.75H4a1.5 1.5 0 0 1-1.5-1.5V6Z" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -242,6 +278,16 @@ function requestRender(motion='scene'){
 }
 
 function render(animate=false,themeWipe=false,motion='scene',preservePlayback=false){
+ if(vehicleReady&&!parkingModelsReady()){
+  preview.dataset.renderPending='true';$('download').disabled=true;$('status').textContent='正在加载旁车模型…';$('status').dataset.parkingLoading='true';syncScenePlayback();
+  const egoId=selectedVehicle;
+  if(pendingParkingRender?.egoId!==egoId){
+   const request=prepareParkingModels(egoId);pendingParkingRender={egoId,request};
+   request.then(ready=>{if(!ready||selectedVehicle!==egoId)return;refreshParkedVehicleModels(world);if(needsParkingModels())render(false,false,'element',true);}).catch(error=>{console.error('Nearby vehicles failed to load',error);if(selectedVehicle===egoId&&needsParkingModels()){$('status').textContent='旁车模型加载失败，请关闭后重新开启旁车显示以重试。';preview.dataset.renderPending='false';}}).finally(()=>{if(pendingParkingRender?.request===request)pendingParkingRender=null;});
+  }
+  return;
+ }
+ if($('status').dataset.parkingLoading){$('status').replaceChildren();delete $('status').dataset.parkingLoading;}
  if(!preservePlayback)scenePlayback.reset({render:false});
  const revision=++renderRevision;
  if($('current-scene-name'))$('current-scene-name').textContent=active().name;
@@ -262,7 +308,7 @@ function render(animate=false,themeWipe=false,motion='scene',preservePlayback=fa
  document.querySelectorAll('.frame-cover').forEach(el=>el.remove());activeCover=cover||null;if(cover)preview.append(cover);
  const isReference=selected==='reference',s=active(),st=isReference?null:state();
  if(!isReference){
-  const mask=optionIds.reduce((bits,key,i)=>bits+(st[key]?1<<i:0),0),lanes=selected==='road'?st.laneCount:0,view=['road','ramp','junction','elevated'].includes(selected)?st.cameraView:'low';
+  const mask=optionIds.slice(0,5).reduce((bits,key,i)=>bits+(st[key]?1<<i:0),0),lanes=selected==='road'?st.laneCount:0,view=['road','ramp','junction','elevated'].includes(selected)?st.cameraView:'low';
   const posterMask=selectedVehicle==='x6'?mask:mask&~8;
   preview.dataset.poster=`assets/startup/states/${st.id}-${lanes}-${view}-${mode}-${posterMask}.webp?v=139`;
   if(!vehicleReady&&!document.documentElement.dataset.cachedPreview)document.documentElement.style.setProperty('--startup-frame',`url("${preview.dataset.poster}")`);
@@ -272,13 +318,13 @@ function render(animate=false,themeWipe=false,motion='scene',preservePlayback=fa
  $('scene-canvas').hidden=false;$('reference-image').hidden=true;displayedReference=isReference;
  $('reference').setAttribute('aria-current',isReference);
  $('scene-title').textContent=isReference?'视觉参考':s.name;
- $('scene-canvas').setAttribute('aria-label',isReference?`视觉参考，${mode==='dark'?'深色':'浅色'}，宝马车辆`:`${s.name}，${mode==='dark'?'深色':'浅色'}，${optionIds.filter(k=>st[k]).map(k=>({buildings:'建筑',waterfront:'海岸',trees:'树木',vehicle:'车辆',roadworks:'道路施工'}[k])).join('、')}`);
+ $('scene-canvas').setAttribute('aria-label',isReference?`视觉参考，${mode==='dark'?'深色':'浅色'}，宝马车辆`:`${s.name}，${mode==='dark'?'深色':'浅色'}，${optionIds.filter(k=>st[k]).map(k=>({buildings:'建筑',waterfront:'海岸',trees:'树木',vehicle:'车辆',roadworks:'道路施工',parkedCars:'旁车显示'}[k])).join('、')}`);
  document.documentElement.dataset.theme=mode;
  try{localStorage.setItem('sr-theme',mode);}catch{}
 
  const themeButton=$('theme-toggle');themeButton.setAttribute('aria-pressed',mode==='dark');themeButton.setAttribute('aria-label',`切换为${mode==='dark'?'浅色':'深色'}主题`);themeButton.title=themeButton.getAttribute('aria-label');
  for(const key of environmentIds){const available=!isReference&&!!s[key];$(key).closest('.toggle').hidden=!available;$(key).disabled=!available;$(key).checked=available&&st[key];}
- document.querySelector('.environment-control').hidden=!environmentIds.some(key=>!$(key).disabled);
+ $('buildings').closest('.environment-control').hidden=!environmentIds.some(key=>!$(key).disabled);
  const parking=!isReference&&s.group==='closed';
  const hasLayouts=!isReference&&!parking&&s.key!=='road'&&s.layouts.length>1;$('layout-control').hidden=!hasLayouts;
  if(hasLayouts){
@@ -408,14 +454,14 @@ function showCredits(open,push=false){
 $('credits-back').addEventListener('click',e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();if(history.state?.srCredits)history.back();else{showCredits(false);updateURL();}});
 document.querySelector('.wordmark').addEventListener('click',e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();showCredits(false);selected='road';Object.assign(preferences.get('road'),{id:'02',laneCount:6,cameraView:'low'});requestRender();});
 window.addEventListener('popstate',()=>showCredits(new URLSearchParams(location.search).get('page')==='credits'));
-for(const key of environmentIds)$(key).addEventListener('change',()=>{for(const preference of preferences.values())preference[key]=$(key).checked;requestRender('growth');});
+for(const key of environmentIds)$(key).addEventListener('change',()=>{for(const preference of preferences.values())preference[key]=$(key).checked;requestRender(key==='parkedCars'?'element':'growth');});
 for(const button of $('parking-views').querySelectorAll('button'))button.addEventListener('click',()=>{const id=selected==='outdoor'?({'10':'17','16':'18','14':'19'}[button.dataset.view]):button.dataset.view;if(preferences.get(selected).id===id)return;preferences.get(selected).id=id;requestRender('camera');});
 $('layout').addEventListener('change',()=>{preferences.get(selected).id=$('layout').value;requestRender('layout');});
 function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:selected==='junction'?'-'+st.junctionPosition+'-'+st.cameraView:['ramp','elevated'].includes(selected)?'-'+st.cameraView:''}-${selectedVehicle}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
 let exporting=false;
 const exportControls=initExportControls($('download'),exportAssets);
 async function exportAssets(format='image'){
- if(exporting||!vehicleFullReady||vehicleChanging||world.initializingScene||world.suspended||preview.dataset.renderPending==='true')return;
+ if(exporting||!vehicleFullReady||vehicleChanging||world.initializingScene||world.suspended||preview.dataset.renderPending==='true'||!parkingModelsReady())return;
  scenePlayback.pause();exporting=true;syncScenePlayback();exportControls.setBusy(true);exportControls.announce('正在准备导出…');
  const previousSize=[world.width,world.height];let captured;
  try{
@@ -423,8 +469,9 @@ async function exportAssets(format='image'){
   const name=frameName(),exportScene=selected,exportTheme=mode;
   try{
    world.setResolution(exportSize.width,exportSize.height);world.update(state());
-   const metadata=cameraMetadata(world,{sceneName:exportScene,sourceUrl:location.href});metadata.scene.vehicleModel=selectedVehicle;metadata.scene.vehicleAttribution={...vehicleSpec(selectedVehicle)};metadata.image.file=format==='kit'?'scene.png':name+'.png';metadata.depth.file=format==='kit'?'depth.png':name+'-depth.png';
+   const metadata=cameraMetadata(world,{sceneName:exportScene,sourceUrl:location.href});metadata.scene.vehicleModel=selectedVehicle;metadata.scene.vehicleAttribution={...vehicleSpec(selectedVehicle)};metadata.scene.parkedVehicles=world.state.parkedCars?world.parkedVehicles:[];metadata.scene.parkedVehicleAttributions=[...new Set(metadata.scene.parkedVehicles.map(car=>car.modelId))].map(id=>({...vehicleSpec(id)}));metadata.image.file=format==='kit'?'scene.png':name+'.png';metadata.depth.file=format==='kit'?'depth.png':name+'-depth.png';
    if(scenePlayback.active)metadata.scene.animation=scenePlayback.snapshot();
+   if(guidanceScenes.includes(selected))metadata.scene.roadAssist={guidance:roadGuidanceEnabled,color:roadGuidanceColor,lane:roadLaneState(world).index+1,lanesPerDirection:roadLaneState(world).count,laneChange:scenePlayback.snapshot().laneChange};
    const canvas=document.createElement('canvas');canvas.width=exportSize.width;canvas.height=exportSize.height;
    if(format==='image'||format==='kit')canvas.getContext('2d').drawImage(currentFrame(),0,0);
    captured={name,exportScene,exportTheme,canvas,metadata,guide:format==='kit'?perspectiveSvg(world):null,pixels:format==='depth'||format==='kit'?renderDepth(world):null};
@@ -434,7 +481,7 @@ async function exportAssets(format='image'){
   else if(format==='depth'){blob=await depthPng(captured.pixels,exportSize.width,exportSize.height);filename=captured.name+'-depth.png';}
   else if(format==='kit'){
    const [image,depth]=await Promise.all([canvasPng(captured.canvas),depthPng(captured.pixels,exportSize.width,exportSize.height)]);
-   blob=await zipFiles([['scene.png',image],['camera.json',cameraJson],['depth.png',depth],['perspective.svg',captured.guide],['README.txt',vehicleReadme(exportReadme,captured.metadata.scene.vehicleModel)]]);filename=captured.name+'-perspective-kit.zip';
+   blob=await zipFiles([['scene.png',image],['camera.json',cameraJson],['depth.png',depth],['perspective.svg',captured.guide],['README.txt',vehicleReadme(exportReadme,captured.metadata.scene.vehicleModel,captured.metadata.scene.parkedVehicleAttributions.map(model=>model.id))]]);filename=captured.name+'-perspective-kit.zip';
   }else{blob=await canvasPng(captured.canvas);filename=captured.name+'.png';}
   downloadFile(blob,filename);
   if(format==='image'||format==='kit')trackPngExport(captured.exportScene,captured.exportTheme);
@@ -450,6 +497,7 @@ if(query.get('page')==='credits'){showCredits(true);const q=new URLSearchParams(
 
 async function installVehicle(car,full=false,animate=false,retainPrevious=false){
  performance.mark('studio-scene-start');
+ if(needsParkingModels()){$('status').textContent='正在加载旁车模型…';await prepareParkingModels(car.userData.vehicleSpec.id);}
  delete preview.dataset.loadError;world.setVehicle(car,{disposePrevious:!retainPrevious});
  // Keep the matching poster visible until the final mesh, shaders and shadow
  // map have produced complete frames. Never reveal the decimated loading car.

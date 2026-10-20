@@ -42,7 +42,7 @@ Camera changes animate through the 3D scene; other options use short transitions
 
 Options follow the selected scenario. Light and dark modes provide visual themes for design exploration, rather than a physical simulation of changing daylight. On mobile, the navigation expands within the page and stays open while comparing scenes.
 
-Open Vehicle to choose a model without changing the scene or camera. The selector supports arrow keys, Home and End, reuses recently prepared models within a bounded resource budget, and preserves the current vehicle if a new model cannot load. Indoor and outdoor parking share the same bay dimensions and spacing. Model attribution follows the selected vehicle in perspective-kit exports; additional sources and preparation notices are in [vehicle-library/CREDITS.md](vehicle-library/CREDITS.md).
+Open Vehicle to choose a model without changing the scene or camera. The selector supports arrow keys, Home and End, reuses recently prepared models within a bounded resource budget, and preserves the current vehicle if a new model cannot load. Indoor and outdoor parking share the same bay dimensions and spacing. Both include a nearby-car switch (旁车显示), enabled by default, which randomly assigns other models from the supplied vehicle library to seven occupied bays, excluding the ego model and reusing original geometry, materials and textures. The mix stays stable across camera, theme and visibility changes, and is rerolled when the ego model changes. The parking target and approach bay remain empty. Model attribution follows the selected vehicle in perspective-kit exports; additional sources and preparation notices are in [vehicle-library/CREDITS.md](vehicle-library/CREDITS.md).
 
 ## Camera, depth and Figma alignment
 
@@ -55,6 +55,8 @@ The camera JSON includes the full projection and view matrices, orientation, FOV
 Depth PNG is 16-bit linear grayscale camera-space Z distance: `meters = uint16 / 65535 * 200`. Near geometry is dark; sky and distances at or beyond 200 m are white. Depth edges are not antialiased, and decorative transparency, glow and contact shadows are excluded. Water is represented by its surface. These depths support compositing and geometry workflows; use the SVG for manual Figma alignment. The package includes environment and vehicle attribution.
 
 ## Scene preview
+
+Indoor and outdoor parking include an 18-second automatic parking concept animation. Press Play to drive forward while scanning, reveal the right-hand bay when detected, stop and shift to reverse, follow the curved trajectory into the bay, and finish in Park. Driving and parking share the same soft blue guidance ribbon. The camera stays fixed so the vehicle's movement relative to the bay is visible. The overlay shows only the current parking phase; Pause, Resume, Replay and Reset are supported. All parking viewpoints and vehicle selections use the same animation. This is an authored HMI demonstration, without a perception system or a vehicle motion planner.
 
 ![DriveScene Studio — current elevated road, dark mode](preview-v0.17.9.jpg)
 

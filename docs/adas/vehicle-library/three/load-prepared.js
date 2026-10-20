@@ -2,12 +2,14 @@ import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 import {prepareVehicleMaterials} from './vehicle-materials.js?v=grille-14';
+import {vehicleAdditions} from '../vehicle-additions.js';
 
 export const preparedVehicles=Object.freeze({
  ix:{name:'BMW iX',length:4.95},
  xc90:{name:'Volvo XC90',length:4.95},
  'model-3':{name:'Tesla Model 3 (2024)',length:4.72},
- taycan:{name:'Porsche Taycan',length:4.96}
+ taycan:{name:'Porsche Taycan',length:4.96},
+ ...Object.fromEntries(vehicleAdditions.map(spec=>[spec.id,spec]))
 });
 
 // Load a repository GLB.gz, or pass the URL of a decompressed GLB downloaded
@@ -23,8 +25,10 @@ export async function loadPreparedVehicle(id,{url=new URL(`../prepared/${id}/mod
  const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes,'');
  mark('parse');
  const model=gltf.scene;model.updateMatrixWorld(true);
+ if(spec.up==='z'){model.rotation.x-=Math.PI/2;model.updateMatrixWorld(true);}
  const size=new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
- model.rotation.y+=id==='model-3'?Math.PI/2:(size.x>size.z?Math.PI/2:Math.PI);
+ const yaw=spec.yaw??(id==='model-3'?Math.PI/2:(size.x>size.z?Math.PI/2:Math.PI));
+ model.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),yaw));
  if(['ix','xc90'].includes(id))model.rotation.y+=Math.PI;
  model.scale.multiplyScalar(spec.length/Math.max(size.x,size.z));model.updateMatrixWorld(true);
  const box=new THREE.Box3().setFromObject(model),center=box.getCenter(new THREE.Vector3());

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+const groundOrientation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-Math.PI/2);
 // Finite rear emitters over a rough dielectric surface. This is a local,
 // energy-decaying BRDF approximation, not a camera-independent red decal.
 export function createTailLight(){
@@ -37,7 +38,8 @@ export function createTailLight(){
  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(3.8,2.0),material);mesh.rotation.x=-Math.PI/2;return mesh;
 }
 export function updateTailLight(mesh,car,dark,parking=false){
- mesh.position.set(car.position.x,car.position.y-.002,car.position.z+2.85);
+ mesh.position.set(0,0,2.85).applyQuaternion(car.quaternion).add(car.position);mesh.position.y-=.002;
+ mesh.quaternion.copy(car.quaternion).multiply(groundOrientation);
  mesh.material.uniforms.opacity.value=dark?.46:.045;
  mesh.material.uniforms.roughness.value=parking?.86:.90;
 }

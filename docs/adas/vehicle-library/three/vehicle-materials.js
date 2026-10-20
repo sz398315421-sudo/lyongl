@@ -8,6 +8,47 @@ import {finishGrille,prepareFrontGrilles} from './grille-materials.js?v=grille-1
 // rather than the deduplicated glTF material shared by otherwise distinct parts.
 function roleFor(id,mesh,material){
  const name=material.name;
+ if(id==='lynk-05'){
+  // The source merged every exterior material. Retained part names distinguish
+  // the tire assemblies, glazing, painted shells and lamp lenses.
+  const part=mesh.parent?.name||'',number=Number(mesh.name.match(/^Object_(\d+)/)?.[1]);
+  if(/^[BF]Tires_19_/.test(part))return 'rubber';
+  if(/^[BF]Tires_/.test(part))return 'rim';
+  if(/^Sunproof/.test(part))return 'glass';
+  if([102,126,678,690,724,744,752,817,831,863,877,891,974,984].includes(number))return 'glass';
+  if([116,122,976,978,980,982].includes(number))return 'tail';
+  if([134,168,205].includes(number))return 'headlamp';
+  if([213,219].includes(number))return 'plate';
+  if(/^Int|^INT|^pPlane/.test(part))return 'trim';
+  if([100,114,120,130,146,148,150,152,154,156,161,164,174,182,184,187,189,191,193,195,197,199,203,209,211,217,222,224,226,228,230].includes(number))return 'trim';
+  if(/Door_/.test(part))return /Door_(14|32)_/.test(part)?'trim':'paint';
+  return 'paint';
+ }
+ if(id==='clk-gtr'){
+  if(name==='carpaint')return 'paint';
+  if(name==='material')return 'rim';
+  if(name==='redglass')return 'tail';
+  if(name==='windowglass')return 'glass';
+  if(name==='clearglass'||name==='matteglass')return 'head-lens';
+  if(name==='chrome'||name==='mattemetal'||name==='mirror')return 'chrome';
+  if(name==='carbon'||name==='black'||name==='interior')return 'trim';
+ }
+ if(id==='artura'){
+  if(name==='body')return 'paint';
+  if(name==='r_lights')return 'tail';
+  if(name==='r_glass')return 'tail-lens';
+  if(name==='plate')return 'plate';
+  if(name==='glass')return 'glass';
+  if(name==='d_glass')return 'head-lens';
+  if(name==='chrome'||name==='silver'||name==='silver_d')return 'chrome';
+  if(/black|carbon|interior|dash|door_mesh/.test(name))return 'trim';
+ }
+ if(id==='911-gt3-r'){
+  if(/windows_Glass/.test(name))return 'glass';
+  if(/Tyre_Inst/.test(name))return 'rubber';
+  // Preserve the Rennsport livery and the source light masks.
+  return 'original';
+ }
  if(id==='xc90'){
   if(/_(007|069)_Material_#2125664755_/.test(mesh.name))return 'grille-frame';
   if(/_048_Material_#2125664765_/.test(mesh.name))return 'grille-slat';
@@ -75,7 +116,7 @@ export function prepareVehicleMaterials(model,id,length){
      m.transparent=false;m.opacity=1;m.depthWrite=true;m.emissive.set(0);
     }else if(role!=='original'&&role!=='rim-textured'){
      m.map=null;m.metalnessMap=null;m.roughnessMap=null;m.transparent=false;m.opacity=1;m.depthWrite=true;m.emissive.set(0);
-     if(role==='glass'){m.color.set('#25313c');m.metalness=.12;m.roughness=.34;m.envMapIntensity=.75;m.side=THREE.DoubleSide;}
+     if(role==='glass'){m.color.set('#25313c');m.metalness=.12;m.roughness=.34;m.envMapIntensity=.75;m.side=THREE.DoubleSide;if('transmission' in m)m.transmission=0;}
      if(role==='rubber'){m.color.set('#303238');m.metalness=0;m.roughness=.94;}
      if(role==='rim'||role==='chrome'){m.color.set(role==='rim'?'#737a83':'#9198a0');m.metalness=role==='chrome'?.55:.78;m.roughness=role==='chrome'?.4:.28;m.envMapIntensity=role==='chrome'?.65:1;}
      if(role==='trim'||role==='detail'){m.color.set(role==='trim'?'#292d33':'#555d65');m.metalness=role==='trim'?.05:.3;m.roughness=role==='trim'?.65:.4;}

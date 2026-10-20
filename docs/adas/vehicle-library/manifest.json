@@ -279,6 +279,285 @@
         "glb_bytes": 6332488,
         "glb_sha256": "3083aafd243b6444cd2f3a15912b5ed3dfc44d6958d68e384b718c00da932e59"
       }
+    },
+    {
+      "id": "clk-gtr",
+      "name": "Mercedes-Benz CLK GTR AMG",
+      "author": "Nieve5677",
+      "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/mercedes-benz-clk-gtr-amg-road-version-b8e6e35c456b485a853fa987b1434b14",
+      "downloaded": "2026-10-20",
+      "source_asset": {
+        "extras": {
+          "author": "Nieve5677 (https://sketchfab.com/iori308408)",
+          "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+          "source": "https://sketchfab.com/3d-models/mercedes-benz-clk-gtr-amg-road-version-b8e6e35c456b485a853fa987b1434b14",
+          "title": "Mercedes- Benz CLK GTR AMG Road Version"
+        },
+        "generator": "Sketchfab-16.64.0",
+        "version": "2.0"
+      },
+      "source_archive": {
+        "path": "sources/clk-gtr/source.glb.gz",
+        "format": "gzip",
+        "bytes": 20667440,
+        "sha256": "af729ffd43c7bc13bcbe556ce2ce346588ac557228a34df955f51351994cf189",
+        "parts": [
+          {
+            "path": "sources/clk-gtr/source.glb.gz.part001",
+            "bytes": 4194304,
+            "sha256": "ad90f8dbfaaa56d83f50d5032396c9029c994825084bbeef64c549df51fbd67e"
+          },
+          {
+            "path": "sources/clk-gtr/source.glb.gz.part002",
+            "bytes": 4194304,
+            "sha256": "2235040a34ece105f6def9cb2013214da0eb6d35a73bed8e2059ee2de07b21cc"
+          },
+          {
+            "path": "sources/clk-gtr/source.glb.gz.part003",
+            "bytes": 4194304,
+            "sha256": "7232dce0e2dedfdc5c0abc6170de10ccea26107e138d019e5bbc4ae06480ff98"
+          },
+          {
+            "path": "sources/clk-gtr/source.glb.gz.part004",
+            "bytes": 4194304,
+            "sha256": "41487122007d834ffa2bc2b13465718760430f7dfc10dfe14ec82ceb4e49a2c6"
+          },
+          {
+            "path": "sources/clk-gtr/source.glb.gz.part005",
+            "bytes": 3890224,
+            "sha256": "04b11855072e0b280af4ee52a14d70fcd6696ae4eff615f5ee5340a62d778072"
+          }
+        ]
+      },
+      "original_files": [
+        {
+          "path": "clk-gtr/source.glb",
+          "bytes": 44723448,
+          "sha256": "93d5aec49d5b1c2d5d034b70ad82948ca10cc71ebab52a436c2a51340b7a7a80"
+        }
+      ],
+      "prepared": {
+        "path": "prepared/clk-gtr/model.glb.gz",
+        "bytes": 6552186,
+        "sha256": "3e69b9a8ad47da99839d2b656c031d9f439d6c6ef25e6baaceeeaf80eb9e9c51",
+        "preview": "prepared/clk-gtr/preview.webp",
+        "glb_bytes": 9243924,
+        "glb_sha256": "d892bf8c3e1789950e2f39d6b6f3a05560d331cd33b1a04753eaa33e94d0c2fa"
+      }
+    },
+    {
+      "id": "artura",
+      "name": "McLaren Artura",
+      "author": "Nieve5677",
+      "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/mclaren-artura-177df2daa98544aea719023e8b21645e",
+      "downloaded": "2026-10-20",
+      "source_asset": {
+        "extras": {
+          "author": "Nieve5677 (https://sketchfab.com/niev)",
+          "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+          "source": "https://sketchfab.com/3d-models/mclaren-artura-177df2daa98544aea719023e8b21645e",
+          "title": "Mclaren Artura"
+        },
+        "generator": "Sketchfab-0.17.0",
+        "version": "2.0"
+      },
+      "source_archive": {
+        "path": "sources/artura/source.glb.gz",
+        "format": "gzip",
+        "bytes": 17350203,
+        "sha256": "29a6b062ae2335eb52d3e5e0ac0ff5927a3d2734bafe4a2c4d4ded114da48e2d",
+        "parts": [
+          {
+            "path": "sources/artura/source.glb.gz.part001",
+            "bytes": 4194304,
+            "sha256": "ce0eabd92101da3269223d485a69f02d5b6830870376ab036e3294380dd87b21"
+          },
+          {
+            "path": "sources/artura/source.glb.gz.part002",
+            "bytes": 4194304,
+            "sha256": "8b685023c72cbb95fc82c9dec007ef0ea2fe860fc3ac1451e20447e69cd55d26"
+          },
+          {
+            "path": "sources/artura/source.glb.gz.part003",
+            "bytes": 4194304,
+            "sha256": "bc5bbf330d4429900911a8a46a7d14165f09c8021fd69437fbf99df9c4d9e2e0"
+          },
+          {
+            "path": "sources/artura/source.glb.gz.part004",
+            "bytes": 4194304,
+            "sha256": "cf124952c53a3d2c0e7f96a666ba6a7ff2769a5fc8cf75c5aa2ec7ed080d8499"
+          },
+          {
+            "path": "sources/artura/source.glb.gz.part005",
+            "bytes": 572987,
+            "sha256": "603b90afd1f8d4300c7146e771a2ad288bfb16d2de8b15e4f223e1b063790d09"
+          }
+        ]
+      },
+      "original_files": [
+        {
+          "path": "artura/source.glb",
+          "bytes": 43742588,
+          "sha256": "5fcceda3fb395881335d9b057def82ce942052a6e44e2d1fbfcb8839072dfd3e"
+        }
+      ],
+      "prepared": {
+        "path": "prepared/artura/model.glb.gz",
+        "bytes": 5708641,
+        "sha256": "ca2ce639baf83a8117cf69eafb9fd73e4ac11eb254e0c7f7ae83646f5465ef70",
+        "preview": "prepared/artura/preview.webp",
+        "glb_bytes": 8549388,
+        "glb_sha256": "97ffac5b039c6cf2120aad22d1a7a29fb3fc7007dcf649bc73709ce3f80a8831"
+      }
+    },
+    {
+      "id": "911-gt3-r",
+      "name": "Porsche 911 GT3 R Rennsport (992)",
+      "author": "DisneyCars (supercarmodels)",
+      "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/2023-porsche-911-gt3-r-rennsport-992-371d129f13264723aa870255f0b3f663",
+      "downloaded": "2026-10-20",
+      "source_asset": {
+        "extras": {
+          "author": "DisneyCars (https://sketchfab.com/supercarmodels)",
+          "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+          "source": "https://sketchfab.com/3d-models/2023-porsche-911-gt3-r-rennsport-992-371d129f13264723aa870255f0b3f663",
+          "title": "2023 Porsche 911 GT3 R Rennsport (992)"
+        },
+        "generator": "Sketchfab-16.59.0",
+        "version": "2.0"
+      },
+      "source_archive": {
+        "path": "sources/911-gt3-r/source.glb.gz",
+        "format": "gzip",
+        "bytes": 41778031,
+        "sha256": "7b54471c8dc833b6463d8e44c58922c8c0207e12287e2e635f90a24650af0d90",
+        "parts": [
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part001",
+            "bytes": 4194304,
+            "sha256": "cb7c863c417692e5db1d58eeebe3880a5f4cfcb8a572ef83788604197f2398ef"
+          },
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part002",
+            "bytes": 4194304,
+            "sha256": "1ca1d96c96e64359ccb4238907ba3b98d640ec827966f0dff9ffe42ecf00691e"
+          },
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part003",
+            "bytes": 4194304,
+            "sha256": "6ba013fde58e471bb8cfb82ecf6c16366a082095e5a8cfbdce830f59e3a54c6d"
+          },
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part004",
+            "bytes": 4194304,
+            "sha256": "077aa3f3a7ef48128d77a576dadb52f2c63880184fd80a571d40901e114e1f15"
+          },
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part005",
+            "bytes": 4194304,
+            "sha256": "b79b9d4530d21c6f06f1951082de1fb1b16f0502a6f42496d89bc0a51d594a5d"
+          },
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part006",
+            "bytes": 4194304,
+            "sha256": "3661f05802d75deb25f7d930b470c232b96171dee4f4d922c936361532712ecb"
+          },
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part007",
+            "bytes": 4194304,
+            "sha256": "fcc660d0394f1f0248f6bf03c1ec111f296ae70b1a5da20d92475a2194278f1f"
+          },
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part008",
+            "bytes": 4194304,
+            "sha256": "99542273100d266fc5c0621f935be4c151a0a1bd90e08b40e02f28d27db66796"
+          },
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part009",
+            "bytes": 4194304,
+            "sha256": "73d1a68de92fceb0ecdda3ca244f5a5a48ae44655b8a34563266f005207b8318"
+          },
+          {
+            "path": "sources/911-gt3-r/source.glb.gz.part010",
+            "bytes": 4029295,
+            "sha256": "e0702087c87bb29e97ebe3d0acc487d5a3d2764d4803609ee9f113b15baec055"
+          }
+        ]
+      },
+      "original_files": [
+        {
+          "path": "911-gt3-r/source.glb",
+          "bytes": 55721516,
+          "sha256": "af725f68fbe6654662af4c320ec4393f8941485ff2b05d162b4a6e2c12fcad28"
+        }
+      ],
+      "prepared": {
+        "path": "prepared/911-gt3-r/model.glb.gz",
+        "bytes": 10949570,
+        "sha256": "56e205a5d7e4242e8c9f84303414c5accadeed97e0e2c1d6672387f7e8e9aa42",
+        "preview": "prepared/911-gt3-r/preview.webp",
+        "glb_bytes": 12597424,
+        "glb_sha256": "7d9396a678ab31c1b6fe742e3559888c7986e45c55161aee1c2831c45efbfada"
+      }
+    },
+    {
+      "id": "lynk-05",
+      "name": "Lynk & Co 05",
+      "author": "MattDoesBlender",
+      "license": "CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/lynk-and-co-05-8343dcb4b43e49ec90a73bdaa083221e",
+      "downloaded": "2026-10-20",
+      "source_asset": {
+        "extras": {
+          "author": "MattDoesBlender (https://sketchfab.com/MattDoesBlender)",
+          "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+          "source": "https://sketchfab.com/3d-models/lynk-and-co-05-8343dcb4b43e49ec90a73bdaa083221e",
+          "title": "lynk and co 05"
+        },
+        "generator": "Sketchfab-16.68.0",
+        "version": "2.0"
+      },
+      "source_archive": {
+        "path": "sources/lynk-05/source.glb.gz",
+        "format": "gzip",
+        "bytes": 12536774,
+        "sha256": "54a160d48bb7aff6affd6051cc74368c952ba09897e7d96e79223e336167bac2",
+        "parts": [
+          {
+            "path": "sources/lynk-05/source.glb.gz.part001",
+            "bytes": 4194304,
+            "sha256": "f25253655fc36db0c8b717ca26596fc81361cbb28ad4156c28ea31666166b5d8"
+          },
+          {
+            "path": "sources/lynk-05/source.glb.gz.part002",
+            "bytes": 4194304,
+            "sha256": "0d53d40ae7cba97be0ba4dcdf628e0278ce1de7d037b508fa5d33d7bc6c0747a"
+          },
+          {
+            "path": "sources/lynk-05/source.glb.gz.part003",
+            "bytes": 4148166,
+            "sha256": "f907a745e1aed606527ed2f36b8e19d5db2f6148632153af1af44732f0b2c067"
+          }
+        ]
+      },
+      "original_files": [
+        {
+          "path": "lynk-05/source.glb",
+          "bytes": 29475432,
+          "sha256": "cabb069f240a80bcb5688c8ea5a3cfe85e5466ce828ebbc2aaf1357947f12585"
+        }
+      ],
+      "prepared": {
+        "path": "prepared/lynk-05/model.glb.gz",
+        "bytes": 4875469,
+        "sha256": "94c9463c92a19de35e18ffc89a28fa1a9d3cf6f1e523f9d0a4a1418920a5d1b1",
+        "preview": "prepared/lynk-05/preview.webp",
+        "glb_bytes": 6545984,
+        "glb_sha256": "60259304717f4f756041169db6aa0e585f7e333c22289848fb132c2dad9f9895"
+      }
     }
   ]
 }

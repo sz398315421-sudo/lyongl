@@ -10,3 +10,8 @@ export function createContactShadows(car){
  for(const wheel of car.userData.vehicleSpec.wheels){const x=(wheel.min[0]+wheel.max[0])/2,z=(wheel.min[2]+wheel.max[2])/2;patch(x,z,.56,.80,.88);}
  return group;
 }
+
+export function updateContactShadows(group,car){
+ group.position.set(car.position.x,car.position.y-.02,car.position.z);
+ group.quaternion.copy(car.quaternion);
+}
