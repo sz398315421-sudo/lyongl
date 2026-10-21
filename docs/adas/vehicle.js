@@ -4,15 +4,16 @@ import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {RoundedBoxGeometry} from './RoundedBoxGeometry.js';
 import {fetchAsset,takePrefetched} from './asset-request.js';
+import {decompressAsset} from './decompress-asset.js';
 import {neutralizePlate} from './vehicle-library/three/neutral-plate.js';
 import {prepareFrontGrilles} from './vehicle-library/three/grille-materials.js?v=grille-14';
 // Prepared exterior: fixed geometry/material edits are baked once for delivery.
 // Keep createSourceVehicle below as the reproducible source preparation step.
-let decodingWorkersReady=false;
 export async function createVehicle({startup=false}={}){
- if(!decodingWorkersReady&&typeof Worker!=='undefined'){decodingWorkersReady=true;try{MeshoptDecoder.useWorkers(Math.min(2,Math.max(1,(navigator.hardwareConcurrency||2)-1)));}catch{MeshoptDecoder.useWorkers(0);}}
+ // Blob workers may fail asynchronously in embedded browsers, leaving Meshopt's
+ // worker promises pending forever. Use its in-page WASM decoder for all models.
  const compressed=await takePrefetched(startup?'__startupVehicleRequest':'__fullVehicleRequest',()=>fetchAsset(new URL(startup?'./ego-vehicle-startup.glb.gz?v=17.9':'./ego-vehicle-ready.glb.gz?v=17.9',import.meta.url)));
- const bytes=await new Response(new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+ const bytes=await decompressAsset(compressed);
  const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes,'');
  const root=gltf.scene.children[0];
  root.name='Ego vehicle';
@@ -34,7 +35,7 @@ export async function createVehicle({startup=false}={}){
 export async function createSourceVehicle(){
  const response=await fetch(new URL('./ego-suv.meshopt.glb.gz',import.meta.url));
  if(!response.ok)throw Error('Vehicle asset failed to load');
- const bytes=await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+ const bytes=await decompressAsset(await response.arrayBuffer());
  const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes,'');
  const model=gltf.scene;
  // Rear-only exhaust assembly in the source model; remove for the electric vehicle.

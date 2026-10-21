@@ -3,6 +3,8 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 import {prepareVehicleMaterials} from './vehicle-materials.js?v=grille-14';
 import {vehicleAdditions} from '../vehicle-additions.js';
+import {decompressAsset} from '../../decompress-asset.js';
+import {fetchAsset} from '../../asset-request.js';
 
 export const preparedVehicles=Object.freeze({
  ix:{name:'BMW iX',length:4.95},
@@ -17,10 +19,9 @@ export const preparedVehicles=Object.freeze({
 export async function loadPreparedVehicle(id,{url=new URL(`../prepared/${id}/model.glb.gz`,import.meta.url),signal}={}){
  const timings={};let phase=performance.now();const mark=name=>{const now=performance.now();timings[name]=now-phase;phase=now;};
  const spec=preparedVehicles[id];if(!spec)throw Error(`No prepared vehicle: ${id}`);
- const response=await fetch(url,{signal});if(!response.ok)throw Error(`Vehicle download failed (${response.status})`);
- let bytes=await response.arrayBuffer();const header=new Uint8Array(bytes,0,Math.min(2,bytes.byteLength));
+ let bytes=await fetchAsset(url,{signal});
  mark('download');
- if(header[0]===0x1f&&header[1]===0x8b)bytes=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+ bytes=await decompressAsset(bytes);
  mark('decompress');
  const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(bytes,'');
  mark('parse');

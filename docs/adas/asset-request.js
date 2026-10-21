@@ -1,6 +1,8 @@
 // Stop stalled transfers while allowing a slow connection that still makes progress.
-export async function fetchAsset(url,{priority='high',timeoutMs=30000}={}){
+export async function fetchAsset(url,{priority='high',timeoutMs=30000,signal}={}){
  const controller=new AbortController();
+ const abort=()=>controller.abort();
+ if(signal?.aborted)abort();else signal?.addEventListener('abort',abort,{once:true});
  let timer;
  const touch=()=>{clearTimeout(timer);timer=setTimeout(()=>controller.abort(),timeoutMs);};
  touch();
@@ -20,7 +22,7 @@ export async function fetchAsset(url,{priority='high',timeoutMs=30000}={}){
   for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
   return bytes.buffer;
  }catch(cause){throw Object.assign(new Error('Scene asset could not load',{cause}),{code:'asset'});}
- finally{clearTimeout(timer);}
+ finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
 }
 export function takePrefetched(key,fallback,scope=globalThis){
  const request=scope[key];

@@ -70,7 +70,7 @@ let selectedVehicle=vehicleSpec(query.get('model')).id;
 let roadGuidanceEnabled=query.get('guidance')!=='0';
 let savedGuidanceColor;try{savedGuidanceColor=localStorage.getItem('sr-guidance-color');}catch{}
 let roadGuidanceColor=normalizeGuidanceColor(query.get('guideColor'),normalizeGuidanceColor(savedGuidanceColor));
-async function loadVehicle(id){const car=await (id==='x6'?createVehicle():loadPreparedVehicle(id,{url:new URL(`./vehicle-library/prepared/${id}/model.glb.gz`,import.meta.url),signal:AbortSignal.timeout(30000)}));car.userData.vehicleSpec.id=id;return car;}
+async function loadVehicle(id){const car=await (id==='x6'?createVehicle():loadPreparedVehicle(id,{url:new URL(`./vehicle-library/prepared/${id}/model.glb.gz`,import.meta.url)}));car.userData.vehicleSpec.id=id;return car;}
 const vehicleCache=createVehicleCache({load:loadVehicle,dispose:disposeVehicle,maxEntries:matchMedia('(max-width:760px)').matches?2:4});
 const parkingPool=createParkingVehiclePool({ids:vehicleCatalog.map(model=>model.id),load:id=>vehicleCache.get(id),retain:id=>vehicleCache.retain(id),count:matchMedia('(max-width:760px)').matches?2:3});
 let pendingParkingRender=null;
@@ -557,6 +557,9 @@ try{render();}catch(e){$('status').textContent='此预览需要 WebGL 支持，�
 
 initContinuousCorners({forceFallback:query.has('corner-fallback')});
 if(query.get('page')==='credits'){showCredits(true);const q=new URLSearchParams(location.search);q.set('page','credits');history.replaceState(null,'',`?${q}`);}
+
+// Navigation and style choices can update the poster while full 3D assets load.
+preview.dataset.uiReady='true';window.dispatchEvent(new Event('studio:interactive'));
 
 async function installVehicle(car,full=false,animate=false,retainPrevious=false){
  performance.mark('studio-scene-start');
