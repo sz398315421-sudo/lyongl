@@ -70,6 +70,7 @@ export function createParkingGraphics(world,plan){
  }
  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));geometry.setAttribute('uv',new THREE.BufferAttribute(uv,2));geometry.setIndex(indices);
  const guidanceMaterial=createGuidanceMaterial(),line=new THREE.Mesh(geometry,guidanceMaterial);line.name='Parking guidance ribbon';line.frustumCulled=false;line.renderOrder=6;group.add(line);
+ const daytimeGuideColor=guidanceMaterial.uniforms.guideColor.value.clone();
  // Circular gradient sheets live in the vehicle's ground plane. Their world
  // radius is identical along X and Z; the camera supplies all foreshortening.
  const scan=new THREE.Group();scan.name='Parking sensor sweep';scan.position.y=.085;group.add(scan);
@@ -80,10 +81,12 @@ export function createParkingGraphics(world,plan){
  });
  group.traverse(o=>{if(o.isMesh)o.userData.displayOverlay=true;});
  return {update(ms){
-  const pose=sampleParkingPose(plan,ms),finished=pose.phase==='complete';
-  target.visible=pose.detected;const reveal=smooth((ms-parkingDetectionMs)/450);fill.opacity=(finished?.17:.12)*reveal;cyan.opacity=reveal;
-  cyan.color.set(finished?'#2bd5a2':'#248cff');fill.color.copy(cyan.color);
-  line.visible=!finished;guidanceMaterial.uniforms.dark.value=world.state?.mode==='dark'?1:0;
+  const pose=sampleParkingPose(plan,ms),finished=pose.phase==='complete',dark=world.state?.mode==='dark';
+  target.visible=pose.detected;const reveal=smooth((ms-parkingDetectionMs)/450);fill.opacity=(finished?(dark?.09:.17):(dark?.065:.12))*reveal;cyan.opacity=reveal*(dark?.72:1);
+  cyan.color.set(dark?(finished?'#408e77':'#427eb2'):(finished?'#2bd5a2':'#248cff'));fill.color.copy(cyan.color);
+  line.visible=!finished;guidanceMaterial.uniforms.dark.value=dark?1:0;
+  guidanceMaterial.uniforms.displayOpacity.value=dark?.52:1;
+  guidanceMaterial.uniforms.guideColor.value.copy(daytimeGuideColor).multiplyScalar(dark?.62:1);
   const reverse=ms>=6000,near=(world.car.userData.vehicleSpec?.length||4.85)*.4,total=plan.radius*Math.PI/2+plan.targetX-plan.startX-plan.radius,travelled=total-pose.remaining;
   for(let i=0;i<=count;i++){
    const f=i/count,point=reverse?reversePathPoint(plan,travelled+near+pose.remaining*f):{x:pose.x,z:pose.z-near-9*f,yaw:0};
@@ -98,10 +101,11 @@ export function createParkingGraphics(world,plan){
   scan.quaternion.copy(world.car.quaternion);
   if(scan.visible)for(let w=0;w<waves.length;w++){
    const wave=waves[w],phase=(ms/2200+w/2)%1,radius=(world.car.userData.vehicleSpec?.length||4.85)*.83;
-   const strength=smooth(ms/350)*scanFade*(world.state?.mode==='dark'?.90:.82);
+   const strength=smooth(ms/350)*scanFade*(dark?.42:.82);
    // Every sheet expands and reaches zero opacity before wrapping to its origin.
    // The hollow texture leaves no permanent filled blue disc beneath the waves.
    wave.scale.setScalar(radius*(.5+phase*.70));
+   wave.material.color.set(dark?'#7396b8':'#ffffff');
    wave.material.opacity=strength*smooth(phase/.12)*(1-smooth((phase-.32)/.68))*.88;
   }
  },dispose(){group.removeFromParent();const geometries=new Set();group.traverse(o=>{if(o.geometry)geometries.add(o.geometry);});for(const geometry of geometries)geometry.dispose();for(const mat of new Set([cyan,fill,guidanceMaterial,...waves.map(w=>w.material)]))mat.dispose();radarTexture.dispose();}};

@@ -119,7 +119,7 @@ roadAssistControls=initRoadAssistControls({guidance:roadGuidanceEnabled,color:ro
  if(!guidanceScenes.includes(selected)||selected==='junction'||!vehicleFullReady||vehicleChanging||world.suspended||exporting||preview.dataset.renderPending==='true')return;
  world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();
  document.querySelectorAll('.frame-cover').forEach(element=>element.remove());activeCover=null;
- scenePlayback.changeLane(direction);
+ if(direction===0)scenePlayback.goStraight();else scenePlayback.changeLane(direction);
 },onGuidanceChange:enabled=>{
  roadGuidanceEnabled=enabled;world.roadGuidance.enabled=enabled;
  if(!world.suspended)world.renderFrame();updateURL();rememberPreview();

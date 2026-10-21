@@ -75,15 +75,21 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
   status='playing';lastTime=null;if(trip.parking)apply();notify();frame=requestFrame(tick);return true;
  }
  function changeLane(direction){
-  if(![-1,1].includes(direction)||world.suspended||['playing','paused'].includes(status))return false;
-  const info=roadLaneState(world);if(!(direction<0?info.left:info.right))return false;
+  if(![-1,1].includes(direction))return false;
+  return planDirection(direction);
+ }
+ function goStraight(){return planDirection(0);}
+ function planDirection(direction){
+  if(world.suspended||['playing','paused'].includes(status))return false;
+  const info=roadLaneState(world);
+  if(direction===0?!['road','elevated','ramp'].includes(info.scene)||info.ended:!(direction<0?info.left:info.right))return false;
   if(root&&world.root!==root)reset({render:false});
   root=world.root;scene=info.scene;base=world.captureCamera();base.carQuaternion=world.car.quaternion.clone();
   if(!origin)origin=base;
   base.forward=base.carPosition.clone().set(0,0,-1);
   const target=info.index+direction;
-  const distance=Math.min(sceneTrips[scene].distance,info.distanceAvailable);
-  trip={...sceneTrips[scene],distance,laneChange:{startX:base.carPosition.x,startZ:base.carPosition.z,targetX:info.centers[target],distance,fromLane:info.index+1,toLane:target+1,direction:direction<0?'left':'right'}};
+  const distance=Math.min(sceneTrips[scene].distance,info.distanceAvailable,direction===0&&scene==='road'&&world.state?.roadworks&&world.roadworkZone?.blocksEgoLane?6:Infinity);
+  trip={...sceneTrips[scene],distance,laneChange:{startX:base.carPosition.x,startZ:base.carPosition.z,targetX:direction===0?base.carPosition.x:info.centers[target],distance,fromLane:info.index+1,toLane:target+1,direction:direction===0?'straight':direction<0?'left':'right'}};
   elapsedMs=0;lastTime=null;status='planned';apply();notify();return true;
  }
  function seek(milliseconds,{notifyChange=true,status:nextStatus='paused'}={}){
@@ -92,7 +98,7 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
   status=elapsedMs>=trip.durationMs?'finished':nextStatus==='planned'&&elapsedMs===0?'planned':'paused';
   apply();if(notifyChange)notify();return true;
  }
- return {play,changeLane,pause,reset,seek,snapshot,get active(){return !!base;}};
+ return {play,changeLane,goStraight,pause,reset,seek,snapshot,get active(){return !!base;}};
 }
 
 export function initScenePlaybackControls({onToggle,onReset}){

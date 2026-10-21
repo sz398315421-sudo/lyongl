@@ -44,9 +44,9 @@ export function roadLaneState(world){
 // Preserve the soft edges and long fade while changing only the ribbon hue.
 export function createGuidanceMaterial(color=defaultGuidanceColor){
  return new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,side:THREE.DoubleSide,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3,
-  uniforms:{dark:{value:0},guideColor:{value:guidanceColorVector(color)}},
+  uniforms:{dark:{value:0},guideColor:{value:guidanceColorVector(color)},displayOpacity:{value:1}},
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-  fragmentShader:`varying vec2 vUv;uniform float dark;uniform vec3 guideColor;
+  fragmentShader:`varying vec2 vUv;uniform float dark;uniform vec3 guideColor;uniform float displayOpacity;
    void main(){
     float side=abs(vUv.x-.5)*2.;
     float fade=smoothstep(0.,.025,vUv.y)*(1.-smoothstep(.42,1.,vUv.y));
@@ -54,7 +54,7 @@ export function createGuidanceMaterial(color=defaultGuidanceColor){
     float glow=exp(-side*side*3.8)*(1.-smoothstep(.88,1.,side));
     float alpha=(body*.76+glow*.10)*fade*mix(.96,1.,dark);
     vec3 color=mix(guideColor,mix(guideColor,vec3(1.),.12),.28*(1.-side));
-    gl_FragColor=vec4(color,alpha);
+    gl_FragColor=vec4(color,alpha*displayOpacity);
    }`
  });
 }
@@ -129,15 +129,22 @@ export function initRoadAssistControls({onLaneChange,onGuidanceChange,onColorCha
  function chooseColor(value){selectedColor=normalizeGuidanceColor(value,selectedColor);syncColor();onColorChange?.(selectedColor);}
  custom.addEventListener('input',()=>chooseColor(custom.value));syncColor();
  const left=block.querySelector('#lane-change-left'),right=block.querySelector('#lane-change-right'),input=block.querySelector('#road-guidance');
+ const straight=document.createElement('button');straight.type='button';straight.id='lane-go-straight';straight.setAttribute('aria-label','直行');
+ straight.innerHTML='<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17V3m-4 4 4-4 4 4"/></svg>直行';
+ right.before(straight);straight.addEventListener('click',()=>onLaneChange(0));
+ block.querySelector('.road-assist-buttons').setAttribute('aria-label','ADAS 行驶方向');
  input.checked=guidance;left.addEventListener('click',()=>onLaneChange(-1));right.addEventListener('click',()=>onLaneChange(1));input.addEventListener('change',()=>onGuidanceChange(input.checked));
  return {sync(scene,ready,snapshot,world){
   block.hidden=!guidanceScenes.includes(scene);if(block.hidden)return;
   block.querySelector('.road-assist-buttons').hidden=scene==='junction';
+  straight.hidden=!['road','elevated','ramp'].includes(scene);
   custom.disabled=!ready;for(const button of colors.querySelectorAll('button'))button.disabled=!ready;
   const info=roadLaneState(world),busy=['playing','paused'].includes(snapshot.status),changing=snapshot.laneChange;
   left.disabled=!ready||busy||!info.left;right.disabled=!ready||busy||!info.right;input.disabled=!ready;
+  straight.disabled=!ready||busy||info.ended;
   block.dataset.state=changing?snapshot.status:'idle';
   const selected=!!changing&&['planned','playing','paused'].includes(snapshot.status);
   left.setAttribute('aria-pressed',String(selected&&changing.direction==='left'));right.setAttribute('aria-pressed',String(selected&&changing.direction==='right'));
+  straight.setAttribute('aria-pressed',String(selected?changing.direction==='straight':!busy));
  }};
 }

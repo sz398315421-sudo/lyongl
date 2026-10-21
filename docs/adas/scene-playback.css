@@ -17,6 +17,8 @@
 .road-assist-control[hidden] { display:none; }
 .road-assist-buttons { display:flex; gap:8px; margin-bottom:4px; }
 .road-assist-buttons[hidden] { display:none; }
+.workspace .road-assist-buttons button[hidden] { display:none; }
+.workspace .road-assist-buttons:has(#lane-go-straight:not([hidden])) button { gap:4px; padding-inline:5px; font-size:12px; }
 .workspace .road-assist-buttons button { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px 8px; min-height:44px; border:0; border-radius:var(--ui-radius); background:var(--control-surface); color:var(--text); font:inherit; font-size:13px; cursor:pointer; white-space:nowrap; }
 .workspace .road-assist-buttons button:disabled { opacity:.36; cursor:default; }
 .workspace .road-assist-buttons button[aria-pressed=true] { color:#007aff; opacity:.8; }
