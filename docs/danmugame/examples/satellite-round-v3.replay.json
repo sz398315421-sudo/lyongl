@@ -1,0 +1,92 @@
+{
+  "version": "chromafall-3",
+  "config": {
+    "version": "chromafall-3",
+    "seed": "neon-premiere",
+    "colors": [
+      "#ff387d",
+      "#36ffb4",
+      "#35baff",
+      "#ffcc52"
+    ],
+    "mode": "gravity",
+    "randomMode": false,
+    "modePool": [
+      "plinko",
+      "pinball",
+      "rotor",
+      "swing",
+      "spiral",
+      "fork",
+      "gravity",
+      "portal"
+    ],
+    "slotCount": 4,
+    "randomSkills": false,
+    "skillPool": [
+      "burst",
+      "fan",
+      "giant",
+      "split",
+      "pulse",
+      "fortify",
+      "curve",
+      "satellite"
+    ],
+    "weights": {
+      "burst": 1,
+      "fan": 1,
+      "giant": 1,
+      "split": 1,
+      "pulse": 1,
+      "fortify": 1,
+      "curve": 1,
+      "satellite": 1
+    },
+    "slots": [
+      {
+        "skill": "satellite",
+        "threshold": 4
+      },
+      {
+        "skill": "burst",
+        "threshold": 3
+      },
+      {
+        "skill": "split",
+        "threshold": 3
+      },
+      {
+        "skill": "pulse",
+        "threshold": 3
+      }
+    ],
+    "threshold": 10,
+    "upgradeRule": "permanent",
+    "firingRule": "continuous",
+    "ballRate": 0.7,
+    "baseRate": 1.5,
+    "pace": 1,
+    "paintScale": 1,
+    "effects": 1,
+    "volume": 0.45,
+    "muted": false,
+    "autoLoop": false,
+    "resultHold": 6
+  },
+  "result": {
+    "type": "winner",
+    "winner": 3,
+    "duration": 129.68333333333334,
+    "tick": 7781,
+    "seed": "neon-premiere",
+    "coverage": [
+      0.07784779866536458,
+      0.036646525065104164,
+      0.14357757568359375,
+      0.20554606119791666
+    ],
+    "checksum": "2ddff3c9-0001-24:3,20:3,22:3,19:3"
+  },
+  "commands": []
+}

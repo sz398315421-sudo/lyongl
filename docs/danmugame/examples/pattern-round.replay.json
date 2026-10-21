@@ -1,0 +1,128 @@
+{
+  "version": "chromafall-10",
+  "config": {
+    "version": "chromafall-10",
+    "seed": "pattern-premiere",
+    "colors": [
+      "#ff387d",
+      "#36ffb4",
+      "#35baff",
+      "#ffcc52"
+    ],
+    "mode": "plinko",
+    "randomMode": false,
+    "modePool": [
+      "plinko",
+      "pinball",
+      "rotor",
+      "swing",
+      "spiral",
+      "fork",
+      "gravity",
+      "portal"
+    ],
+    "slotCount": 8,
+    "randomSkills": false,
+    "skillPool": [
+      "burst",
+      "fan",
+      "giant",
+      "split",
+      "pulse",
+      "fortify",
+      "curve",
+      "satellite",
+      "lance",
+      "ricochet",
+      "comet",
+      "spiral",
+      "firework",
+      "swarm",
+      "nova",
+      "mine",
+      "vortex",
+      "crescent"
+    ],
+    "weights": {
+      "burst": 1,
+      "fan": 1,
+      "giant": 1,
+      "split": 1,
+      "pulse": 1,
+      "fortify": 1,
+      "curve": 1,
+      "satellite": 1,
+      "lance": 1,
+      "ricochet": 1,
+      "comet": 1,
+      "spiral": 1,
+      "firework": 1,
+      "swarm": 1,
+      "nova": 1,
+      "mine": 1,
+      "vortex": 1,
+      "crescent": 1
+    },
+    "slots": [
+      {
+        "skill": "burst",
+        "threshold": 5
+      },
+      {
+        "skill": "spiral",
+        "threshold": 5
+      },
+      {
+        "skill": "firework",
+        "threshold": 5
+      },
+      {
+        "skill": "swarm",
+        "threshold": 5
+      },
+      {
+        "skill": "nova",
+        "threshold": 5
+      },
+      {
+        "skill": "mine",
+        "threshold": 5
+      },
+      {
+        "skill": "vortex",
+        "threshold": 5
+      },
+      {
+        "skill": "crescent",
+        "threshold": 5
+      }
+    ],
+    "threshold": 5,
+    "upgradeRule": "permanent",
+    "firingRule": "continuous",
+    "ballRate": 1,
+    "baseRate": 2.5,
+    "pace": 1,
+    "paintScale": 1,
+    "effects": 1,
+    "volume": 0.45,
+    "muted": false,
+    "autoLoop": false,
+    "resultHold": 6
+  },
+  "result": {
+    "type": "winner",
+    "winner": 1,
+    "duration": 227.83333333333334,
+    "tick": 13670,
+    "seed": "pattern-premiere",
+    "coverage": [
+      0.07303873697916667,
+      0.4504597981770833,
+      0.2836558024088542,
+      0.192626953125
+    ],
+    "checksum": "3df87c95-0100-24:3,22:3,21:3,32:3,28:3,35:3,21:3,35:3"
+  },
+  "commands": []
+}

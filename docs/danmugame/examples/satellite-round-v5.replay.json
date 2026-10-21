@@ -1,0 +1,100 @@
+{
+  "version": "chromafall-5",
+  "config": {
+    "version": "chromafall-5",
+    "seed": "neon-premiere",
+    "colors": [
+      "#ff387d",
+      "#36ffb4",
+      "#35baff",
+      "#ffcc52"
+    ],
+    "mode": "gravity",
+    "randomMode": false,
+    "modePool": [
+      "plinko",
+      "pinball",
+      "rotor",
+      "swing",
+      "spiral",
+      "fork",
+      "gravity",
+      "portal"
+    ],
+    "slotCount": 4,
+    "randomSkills": false,
+    "skillPool": [
+      "burst",
+      "fan",
+      "giant",
+      "split",
+      "pulse",
+      "fortify",
+      "curve",
+      "satellite",
+      "lance",
+      "ricochet",
+      "comet",
+      "spiral"
+    ],
+    "weights": {
+      "burst": 1,
+      "fan": 1,
+      "giant": 1,
+      "split": 1,
+      "pulse": 1,
+      "fortify": 1,
+      "curve": 1,
+      "satellite": 1,
+      "lance": 1,
+      "ricochet": 1,
+      "comet": 1,
+      "spiral": 1
+    },
+    "slots": [
+      {
+        "skill": "satellite",
+        "threshold": 4
+      },
+      {
+        "skill": "burst",
+        "threshold": 3
+      },
+      {
+        "skill": "split",
+        "threshold": 3
+      },
+      {
+        "skill": "pulse",
+        "threshold": 3
+      }
+    ],
+    "threshold": 10,
+    "upgradeRule": "permanent",
+    "firingRule": "continuous",
+    "ballRate": 0.7,
+    "baseRate": 1.5,
+    "pace": 1,
+    "paintScale": 1,
+    "effects": 1,
+    "volume": 0.45,
+    "muted": false,
+    "autoLoop": false,
+    "resultHold": 6
+  },
+  "result": {
+    "type": "winner",
+    "winner": 0,
+    "duration": 146.86666666666667,
+    "tick": 8812,
+    "seed": "neon-premiere",
+    "coverage": [
+      0.45696767171223956,
+      0.039171854654947914,
+      0.08787790934244792,
+      0.39372507731119794
+    ],
+    "checksum": "e4297445-1000-25:3,26:3,19:3,27:3"
+  },
+  "commands": []
+}

@@ -1,0 +1,128 @@
+{
+  "version": "chromafall-7",
+  "config": {
+    "version": "chromafall-7",
+    "seed": "warhead-premiere",
+    "colors": [
+      "#ff387d",
+      "#36ffb4",
+      "#35baff",
+      "#ffcc52"
+    ],
+    "mode": "plinko",
+    "randomMode": false,
+    "modePool": [
+      "plinko",
+      "pinball",
+      "rotor",
+      "swing",
+      "spiral",
+      "fork",
+      "gravity",
+      "portal"
+    ],
+    "slotCount": 8,
+    "randomSkills": false,
+    "skillPool": [
+      "burst",
+      "fan",
+      "giant",
+      "split",
+      "pulse",
+      "fortify",
+      "curve",
+      "satellite",
+      "lance",
+      "ricochet",
+      "comet",
+      "spiral",
+      "firework",
+      "swarm",
+      "nova",
+      "mine",
+      "vortex",
+      "crescent"
+    ],
+    "weights": {
+      "burst": 1,
+      "fan": 1,
+      "giant": 1,
+      "split": 1,
+      "pulse": 1,
+      "fortify": 1,
+      "curve": 1,
+      "satellite": 1,
+      "lance": 1,
+      "ricochet": 1,
+      "comet": 1,
+      "spiral": 1,
+      "firework": 1,
+      "swarm": 1,
+      "nova": 1,
+      "mine": 1,
+      "vortex": 1,
+      "crescent": 1
+    },
+    "slots": [
+      {
+        "skill": "comet",
+        "threshold": 3
+      },
+      {
+        "skill": "burst",
+        "threshold": 3
+      },
+      {
+        "skill": "firework",
+        "threshold": 3
+      },
+      {
+        "skill": "swarm",
+        "threshold": 3
+      },
+      {
+        "skill": "nova",
+        "threshold": 3
+      },
+      {
+        "skill": "mine",
+        "threshold": 3
+      },
+      {
+        "skill": "vortex",
+        "threshold": 3
+      },
+      {
+        "skill": "crescent",
+        "threshold": 3
+      }
+    ],
+    "threshold": 3,
+    "upgradeRule": "permanent",
+    "firingRule": "continuous",
+    "ballRate": 1.2,
+    "baseRate": 2.5,
+    "pace": 1,
+    "paintScale": 1,
+    "effects": 1,
+    "volume": 0.45,
+    "muted": false,
+    "autoLoop": false,
+    "resultHold": 6
+  },
+  "result": {
+    "type": "winner",
+    "winner": 0,
+    "duration": 429.3,
+    "tick": 25758,
+    "seed": "warhead-premiere",
+    "coverage": [
+      0.47832489013671875,
+      0.10333251953125,
+      0.07570648193359375,
+      0.3426361083984375
+    ],
+    "checksum": "34b91fe1-1000-77:3,43:3,72:3,60:3,61:3,57:3,61:3,70:3"
+  },
+  "commands": []
+}

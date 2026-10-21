@@ -1,0 +1,108 @@
+{
+  "version": "chromafall-5",
+  "config": {
+    "version": "chromafall-5",
+    "seed": "neon-premiere",
+    "colors": [
+      "#ff387d",
+      "#36ffb4",
+      "#35baff",
+      "#ffcc52"
+    ],
+    "mode": "plinko",
+    "randomMode": false,
+    "modePool": [
+      "plinko",
+      "pinball",
+      "rotor",
+      "swing",
+      "spiral",
+      "fork",
+      "gravity",
+      "portal"
+    ],
+    "slotCount": 6,
+    "randomSkills": false,
+    "skillPool": [
+      "burst",
+      "fan",
+      "giant",
+      "split",
+      "pulse",
+      "fortify",
+      "curve",
+      "satellite",
+      "lance",
+      "ricochet",
+      "comet",
+      "spiral"
+    ],
+    "weights": {
+      "burst": 1,
+      "fan": 1,
+      "giant": 1,
+      "split": 1,
+      "pulse": 1,
+      "fortify": 1,
+      "curve": 1,
+      "satellite": 1,
+      "lance": 1,
+      "ricochet": 1,
+      "comet": 1,
+      "spiral": 1
+    },
+    "slots": [
+      {
+        "skill": "burst",
+        "threshold": 10
+      },
+      {
+        "skill": "fan",
+        "threshold": 10
+      },
+      {
+        "skill": "giant",
+        "threshold": 10
+      },
+      {
+        "skill": "split",
+        "threshold": 10
+      },
+      {
+        "skill": "pulse",
+        "threshold": 10
+      },
+      {
+        "skill": "fortify",
+        "threshold": 10
+      }
+    ],
+    "threshold": 10,
+    "upgradeRule": "permanent",
+    "firingRule": "continuous",
+    "ballRate": 0.7,
+    "baseRate": 1.5,
+    "pace": 1,
+    "paintScale": 1,
+    "effects": 1,
+    "volume": 0.45,
+    "muted": false,
+    "autoLoop": false,
+    "resultHold": 6
+  },
+  "result": {
+    "type": "winner",
+    "winner": 2,
+    "duration": 258.21666666666664,
+    "tick": 15493,
+    "seed": "neon-premiere",
+    "coverage": [
+      0.2211125691731771,
+      0.16961161295572916,
+      0.42468516031901044,
+      0.1586888631184896
+    ],
+    "checksum": "aab39421-0010-29:3,25:3,29:3,35:3,24:3,33:3"
+  },
+  "commands": []
+}

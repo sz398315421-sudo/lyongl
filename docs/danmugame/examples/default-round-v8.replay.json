@@ -1,0 +1,120 @@
+{
+  "version": "chromafall-8",
+  "config": {
+    "version": "chromafall-8",
+    "seed": "neon-premiere",
+    "colors": [
+      "#ff387d",
+      "#36ffb4",
+      "#35baff",
+      "#ffcc52"
+    ],
+    "mode": "plinko",
+    "randomMode": false,
+    "modePool": [
+      "plinko",
+      "pinball",
+      "rotor",
+      "swing",
+      "spiral",
+      "fork",
+      "gravity",
+      "portal"
+    ],
+    "slotCount": 6,
+    "randomSkills": false,
+    "skillPool": [
+      "burst",
+      "fan",
+      "giant",
+      "split",
+      "pulse",
+      "fortify",
+      "curve",
+      "satellite",
+      "lance",
+      "ricochet",
+      "comet",
+      "spiral",
+      "firework",
+      "swarm",
+      "nova",
+      "mine",
+      "vortex",
+      "crescent"
+    ],
+    "weights": {
+      "burst": 1,
+      "fan": 1,
+      "giant": 1,
+      "split": 1,
+      "pulse": 1,
+      "fortify": 1,
+      "curve": 1,
+      "satellite": 1,
+      "lance": 1,
+      "ricochet": 1,
+      "comet": 1,
+      "spiral": 1,
+      "firework": 1,
+      "swarm": 1,
+      "nova": 1,
+      "mine": 1,
+      "vortex": 1,
+      "crescent": 1
+    },
+    "slots": [
+      {
+        "skill": "burst",
+        "threshold": 10
+      },
+      {
+        "skill": "fan",
+        "threshold": 10
+      },
+      {
+        "skill": "giant",
+        "threshold": 10
+      },
+      {
+        "skill": "split",
+        "threshold": 10
+      },
+      {
+        "skill": "pulse",
+        "threshold": 10
+      },
+      {
+        "skill": "fortify",
+        "threshold": 10
+      }
+    ],
+    "threshold": 10,
+    "upgradeRule": "permanent",
+    "firingRule": "continuous",
+    "ballRate": 0.7,
+    "baseRate": 1.5,
+    "pace": 1,
+    "paintScale": 1,
+    "effects": 1,
+    "volume": 0.45,
+    "muted": false,
+    "autoLoop": false,
+    "resultHold": 6
+  },
+  "result": {
+    "type": "winner",
+    "winner": 2,
+    "duration": 258.2,
+    "tick": 15492,
+    "seed": "neon-premiere",
+    "coverage": [
+      0.2115605672200521,
+      0.1508051554361979,
+      0.46303049723307294,
+      0.14719645182291666
+    ],
+    "checksum": "c19cc8bd-0010-29:3,25:3,29:3,35:3,24:3,33:3"
+  },
+  "commands": []
+}
