@@ -32,7 +32,8 @@ export function roadLaneState(world){
   const zone=world.roadworkZone,x=centers[target],z=world.car.position.z;
   return !!(scene==='road'&&world.state?.roadworks&&zone&&x+1.05>=zone.left&&x-1.05<=zone.right&&z-51<zone.front&&z+3>zone.back);
  };
- const left=index>0&&!blocked(index-1),right=index<count-1&&!blocked(index+1);
+ const canChangeLane=scene!=='junction';
+ const left=canChangeLane&&index>0&&!blocked(index-1),right=canChangeLane&&index<count-1&&!blocked(index+1);
  return {scene,centers,count,index,left,right,ended,distanceAvailable};
 }
 
@@ -123,6 +124,7 @@ export function initRoadAssistControls({onLaneChange,onGuidanceChange,onColorCha
  input.checked=guidance;left.addEventListener('click',()=>onLaneChange(-1));right.addEventListener('click',()=>onLaneChange(1));input.addEventListener('change',()=>onGuidanceChange(input.checked));
  return {sync(scene,ready,snapshot,world){
   block.hidden=!guidanceScenes.includes(scene);if(block.hidden)return;
+  block.querySelector('.road-assist-buttons').hidden=scene==='junction';
   custom.disabled=!ready;for(const button of colors.querySelectorAll('button'))button.disabled=!ready;
   const info=roadLaneState(world),busy=['playing','paused'].includes(snapshot.status),changing=snapshot.laneChange;
   left.disabled=!ready||busy||!info.left;right.disabled=!ready||busy||!info.right;input.disabled=!ready;

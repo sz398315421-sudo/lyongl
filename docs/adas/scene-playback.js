@@ -98,9 +98,9 @@ export function initScenePlaybackControls({onToggle,onReset}){
  let previousStatus;
  const format=ms=>`0:${String(Math.floor(ms/1000)).padStart(2,'0')}`;
  return {sync(scene,ready,state){
-  block.hidden=!sceneTrips[scene];const {status}=state;block.dataset.state=status;
+  block.hidden=scene==='junction'||!sceneTrips[scene];const {status}=state;block.dataset.state=status;
   const parking=['parking','outdoor'].includes(scene);heading.textContent=parking?'自动泊车动画':'场景动画';
-  play.disabled=!ready;reset.disabled=!ready||status==='idle';
+  play.disabled=block.hidden||!ready;reset.disabled=block.hidden||!ready||status==='idle';
   if(status!==previousStatus){
    label.textContent={idle:'播放',planned:'播放',playing:'暂停',paused:'继续',finished:'重播'}[status];
    play.setAttribute('aria-label',label.textContent+'场景动画');play.setAttribute('aria-pressed',String(status==='playing'));

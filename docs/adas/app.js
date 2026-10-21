@@ -113,7 +113,7 @@ const sceneMotionControls=initScenePlaybackControls({onToggle:()=>{
  scenePlayback.play(selected);
 },onReset:()=>scenePlayback.reset()});
 roadAssistControls=initRoadAssistControls({guidance:roadGuidanceEnabled,color:roadGuidanceColor,onLaneChange:direction=>{
- if(!guidanceScenes.includes(selected)||!vehicleFullReady||vehicleChanging||world.suspended||exporting||preview.dataset.renderPending==='true')return;
+ if(!guidanceScenes.includes(selected)||selected==='junction'||!vehicleFullReady||vehicleChanging||world.suspended||exporting||preview.dataset.renderPending==='true')return;
  world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();
  document.querySelectorAll('.frame-cover').forEach(element=>element.remove());activeCover=null;
  scenePlayback.changeLane(direction);
