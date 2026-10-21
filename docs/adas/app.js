@@ -9,6 +9,7 @@ import {initContinuousCorners} from './continuous-corners.js';
 import {initExportControls} from './export-controls.js';
 import {cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadme} from './export-scene.js';
 import {canvasPng,depthPng,zipFiles,downloadFile} from './export-files.js';
+import {recordCanvasVideo,videoFormat} from './video-export.js';
 import {initVehicleSelector} from './vehicle-selector.js';
 import {vehicleCatalog,vehicleSpec,vehicleReadme} from './vehicle-catalog.js';
 import {createParkingVehiclePool} from './parking-vehicle-pool.js';
@@ -19,7 +20,7 @@ import {vehicleFrame} from './framing.js';
 import {createVehicleCache} from './vehicle-cache.js';
 import {prepareVehicleChoice} from './prepare-vehicle-choice.js';
 import {createScenePlayback,initScenePlaybackControls} from './scene-playback.js';
-import {initRoadAssistControls,roadLaneState,guidanceScenes,normalizeGuidanceColor,defaultGuidanceColor} from './road-assist.js';
+import {initRoadAssistControls,roadLaneState,guidanceScenes,normalizeGuidanceColor,defaultGuidanceColor,normalizeJunctionLane,junctionDirection} from './road-assist.js';
 import {initParkingHmi} from './parking-maneuver.js';
 initAnalyticsChoice();
 const $=id=>document.getElementById(id),preview=$('preview');
@@ -48,6 +49,8 @@ Object.assign(preferences.get('road'),{laneCount:initial==='09'?2:6,cameraView:f
 preferences.get('junction').cameraView=first.key==='junction'&&query.get('view')==='low'?'low':'high';
 preferences.get('junction').junctionPosition=query.get('position')==='approaching'||(first.key==='junction'&&query.get('view')==='low'&&!query.has('position'))?'approaching':'near';
 preferences.get('junction').cameraView=preferences.get('junction').junctionPosition==='near'?'high':'low';
+preferences.get('junction').junctionLanes={'05':'middle','08':'right'};
+if(first.key==='junction')preferences.get('junction').junctionLanes[initial]=normalizeJunctionLane(initial,query.get('lane'));
 preferences.get('elevated').cameraView=first.key==='elevated'&&query.get('view')==='high'?'high':'low';
 preferences.get('ramp').cameraView=first.key==='ramp'&&query.get('view')==='high'?'high':'low';
 if(['2','4','6'].includes(query.get('lanes')))preferences.get('road').laneCount=Number(query.get('lanes'));
@@ -103,7 +106,7 @@ const parkingHmi=initParkingHmi(preview);
 const scenePlayback=createScenePlayback(world,{onChange:snapshot=>{
  syncScenePlayback(snapshot);
  preview.dataset.sceneMotion=JSON.stringify({...snapshot,car:world.car.position.toArray(),camera:world.camera.position.toArray()});
- if(snapshot.status!=='playing'&&vehicleReady&&!world.suspended){preview.dataset.audit=JSON.stringify(world.audit());rememberPreview();}
+ if(!exporting&&snapshot.status!=='playing'&&vehicleReady&&!world.suspended){preview.dataset.audit=JSON.stringify(world.audit());rememberPreview();}
 }});
 const sceneMotionControls=initScenePlaybackControls({onToggle:()=>{
  if(scenePlayback.snapshot().status==='playing'){scenePlayback.pause();return;}
@@ -169,8 +172,8 @@ function rememberPreview(immediate=false){
 }
 window.addEventListener('pagehide',()=>rememberPreview(true));
 function active(){return structures.find(s=>s.key===selected);}
-function state(){const st={...preferences.get(selected),mode,vehicle:true};for(const key of environmentIds)st[key]=!!active()[key]&&!!st[key];if(selected==='road')st.id=st.laneCount===2?'09':'02';return st;}
-function updateURL(){const q=new URLSearchParams();q.set('scene',selected==='reference'?'reference':state().id);q.set('mode',mode);if(selected==='road')q.set('lanes',state().laneCount);if(['road','ramp','junction','elevated'].includes(selected))q.set('view',state().cameraView);if(selected==='junction')q.set('position',state().junctionPosition);for(const key of optionIds)q.set(key,(key==='parkedCars'?preferences.get(selected)[key]:state()[key])?'1':'0');if(selectedVehicle!=='x6')q.set('model',selectedVehicle);if(guidanceScenes.includes(selected)){if(!roadGuidanceEnabled)q.set('guidance','0');if(roadGuidanceColor!==defaultGuidanceColor)q.set('guideColor',roadGuidanceColor.slice(1));}if(comparingNav){q.set('study','1');q.set('nav',navDesign);}if(query.has('motion'))q.set('motion',query.get('motion'));if(query.has('qa'))q.set('qa','1');if(document.getElementById('credits-view')&&!document.getElementById('credits-view').hidden)q.set('page','credits');history.replaceState(null,'',`?${q}`);}
+function state(){const st={...preferences.get(selected),mode,vehicle:true};for(const key of environmentIds)st[key]=!!active()[key]&&!!st[key];if(selected==='road')st.id=st.laneCount===2?'09':'02';if(selected==='junction')st.junctionLane=normalizeJunctionLane(st.id,st.junctionLanes[st.id]);return st;}
+function updateURL(){const q=new URLSearchParams();q.set('scene',selected==='reference'?'reference':state().id);q.set('mode',mode);if(selected==='road')q.set('lanes',state().laneCount);if(['road','ramp','junction','elevated'].includes(selected))q.set('view',state().cameraView);if(selected==='junction'){q.set('position',state().junctionPosition);q.set('lane',state().junctionLane);}for(const key of optionIds)q.set(key,(key==='parkedCars'?preferences.get(selected)[key]:state()[key])?'1':'0');if(selectedVehicle!=='x6')q.set('model',selectedVehicle);if(guidanceScenes.includes(selected)){if(!roadGuidanceEnabled)q.set('guidance','0');if(roadGuidanceColor!==defaultGuidanceColor)q.set('guideColor',roadGuidanceColor.slice(1));}if(comparingNav){q.set('study','1');q.set('nav',navDesign);}if(query.has('motion'))q.set('motion',query.get('motion'));if(query.has('qa'))q.set('qa','1');if(document.getElementById('credits-view')&&!document.getElementById('credits-view').hidden)q.set('page','credits');history.replaceState(null,'',`?${q}`);}
 const sceneButtons=new Map(),sceneGroups=new Map(),categoryButtons=new Map();
 const groupSelection=new Map([['open',first.group==='open'?selected:'road'],['closed',first.group==='closed'?selected:'parking']]);
 const folderSVG='<svg class="folder-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M2.5 6V4.75A1.5 1.5 0 0 1 4 3.25h3.1c.4 0 .78.16 1.06.44l1.62 1.62a.75.75 0 0 0 .53.22H16A1.5 1.5 0 0 1 17.5 7.03v8.22A1.5 1.5 0 0 1 16 16.75H4a1.5 1.5 0 0 1-1.5-1.5V6Z" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -247,6 +250,14 @@ function syncJunctionTransport(){
  if(status!==junctionTransportState){junctionTransportState=status;const button=$('junction-play');button.dataset.motionState=status;$('junction-positions').dataset.motionState=status;button.hidden=false;button.disabled=busy;$('junction-playing').hidden=!busy;$('junction-play-label').textContent='播放';button.setAttribute('aria-label','播放接近路口动画');morphTransportIcon(busy);}
  const bar=$('junction-progress');$('junction-positions').style.setProperty('--progress',String(progress));const percent=Math.round(progress*100);if(percent!==junctionProgressPercent){junctionProgressPercent=percent;bar.setAttribute('aria-valuenow',String(percent));bar.setAttribute('aria-valuetext',busy?`已完成 ${percent}%`:near?'已停在路口':'准备接近路口');}
 }
+function syncJunctionLanes(){
+ const junction=selected==='junction';$('junction-lane-control').hidden=!junction;
+ if(!junction)return;
+ const st=state(),directions={left:'左转',straight:'直行',right:'右转'};
+ for(const button of document.querySelectorAll('[data-junction-lane]')){
+  const lane=button.dataset.junctionLane;button.textContent=st.id==='08'&&lane==='middle'?'中间左转':directions[junctionDirection(st.id,lane)];button.setAttribute('aria-pressed',lane===st.junctionLane);
+ }
+}
 function syncSelectedControls(){
  const st=selected==='reference'?null:state();if(!st)return;
  for(const b of $('road-controls').querySelectorAll('button'))b.setAttribute('aria-pressed',String(st[b.dataset.road])===b.dataset.value);
@@ -254,7 +265,7 @@ function syncSelectedControls(){
  for(const b of $('layout-options').querySelectorAll('button'))b.setAttribute('aria-pressed',b.dataset.layout===st.id);
  for(const b of $('junction-views').querySelectorAll('button'))b.setAttribute('aria-pressed',selected==='junction'&&b.dataset.junctionView===st.cameraView);
  for(const b of $('ramp-views').querySelectorAll('button'))b.setAttribute('aria-pressed',['ramp','elevated'].includes(selected)&&b.dataset.rampView===st.cameraView);
- syncJunctionTransport();
+ syncJunctionTransport();syncJunctionLanes();
  updateSegmentIndicators();
 }
 function revealActiveGroup(){
@@ -337,7 +348,7 @@ function render(animate=false,themeWipe=false,motion='scene',preservePlayback=fa
  $('parking-views').hidden=!parking;$('parking-control').hidden=!parking;$('road-controls').hidden=isReference||s.key!=='road';
  const junction=!isReference&&s.key==='junction';
  $('junction-camera-control').hidden=true;
- $('junction-position-control').hidden=!junction;
+ $('junction-position-control').hidden=!junction;syncJunctionLanes();
  syncJunctionTransport();
  for(const button of $('junction-views').querySelectorAll('button')){button.disabled=!junction;button.setAttribute('aria-pressed',junction&&button.dataset.junctionView===st.cameraView);}
  const ramp=!isReference&&['ramp','elevated'].includes(s.key);
@@ -386,7 +397,7 @@ window.addEventListener('resize',()=>{
  syncChoiceGeometry();moveSelection();clearTimeout(resizeFrameTimer);
  // CSS keeps the current frame visible while dragging. Reallocate GPU targets once settled.
  resizeFrameTimer=setTimeout(()=>{
-  if(world.suspended)return;
+  if(world.suspended||exporting)return;
   const [w,h]=previewResolution();if(world.width===w&&world.height===h)return;
   world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();
   world.setResolution(w,h);requestRender();
@@ -397,6 +408,13 @@ for(const b of $('road-controls').querySelectorAll('button'))b.addEventListener(
 for(const button of $('ramp-views').querySelectorAll('button'))button.addEventListener('click',()=>{if(preferences.get(selected).cameraView===button.dataset.rampView)return;preferences.get(selected).cameraView=button.dataset.rampView;requestRender('camera');});
 
 for(const button of $('junction-views').querySelectorAll('button'))button.addEventListener('click',()=>{if(preferences.get('junction').cameraView===button.dataset.junctionView)return;preferences.get('junction').cameraView=button.dataset.junctionView;requestRender('camera');});
+
+for(const button of document.querySelectorAll('[data-junction-lane]'))button.addEventListener('click',()=>{
+ if(selected!=='junction')return;
+ const preference=preferences.get('junction'),lane=button.dataset.junctionLane;
+ if(normalizeJunctionLane(preference.id,preference.junctionLanes[preference.id])===lane)return;
+ preference.junctionLanes[preference.id]=lane;requestRender('element');
+});
 
 $('junction-play').addEventListener('click',()=>{
  if(junctionRequested||world.cameraMotion)return;
@@ -457,15 +475,60 @@ window.addEventListener('popstate',()=>showCredits(new URLSearchParams(location.
 for(const key of environmentIds)$(key).addEventListener('change',()=>{for(const preference of preferences.values())preference[key]=$(key).checked;requestRender(key==='parkedCars'?'element':'growth');});
 for(const button of $('parking-views').querySelectorAll('button'))button.addEventListener('click',()=>{const id=selected==='outdoor'?({'10':'17','16':'18','14':'19'}[button.dataset.view]):button.dataset.view;if(preferences.get(selected).id===id)return;preferences.get(selected).id=id;requestRender('camera');});
 $('layout').addEventListener('change',()=>{preferences.get(selected).id=$('layout').value;requestRender('layout');});
-function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:selected==='junction'?'-'+st.junctionPosition+'-'+st.cameraView:['ramp','elevated'].includes(selected)?'-'+st.cameraView:''}-${selectedVehicle}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
+function frameName(){if(selected==='reference')return `waterfront-study-${mode}-1920x1080`;const st=state();return `${selected}-${st.id}${selected==='road'?'-'+st.laneCount+'lanes-'+st.cameraView:selected==='junction'?'-'+st.junctionLane+'-'+st.junctionPosition+'-'+st.cameraView:['ramp','elevated'].includes(selected)?'-'+st.cameraView:''}-${selectedVehicle}-${mode}-${optionIds.map(k=>`${k}-${st[k]?'on':'off'}`).join('-')}`;}
 let exporting=false;
 const exportControls=initExportControls($('download'),exportAssets);
+async function exportAnimation(){
+ if(!videoFormat())throw new Error('此浏览器暂不支持视频导出，请使用新版 Chrome、Edge 或 Safari。');
+ const original=scenePlayback.snapshot(),wasActive=scenePlayback.active,originalPose=world.captureCamera(),originalRotation=world.car.quaternion.clone(),originalFraming=world.framing;
+ const preference=preferences.get(selected),originalPreference={...preference},controller=new AbortController();
+ const cancel=()=>controller.abort(new DOMException('已取消动画导出。','AbortError'));
+ const onHidden=()=>{if(document.hidden)controller.abort(new DOMException('导出已中断，请保持页面在前台后重试。','AbortError'));};
+ document.addEventListener('visibilitychange',onHidden);
+ exportControls.showVideoProgress(cancel);
+ const canvas=document.createElement('canvas');canvas.width=exportSize.width;canvas.height=exportSize.height;const context=canvas.getContext('2d',{alpha:false});
+ const name=frameName();
+ try{
+  world.setResolution(exportSize.width,exportSize.height);
+  let durationMs,sample;
+  if(selected==='junction'){
+   // Reuse the exact approach/lift choreography shown by the junction Play button.
+   Object.assign(preference,{junctionPosition:'approaching',cameraView:'low'});world.update(state());const from=world.captureCamera();
+   Object.assign(preference,{junctionPosition:'near',cameraView:'high'});world.update(state());world.startCameraMotion(from);
+   const motion=world.cameraMotion;if(!motion)throw new Error('当前路口动画暂不可用，请重试。');
+   cancelAnimationFrame(motion.frame);motion.paused=true;durationMs=motion.duration;sample=elapsed=>motion.sample(elapsed);
+  }else{
+   if(!wasActive&&!scenePlayback.play(selected))throw new Error('当前场景暂不支持演示动画。');
+   scenePlayback.pause();durationMs=scenePlayback.snapshot().durationMs;
+   sample=elapsed=>{
+    if(!scenePlayback.seek(elapsed,{notifyChange:false}))throw new Error('场景发生变化，请重新导出。');
+    parkingHmi.sync(selected,{...scenePlayback.snapshot(),status:'playing'});
+   };
+  }
+  const result=await recordCanvasVideo({canvas,durationMs,signal:controller.signal,onProgress:value=>exportControls.updateVideoProgress(value),renderFrame:elapsed=>{
+   if(world.suspended)throw new Error('画面渲染已中断，请恢复页面后重试。');
+   sample(elapsed);context.drawImage(currentFrame(),0,0,canvas.width,canvas.height);
+   // The parking phase title is HTML in the preview, so include it explicitly.
+   const pose=scenePlayback.snapshot().parking;
+   if(['parking','outdoor'].includes(selected)&&pose){context.fillStyle=mode==='dark'?'#edf4fb':'#202b36';context.font='500 32px "Bahnschrift", "Microsoft YaHei UI", sans-serif';context.textBaseline='top';context.fillText(pose.title,canvas.width*.04,canvas.height*.08);}
+  }});
+  downloadFile(result.blob,name+'-demo.'+result.extension);exportControls.announce('演示动画已下载。');
+ }finally{
+  document.removeEventListener('visibilitychange',onHidden);
+  if(selected==='junction'){world.stopCameraMotion();Object.assign(preference,originalPreference);world.update(state());}
+  world.setResolution(...previewResolution());
+  if(wasActive)scenePlayback.seek(original.elapsedMs,{status:original.status});else scenePlayback.reset({render:false});
+  world.applyCamera(originalPose);world.car.quaternion.copy(originalRotation);world.framing=originalFraming;
+  if(!world.suspended)world.renderFrame();syncScenePlayback();syncSelectedControls();exportControls.hideVideoProgress();
+ }
+}
 async function exportAssets(format='image'){
  if(exporting||!vehicleFullReady||vehicleChanging||world.initializingScene||world.suspended||preview.dataset.renderPending==='true'||!parkingModelsReady())return;
  scenePlayback.pause();exporting=true;syncScenePlayback();exportControls.setBusy(true);exportControls.announce('正在准备导出…');
  const previousSize=[world.width,world.height];let captured;
  try{
   world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();
+  if(format==='video'){await exportAnimation();return;}
   const name=frameName(),exportScene=selected,exportTheme=mode;
   try{
    world.setResolution(exportSize.width,exportSize.height);world.update(state());
@@ -486,7 +549,7 @@ async function exportAssets(format='image'){
   downloadFile(blob,filename);
   if(format==='image'||format==='kit')trackPngExport(captured.exportScene,captured.exportTheme);
   exportControls.announce(format==='kit'?'透视套件已下载。':format==='camera'?'相机参数 JSON 已下载。':format==='depth'?'深度图 PNG 已下载。':'PNG 图片已下载。');
- }catch(error){console.error('Scene export failed',error);exportControls.announce('导出失败，请重试。',true);}
+ }catch(error){if(error.name!=='AbortError')console.error('Scene export failed',error);exportControls.announce(error.name==='AbortError'?error.message:format==='video'?error.message:'导出失败，请重试。',error.name!=='AbortError');}
  finally{exporting=false;exportControls.setBusy(false);$('download').disabled=!vehicleFullReady||vehicleChanging||world.suspended||preview.dataset.renderPending==='true';syncScenePlayback();}
 }
 

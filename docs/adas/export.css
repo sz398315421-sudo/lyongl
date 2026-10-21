@@ -11,6 +11,10 @@
 .export-choice { display:flex; align-items:center; gap:12px; min-height:60px; padding:10px 12px; border-radius:var(--ui-radius); corner-shape:squircle; cursor:pointer; }
 .export-choice:has(input:checked) { background:var(--soft); }
 .export-choice input { flex:none; width:16px; height:16px; margin:0; accent-color:var(--text); }
+.export-choice:has(input:disabled) { opacity:.45; cursor:default; }
+.export-progress-dialog #video-export-copy { margin:12px 0 24px; color:var(--text-secondary); font-size:12px; line-height:20px; }
+.export-progress-dialog progress { display:block; width:100%; height:8px; accent-color:var(--text); }
+.export-progress-value { margin:12px 0 24px; color:var(--text-secondary); font-size:13px; font-variant-numeric:tabular-nums; text-align:center; }
 .export-choice > span { display:flex; flex-direction:column; gap:2px; min-width:0; font-size:13px; line-height:20px; font-weight:500; overflow-wrap:anywhere; }
 .export-detail { color:var(--text-secondary); font-size:11px; line-height:16px; font-weight:400; }
 .export-submit { width:100%; min-height:44px; padding:10px 16px; border-radius:var(--ui-radius); corner-shape:squircle; background:var(--text); color:var(--page); font-size:13px; font-weight:500; }

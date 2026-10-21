@@ -4,11 +4,14 @@ function shuffle(items,random){
  return result;
 }
 
+export function isParkingModelAllowed(id){return id!=='911-gt3-r';}
+
 export function chooseParkingModels(ids,egoId,count=3,random=Math.random){
- return shuffle([...new Set(ids)].filter(id=>id!==egoId),random).slice(0,count);
+ return shuffle([...new Set(ids)].filter(id=>id!==egoId&&isParkingModelAllowed(id)),random).slice(0,count);
 }
 
 export function assignParkingModels(ids,count=7,random=Math.random){
+ ids=ids.filter(isParkingModelAllowed);
  if(!ids.length)return [];
  const assignments=[];
  while(assignments.length<count)assignments.push(...shuffle(ids,random));

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {parkingBaySize} from './parking-layout.js';
+import {isParkingModelAllowed} from './parking-vehicle-pool.js';
 
 // Keep the right-hand target and its approach bay empty for reverse parking.
 export function occupiedParkingBays(bays){
@@ -27,7 +28,7 @@ function parkingTemplate(source){
 export function buildParkedVehicles(world){
  const group=new THREE.Group();group.name='Parked vehicles';world.root.add(group);world.parkedVehicleGroup=group;
  const egoId=world.car?.userData.vehicleSpec?.id||'x6';
- const models=(world.parkingVehicleModels||[]).filter(model=>model.id!==egoId);
+ const models=(world.parkingVehicleModels||[]).filter(model=>model.id!==egoId&&isParkingModelAllowed(model.id));
  const templates=new Map(models.map(model=>[model.id,{...parkingTemplate(model.root),source:model.root}]));
  const releases=models.map(model=>world.retainVehicle?.(model.id));
  group.userData.releaseParkedVehicle=()=>releases.splice(0).forEach(release=>release?.());

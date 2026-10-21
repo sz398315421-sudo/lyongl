@@ -29,6 +29,18 @@ function reversePathPoint(plan,distance){
  return {x:plan.startX+plan.radius+distance-arc,z:plan.targetZ,yaw:Math.PI/2};
 }
 
+function createRadarTexture(){
+ const size=256,pixels=new Uint8Array(size*size*4);
+ for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+  const u=(x+.5)/size*2-1,v=(y+.5)/size*2-1,r=Math.hypot(u,v),edge=1-smooth((r-.82)/.18);
+  const band=Math.exp(-Math.pow((r-.73)/.16,2));
+  const alpha=r>=1?0:band*edge*smooth((r-.30)/.25)*.72;
+  const light=.30+band*.28,k=(y*size+x)*4;
+  pixels[k]=Math.round(66+light*146);pixels[k+1]=Math.round(166+light*77);pixels[k+2]=255;pixels[k+3]=Math.round(alpha*255);
+ }
+ const texture=new THREE.DataTexture(pixels,size,size,THREE.RGBAFormat);texture.colorSpace=THREE.SRGBColorSpace;texture.magFilter=THREE.LinearFilter;texture.minFilter=THREE.LinearFilter;texture.needsUpdate=true;return texture;
+}
+
 export function planParking(world){
  if(!world.parkingBays?.length)return null;
  const bay=world.parkingBays.find(b=>b.x>0&&Math.abs(b.z-world.car.position.z)<.1)||world.parkingBays.find(b=>b.x>0&&b.z<=world.car.position.z);
@@ -58,12 +70,13 @@ export function createParkingGraphics(world,plan){
  }
  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));geometry.setAttribute('uv',new THREE.BufferAttribute(uv,2));geometry.setIndex(indices);
  const guidanceMaterial=createGuidanceMaterial(),line=new THREE.Mesh(geometry,guidanceMaterial);line.name='Parking guidance ribbon';line.frustumCulled=false;line.renderOrder=6;group.add(line);
- // Three staggered dotted wavefronts emerge from the vehicle footprint. Keeping
- // their clock on playback time makes pause, resume and replay deterministic.
+ // Circular gradient sheets live in the vehicle's ground plane. Their world
+ // radius is identical along X and Z; the camera supplies all foreshortening.
  const scan=new THREE.Group();scan.name='Parking sensor sweep';scan.position.y=.085;group.add(scan);
- const dotGeometry=new THREE.CircleGeometry(.065,12),dotMatrix=new THREE.Matrix4().makeRotationX(-Math.PI/2),waveCount=112;
- const waves=Array.from({length:3},(_,i)=>{
-  const mesh=new THREE.InstancedMesh(dotGeometry,material('#248cff',.5),waveCount);mesh.name=`Radar wave ${i+1}`;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.frustumCulled=false;mesh.renderOrder=4;scan.add(mesh);return mesh;
+ const radarGeometry=new THREE.CircleGeometry(1,128),radarTexture=createRadarTexture();
+ const waves=Array.from({length:2},(_,i)=>{
+  const mat=material('#ffffff');mat.map=radarTexture;
+  const mesh=new THREE.Mesh(radarGeometry,mat);mesh.name=`Radar expanding gradient ${i+1}`;mesh.rotation.x=-Math.PI/2;mesh.renderOrder=4;scan.add(mesh);return mesh;
  });
  group.traverse(o=>{if(o.isMesh)o.userData.displayOverlay=true;});
  return {update(ms){
@@ -81,19 +94,17 @@ export function createParkingGraphics(world,plan){
   const scanFade=1-smooth((ms-parkingDetectionMs)/450);
   scan.visible=scanFade>0;scan.position.set(pose.x,world.car.position.y+.04,pose.z);
   // Ground geometry follows the vehicle, so every camera sees the same physical
-  // footprint and the car naturally occludes wave points underneath its body.
+  // footprint and the car naturally occludes the scan beneath its body.
   scan.quaternion.copy(world.car.quaternion);
   if(scan.visible)for(let w=0;w<waves.length;w++){
-   const wave=waves[w],phase=(ms/1850+w/3)%1,radius=.12+phase*3.4;
-   const halfWidth=(world.car.userData.vehicleSpec?.width||2)*.5,halfLength=(world.car.userData.vehicleSpec?.length||4.85)*.47;
-   wave.material.opacity=smooth(ms/280)*smooth(phase/.1)*Math.pow(1-phase,1.1)*scanFade*(world.state?.mode==='dark'?.78:.64);
-   for(let i=0;i<waveCount;i++){
-    const angle=i/waveCount*Math.PI*2;
-    dotMatrix.setPosition(Math.cos(angle)*(halfWidth+radius),0,Math.sin(angle)*(halfLength+radius));wave.setMatrixAt(i,dotMatrix);
-   }
-   wave.instanceMatrix.needsUpdate=true;
+   const wave=waves[w],phase=(ms/2200+w/2)%1,radius=(world.car.userData.vehicleSpec?.length||4.85)*.83;
+   const strength=smooth(ms/350)*scanFade*(world.state?.mode==='dark'?.90:.82);
+   // Every sheet expands and reaches zero opacity before wrapping to its origin.
+   // The hollow texture leaves no permanent filled blue disc beneath the waves.
+   wave.scale.setScalar(radius*(.5+phase*.70));
+   wave.material.opacity=strength*smooth(phase/.12)*(1-smooth((phase-.32)/.68))*.88;
   }
- },dispose(){group.removeFromParent();const geometries=new Set();group.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.isInstancedMesh)o.dispose();});for(const geometry of geometries)geometry.dispose();for(const mat of new Set([cyan,fill,guidanceMaterial,...waves.map(w=>w.material)]))mat.dispose();}};
+ },dispose(){group.removeFromParent();const geometries=new Set();group.traverse(o=>{if(o.geometry)geometries.add(o.geometry);});for(const geometry of geometries)geometry.dispose();for(const mat of new Set([cyan,fill,guidanceMaterial,...waves.map(w=>w.material)]))mat.dispose();radarTexture.dispose();}};
 }
 
 export function initParkingHmi(preview){

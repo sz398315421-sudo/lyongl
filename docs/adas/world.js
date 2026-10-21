@@ -9,7 +9,7 @@ import {buildParkedVehicles,syncParkedVehicles,refreshParkedVehicleModels,releas
 import * as THREE from 'three';
 import {disposeVehicle} from './dispose-vehicle.js';
 import {createContactShadows,updateContactShadows} from './contact-shadows.js';
-import {createRoadGuidance} from './road-assist.js';
+import {createRoadGuidance,junctionApproachX,normalizeJunctionLane} from './road-assist.js';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
@@ -438,7 +438,7 @@ export class World {
   this.dividedRoad=null;this.root=new THREE.Group();this.scene.add(this.root);this.vegetation=new THREE.Group();this.root.add(this.vegetation);this.lawns=[];this.current=id;this.parkingBays=[];this.parkingColumns=[];this.buildingPlacements=[];this.waterBounds=null;this.rampDimensions=null;this.roadworkZone=null;this.pedestrianPassages=[];this.junctionDimensions=null;this.parkingReplica=null;this.parkedVehicleGroup=null;this.parkedVehicles=[];this.parkingGhostMaterials=[];
   const urban=['02','05','08','09','13'].includes(id),w=['02','09','13'].includes(id)&&options.laneCount?options.laneCount*3.7:['04','09'].includes(id)?7.4:urban?22.2:11.1,deck=id==='03'?ELEVATED_DECK_HEIGHT:0;
   if(!parkingIds.includes(id))this.plane(20000,20000,0,-1000,-.14,'ground');
-  let carX=urban||id==='04'?1.85:0;let carZ=0;let roadEnd=-260;
+  let carX=['05','08'].includes(id)?junctionApproachX(id,options.junctionLane):urban||id==='04'?1.85:0;let carZ=0;let roadEnd=-260;
   if(id==='08'||id==='05'){roadEnd=-40;carZ=id==='05'?-17.5:-10;}
   if(id==='10')roadEnd=-150;
   if(id==='03'){
@@ -515,6 +515,7 @@ export class World {
   }
  }
  configureCamera(id,options){
+  if(['05','08'].includes(id))this.car.position.x=junctionApproachX(id,options.junctionLane);
   const road=['02','09','13'].includes(id),key=JSON.stringify([options.cameraView,this.car.position.toArray(),this.car.rotation.toArray()]);
   const cached=road&&this.roadCameraCache.get(key);
   if(cached){this.applyCamera(cached);this.framing=cached.framing;return;}
@@ -540,10 +541,10 @@ export class World {
   this.framing=anchorVehicle(this.car,this.camera,(['14','16','18','19'].includes(id)||options.cameraView==='high')?'high':'low');
   if(road)this.roadCameraCache.set(key,this.captureCamera());
  }
- update({id,mode,trees,vehicle,parkedCars=true,buildings=true,waterfront=id==='13',roadworks=id==='12',laneCount,cameraView='low',junctionPosition='near'},{cameraMotion=false,environmentMotion=false,layoutMotion=false,structureMotion=false,layoutPhase=false,deferRender=false}={}){
+ update({id,mode,trees,vehicle,parkedCars=true,buildings=true,waterfront=id==='13',roadworks=id==='12',laneCount,cameraView='low',junctionPosition='near',junctionLane},{cameraMotion=false,environmentMotion=false,layoutMotion=false,structureMotion=false,layoutPhase=false,deferRender=false}={}){
   if(id==='13')id=laneCount===2?'09':'02';
-  if(['05','08'].includes(id))cameraView=junctionPosition==='near'?'high':'low';
-  const requested={id,mode,trees,vehicle,parkedCars,buildings,waterfront,roadworks,laneCount,cameraView,junctionPosition};
+  if(['05','08'].includes(id)){cameraView=junctionPosition==='near'?'high':'low';junctionLane=normalizeJunctionLane(id,junctionLane);}
+  const requested={id,mode,trees,vehicle,parkedCars,buildings,waterfront,roadworks,laneCount,cameraView,junctionPosition,junctionLane};
   const structureFamily=value=>['05','08'].includes(value)?'junction':null;
   if(!layoutPhase&&this.layoutTransition?.kind==='structure'&&structureFamily(id)===this.layoutTransition.family){
    const transition=this.layoutTransition;
@@ -573,10 +574,10 @@ export class World {
   if(!layoutPhase)for(const m of this.laneMaterials.values())m.opacity=1;
   this.stopCameraMotion();
   this.stopEnvironmentMotion();
-  const options={buildings,waterfront,roadworks,laneCount,cameraView,junctionPosition,palette:this.palette};
+  const options={buildings,waterfront,roadworks,laneCount,cameraView,junctionPosition,junctionLane,palette:this.palette};
   const geometryChanged=id!==this.current||!this.options||['laneCount','palette'].some(key=>options[key]!==this.options[key]);
   if(geometryChanged)this.build(id,options);
-  else if(this.vehicleNeedsFraming||cameraView!==this.options.cameraView||junctionPosition!==this.options.junctionPosition){this.options=options;this.configureCamera(id,options);}
+  else if(this.vehicleNeedsFraming||cameraView!==this.options.cameraView||junctionPosition!==this.options.junctionPosition||junctionLane!==this.options.junctionLane){this.options=options;this.configureCamera(id,options);}
   this.vehicleNeedsFraming=false;this.options=options;
   const dark=mode==='dark',idx=dark?1:0,isParking=parkingIds.includes(id),isIndoor=['10','14','15','16'].includes(id),vegetated=trees&&catalog.find(s=>s.id===id).trees;
   for(const [key,pair]of Object.entries(this.colors)){this.mat[key].color.set(pair[idx]);if(!dark){const c=this.mat[key].color,l=.2126*c.r+.7152*c.g+.0722*c.b;c.lerp(new THREE.Color(l,l,l),.025);}}
@@ -611,7 +612,7 @@ export class World {
    const warm=this.palette==='warm';this.hemi.color.set(this.palette==='balanced'?'#cedded':warm?'#ece8e2':'#e2e5e8');this.fill.color.set(this.palette==='balanced'?'#cbdde9':warm?'#e8e4df':'#dfe3e8');
 
   }
-  this.state={id,mode,trees:vegetated,vehicle,parkedCars:isParking&&parkedCars,buildings,waterfront,roadworks,laneCount,cameraView,junctionPosition};
+  this.state={id,mode,trees:vegetated,vehicle,parkedCars:isParking&&parkedCars,buildings,waterfront,roadworks,laneCount,cameraView,junctionPosition,junctionLane};
   this.environmentTargets={buildings:buildings?1:0,trees:vegetated?1:0,waterfront:waterfront&&!!this.waterBounds?1:0,roadworks:roadworks&&!!this.roadworkZone?1:0};
   if(!environmentMotion||geometryChanged)for(const key of Object.keys(this.environmentGrowth)){
    if(layoutPhase)continue;

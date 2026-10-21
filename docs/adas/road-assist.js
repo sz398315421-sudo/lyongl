@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 
 export const laneWidth=3.7;
+// Default junction movements: straight from the middle lane; right from the curb lane.
+export const normalizeJunctionLane=(id,lane)=>['left','middle','right'].includes(lane)?lane:id==='08'?'right':'middle';
+export const junctionApproachX=(id,lane)=>(['left','middle','right'].indexOf(normalizeJunctionLane(id,lane))+.5)*laneWidth;
+export const junctionDirection=(id,lane)=>{const selected=normalizeJunctionLane(id,lane);return selected==='right'?'right':selected==='left'||id==='08'?'left':'straight';};
 export const guidanceSceneIds=Object.freeze(['02','09','03','05','08','06','07']);
 export const guidanceScenes=Object.freeze(['road','elevated','junction','ramp']);
 export const defaultGuidanceColor='#1f6bf5';
@@ -55,11 +59,16 @@ export function createGuidanceMaterial(color=defaultGuidanceColor){
  });
 }
 
-function sampleTeeGuidance(x,z,ahead){
-  const radius=9,turnZ=-38.15+radius,approach=z-turnZ;
+function sampleJunctionGuidance(id,lane,x,z,ahead){
+  const direction=junctionDirection(id,lane);
+  if(direction==='straight')return {x,z:z-ahead,yaw:0};
+  const right=direction==='right',middle=normalizeJunctionLane(id,lane)==='middle';
+  // Parallel left arcs join their matching westbound lanes; right turns join the curb lane.
+  const radius=right?6:12+(middle?laneWidth:0),exitZ=right?-40+2.5*laneWidth:-40-(middle?1.5:.5)*laneWidth,sign=right?1:-1;
+  const turnZ=exitZ+radius,approach=z-turnZ;
   if(ahead>approach){
    const distance=ahead-approach,arc=radius*Math.PI/2,angle=Math.min(distance/radius,Math.PI/2);
-   return {x:x+radius*(1-Math.cos(angle))+Math.max(0,distance-arc),z:turnZ-radius*Math.sin(angle),yaw:-angle};
+   return {x:x+sign*(radius*(1-Math.cos(angle))+Math.max(0,distance-arc)),z:turnZ-radius*Math.sin(angle),yaw:-sign*angle};
   }
   return {x,z:z-ahead,yaw:0};
 }
@@ -68,11 +77,10 @@ export function sampleDrivingGuidance(world,ahead){
  const {car,state,roadGuidePath:plan}=world;
  if(plan&&guidanceSceneIds.includes(state?.id)){
   const distance=(plan.travelled||0)+ahead;
-  if(state.id==='08'&&distance>plan.distance)return sampleTeeGuidance(plan.targetX,plan.startZ-plan.distance,distance-plan.distance);
+  if(['05','08'].includes(state.id)&&distance>plan.distance)return sampleJunctionGuidance(state.id,state.junctionLane,plan.targetX,plan.startZ-plan.distance,distance-plan.distance);
   return sampleLanePath(plan,distance);
  }
- // Continue from the changed lane into the T junction's right-hand cross street.
- if(state?.id==='08')return sampleTeeGuidance(car.position.x,car.position.z,ahead);
+ if(['05','08'].includes(state?.id))return sampleJunctionGuidance(state.id,state.junctionLane,car.position.x,car.position.z,ahead);
  const yaw=car.rotation.y;
  return {x:car.position.x-Math.sin(yaw)*ahead,z:car.position.z-Math.cos(yaw)*ahead,yaw};
 }

@@ -86,7 +86,13 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
   trip={...sceneTrips[scene],distance,laneChange:{startX:base.carPosition.x,startZ:base.carPosition.z,targetX:info.centers[target],distance,fromLane:info.index+1,toLane:target+1,direction:direction<0?'left':'right'}};
   elapsedMs=0;lastTime=null;status='planned';apply();notify();return true;
  }
- return {play,changeLane,pause,reset,snapshot,get active(){return !!base;}};
+ function seek(milliseconds,{notifyChange=true,status:nextStatus='paused'}={}){
+  if(!trip||world.root!==root||world.suspended||!Number.isFinite(milliseconds))return false;
+  cancel();elapsedMs=Math.max(0,Math.min(trip.durationMs,milliseconds));
+  status=elapsedMs>=trip.durationMs?'finished':nextStatus==='planned'&&elapsedMs===0?'planned':'paused';
+  apply();if(notifyChange)notify();return true;
+ }
+ return {play,changeLane,pause,reset,seek,snapshot,get active(){return !!base;}};
 }
 
 export function initScenePlaybackControls({onToggle,onReset}){

@@ -363,3 +363,7 @@ main { flex:0 0 auto; }
   .workspace .scene-options #road-controls .option-label { width:auto; }
   .workspace .scene-options #road-controls .view-segments { flex:0 0 auto; width:100%; }
 }
+
+/* Junction lane choices span the shared settings grid. */
+.workspace #junction-lane-control { grid-column:1/-1; }
+.workspace #junction-lane-control button { white-space:nowrap; }
