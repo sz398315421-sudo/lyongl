@@ -20,7 +20,7 @@ export function assignParkingModels(ids,count=7,random=Math.random){
 
 // Retain selected source models independently of the currently displayed scene.
 // Scene groups also hold their own references until replacement or cache eviction.
-export function createParkingVehiclePool({ids,load,retain,count=3,random=Math.random}){
+export function createParkingVehiclePool({ids,load,retain,count=3,concurrency=count,random=Math.random}){
  let current=null,pending=null,revision=0;
  return {
   get current(){return current;},
@@ -35,7 +35,7 @@ export function createParkingVehiclePool({ids,load,retain,count=3,random=Math.ra
     try{
      // Retry a failed selection with another eligible library model.
      for(let start=0;start<candidates.length&&models.length<count;){
-      const batch=candidates.slice(start,start+count-models.length);start+=batch.length;
+      const batch=candidates.slice(start,start+Math.min(Math.max(1,concurrency),count-models.length));start+=batch.length;
       const results=await Promise.allSettled(batch.map(async id=>{
        const release=retain(id);releases.push(release);
        try{return {id,root:await load(id)};}catch(error){release();releases.splice(releases.indexOf(release),1);throw error;}

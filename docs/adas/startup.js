@@ -6,7 +6,7 @@
  const retry=document.createElement('button');retry.type='button';retry.textContent='重试';
  retry.addEventListener('click',()=>{retry.disabled=true;location.reload();});
  feedback.append(message,retry);preview.after(feedback);
- const controls=[...document.querySelectorAll('#scenes,.preview-settings,#scene-picker,#theme-toggle,#download')];
+ const controls=[...document.querySelectorAll('#scenes,.preview-settings,.screen-format-toolbar,#scene-picker,#theme-toggle,#download')];
  const previousInert=controls.map(control=>control.inert);
  controls.forEach(control=>control.inert=true);
  let failed=false,interactive=false;
@@ -36,7 +36,7 @@
  });
  window.addEventListener('studio:error',event=>fail(event.detail?.kind));
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();fail('context');});
- import('./app.bundle.js?v=20261021-mobile-startup-1').catch(error=>{
+ import('./app.bundle.js?v=20261022-default-vehicle-materials-1').catch(error=>{
   console.error('DriveScene startup failed',error);fail(error.code||'startup');
  });
 })();

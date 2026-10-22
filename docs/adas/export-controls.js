@@ -1,4 +1,5 @@
 import {videoFormat} from './video-export.js';
+import {sizeLabel} from './screen-format.js';
 
 export function initExportControls(download,onExport){
  const dialog=document.createElement('dialog');dialog.id='export-dialog';dialog.className='export-dialog';dialog.setAttribute('aria-labelledby','export-dialog-title');dialog.setAttribute('aria-describedby','export-dialog-size');
@@ -30,7 +31,7 @@ export function initExportControls(download,onExport){
  };
  download.addEventListener('click',()=>{
   if(download.disabled||busy||dialog.open)return;
-  previousOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';dialog.dataset.state='entering';dialog.showModal();choices.querySelector('input:checked').focus({preventScroll:true});
+  size.textContent=sizeLabel();previousOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';dialog.dataset.state='entering';dialog.showModal();choices.querySelector('input:checked').focus({preventScroll:true});
   dialog.getBoundingClientRect();
   openingFrame=requestAnimationFrame(()=>{if(dialog.open&&dialog.dataset.state==='entering')dialog.dataset.state='open';});
  });
@@ -48,7 +49,7 @@ export function initExportControls(download,onExport){
  progressDialog.querySelector('button').addEventListener('click',cancel);progressDialog.addEventListener('cancel',event=>{event.preventDefault();cancel();});
  return {
   close,
-  showVideoProgress(onCancel){cancelVideo=onCancel;progressOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';progressDialog.querySelector('progress').value=0;progressDialog.querySelector('.export-progress-value').textContent='0%';progressDialog.showModal();},
+  showVideoProgress(onCancel){cancelVideo=onCancel;progressDialog.querySelector('#video-export-copy').textContent=sizeLabel()+' · 完成后自动下载';progressOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';progressDialog.querySelector('progress').value=0;progressDialog.querySelector('.export-progress-value').textContent='0%';progressDialog.showModal();},
   updateVideoProgress(progress){const percent=Math.round(progress*100),bar=progressDialog.querySelector('progress'),label=progressDialog.querySelector('.export-progress-value');bar.value=percent;if(label.textContent!==percent+'%')label.textContent=percent+'%';},
   hideVideoProgress(){if(progressDialog.open){progressDialog.close();document.documentElement.style.overflow=progressOverflow;}cancelVideo=null;},
   setBusy(value){busy=value;sync();download.setAttribute('aria-busy',String(value));},

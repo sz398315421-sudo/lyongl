@@ -1,7 +1,13 @@
 import * as THREE from 'three';
 
-export const exportSize={width:1920,height:1080};
+import {exportSize} from './screen-format.js';
+export {exportSize} from './screen-format.js';
 export const depthRangeMeters=200;
+
+export function exportReadmeForSize(){
+ return exportReadme.replaceAll('1920 × 1080',`${exportSize.width} × ${exportSize.height}`)
+  .replace('* 960',`* ${exportSize.width/2}`).replace('* 540',`* ${exportSize.height/2}`);
+}
 
 function surfaceHeight(world){
  const meshes=[];
@@ -60,7 +66,7 @@ export function perspectiveSvg(world){
   const points=projectedSegment([car.position.x+start[0],height+.025,car.position.z-18+start[1]],[car.position.x+end[0],height+.025,car.position.z-18+end[1]],camera);
   if(points)arrowLines.push(`<path d="M${points[0].map(value=>value.toFixed(3)).join(' ')}L${points[1].map(value=>value.toFixed(3)).join(' ')}"/>`);
  }
- return `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080"><title>DriveScene 透视参考</title><desc>参考平面与车辆所在路面等高。列间距为 1 米，行间距为 5 米。参考箭头宽 2 米、长 3.5 米，起点位于车辆前方 18 米。参考线不考虑遮挡，也不跟随支路或匝道的几何形状。</desc><g id="ground-grid" fill="none" stroke="#0085ff" stroke-width="1.5">${lines.join('')}</g><g id="reference-arrow" fill="none" stroke="#0085ff" stroke-width="3">${arrowLines.join('')}</g></svg>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="${exportSize.width}" height="${exportSize.height}" viewBox="0 0 ${exportSize.width} ${exportSize.height}"><title>DriveScene 透视参考</title><desc>参考平面与车辆所在路面等高。列间距为 1 米，行间距为 5 米。参考箭头宽 2 米、长 3.5 米，起点位于车辆前方 18 米。参考线不考虑遮挡，也不跟随支路或匝道的几何形状。</desc><g id="ground-grid" fill="none" stroke="#0085ff" stroke-width="1.5">${lines.join('')}</g><g id="reference-arrow" fill="none" stroke="#0085ff" stroke-width="3">${arrowLines.join('')}</g></svg>`;
 }
 
 export function renderDepth(world){

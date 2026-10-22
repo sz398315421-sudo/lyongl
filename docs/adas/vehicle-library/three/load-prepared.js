@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
-import {prepareVehicleMaterials} from './vehicle-materials.js?v=grille-14';
+import {prepareVehicleMaterials} from './vehicle-materials.js?v=default-finish-20261022-1';
 import {vehicleAdditions} from '../vehicle-additions.js';
 import {decompressAsset} from '../../decompress-asset.js';
 import {fetchAsset} from '../../asset-request.js';

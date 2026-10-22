@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {canExitRamp,sampleRampExit} from './ramp-exit.js';
 
 export const laneWidth=3.7;
 // Default junction movements: straight from the middle lane; right from the curb lane.
@@ -30,7 +31,7 @@ export function roadLaneState(world){
  const centers=Array.from({length:count},(_,i)=>centered?(i-1)*laneWidth:(i+.5)*laneWidth);
  const index=centers.reduce((best,x,i)=>Math.abs(world.car.position.x-x)<Math.abs(world.car.position.x-centers[best])?i:best,0);
  const distanceAvailable=scene==='junction'?Math.max(0,world.car.position.z-junctionLaneEndZ):Infinity;
- const ended=world.car.position.z < -185||distanceAvailable<8-1e-6;
+ const ended=world.car.position.z < -185||distanceAvailable<8-1e-6||(centered&&Math.abs(world.car.position.x)>laneWidth*1.5);
  const blocked=target=>{
   if(target<0||target>=count||ended)return true;
   const zone=world.roadworkZone,x=centers[target],z=world.car.position.z;
@@ -77,6 +78,7 @@ export function sampleDrivingGuidance(world,ahead){
  const {car,state,roadGuidePath:plan}=world;
  if(plan&&guidanceSceneIds.includes(state?.id)){
   const distance=(plan.travelled||0)+ahead;
+  if(plan.kind==='ramp-exit')return sampleRampExit(plan,distance);
   if(['05','08'].includes(state.id)&&distance>plan.distance)return sampleJunctionGuidance(state.id,state.junctionLane,plan.targetX,plan.startZ-plan.distance,distance-plan.distance);
   return sampleLanePath(plan,distance);
  }
@@ -113,7 +115,7 @@ export function createRoadGuidance(){
  return api;
 }
 
-export function initRoadAssistControls({onLaneChange,onGuidanceChange,onColorChange,guidance=true,color=defaultGuidanceColor}){
+export function initRoadAssistControls({onLaneChange,onRampExit,onGuidanceChange,onColorChange,guidance=true,color=defaultGuidanceColor}){
  const block=document.createElement('div');block.id='road-assist-control';block.className='environment-control road-assist-control';block.hidden=true;block.setAttribute('aria-labelledby','road-assist-title');
  block.innerHTML='<span id="road-assist-title" class="settings-label">ADAS</span><div class="road-assist-buttons" role="group" aria-label="ADAS 变道方向"><button type="button" id="lane-change-left" aria-label="向左变道"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 17v-3c0-4-6-4-6-8V3m-3 3 3-3 3 3"/></svg>向左变道</button><button type="button" id="lane-change-right" aria-label="向右变道"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17v-3c0-4 6-4 6-8V3m-3 3 3-3 3 3"/></svg>向右变道</button></div><div class="switches"><label class="toggle"><span class="setting-copy"><span class="setting-title">前方引导光带</span></span><input id="road-guidance" type="checkbox" role="switch" aria-label="前方引导光带"><span class="track" aria-hidden="true"></span></label></div>';
  document.getElementById('scene-animation-control').before(block);
@@ -133,18 +135,24 @@ export function initRoadAssistControls({onLaneChange,onGuidanceChange,onColorCha
  straight.innerHTML='<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17V3m-4 4 4-4 4 4"/></svg>直行';
  right.before(straight);straight.addEventListener('click',()=>onLaneChange(0));
  block.querySelector('.road-assist-buttons').setAttribute('aria-label','ADAS 行驶方向');
+ const exitRow=document.createElement('div');exitRow.className='road-assist-buttons ramp-exit-buttons';exitRow.hidden=true;
+ exitRow.innerHTML='<button type="button" id="ramp-exit" aria-label="驶下匝道" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17v-3c0-5 10-3 10-10m-4 3 4-3 3 4"/></svg>驶下匝道</button>';
+ block.querySelector('.road-assist-buttons').after(exitRow);
+ const exit=exitRow.querySelector('button');exit.addEventListener('click',()=>onRampExit?.());
  input.checked=guidance;left.addEventListener('click',()=>onLaneChange(-1));right.addEventListener('click',()=>onLaneChange(1));input.addEventListener('change',()=>onGuidanceChange(input.checked));
  return {sync(scene,ready,snapshot,world){
   block.hidden=!guidanceScenes.includes(scene);if(block.hidden)return;
   block.querySelector('.road-assist-buttons').hidden=scene==='junction';
   straight.hidden=!['road','elevated','ramp'].includes(scene);
+  exitRow.hidden=scene!=='ramp'||world.state?.id!=='06';
   custom.disabled=!ready;for(const button of colors.querySelectorAll('button'))button.disabled=!ready;
   const info=roadLaneState(world),busy=['playing','paused'].includes(snapshot.status),changing=snapshot.laneChange;
   left.disabled=!ready||busy||!info.left;right.disabled=!ready||busy||!info.right;input.disabled=!ready;
   straight.disabled=!ready||busy||info.ended;
-  block.dataset.state=changing?snapshot.status:'idle';
+  exit.disabled=!ready||busy||!canExitRamp(world);exit.setAttribute('aria-pressed',String(!!snapshot.rampExit));
+  block.dataset.state=changing||snapshot.rampExit?snapshot.status:'idle';
   const selected=!!changing&&['planned','playing','paused'].includes(snapshot.status);
   left.setAttribute('aria-pressed',String(selected&&changing.direction==='left'));right.setAttribute('aria-pressed',String(selected&&changing.direction==='right'));
-  straight.setAttribute('aria-pressed',String(selected?changing.direction==='straight':!busy));
+  straight.setAttribute('aria-pressed',String(!snapshot.rampExit&&(selected?changing.direction==='straight':!busy)));
  }};
 }

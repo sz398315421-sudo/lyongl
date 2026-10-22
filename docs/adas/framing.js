@@ -15,6 +15,7 @@ export function vehicleFrame(car,camera,full=false){
 export function anchorVehicle(car,camera,group){
  const target=framingTargets[group],before=vehicleFrame(car,camera),v=camera.view;
  const x=v?.enabled?v.offsetX:0,y=v?.enabled?v.offsetY:0;
- camera.setViewOffset(1920,1080,x,y+(before.bottom-target)*1080,1920,1080);camera.updateMatrixWorld(true);
+ const height=v?.enabled?v.fullHeight:1080,width=v?.enabled?v.fullWidth:height*camera.aspect;
+ camera.setViewOffset(width,height,x,y+(before.bottom-target)*height,width,height);camera.updateMatrixWorld(true);
  return {group,targetBottom:target,viewOffset:{x:camera.view.offsetX,y:camera.view.offsetY},vehicleFrame:{...before,top:before.top-(before.bottom-target),bottom:target,bottomMargin:1-target}};
 }

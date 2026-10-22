@@ -1,12 +1,13 @@
 import * as THREE from 'three';
+import {revealForPreparation} from './preparation-visibility.js';
 
 const yieldToBrowser=()=>new Promise(resolve=>setTimeout(resolve,0));
 
 // Record the actual reflection, shadow and composer passes without drawing.
 // Warm their exact shader variants in small tasks, including uniform discovery.
 export async function prepareRenderer(world){
- const {renderer,scene}=world,jobs=[],seen=new Set(),hidden=[],contexts=new Map(),targets=new Map();
- scene.traverse(object=>{if(!object.visible){hidden.push(object);object.visible=true;}});
+ const {renderer,scene}=world,jobs=[],seen=new Set(),contexts=new Map(),targets=new Map();
+ const restoreVisibility=revealForPreparation(world.root,world.state.parkedCars?null:world.parkedVehicleGroup);
  const draw=renderer.renderBufferDirect;
  renderer.renderBufferDirect=(camera,targetScene,geometry,material,object)=>{
   const target=renderer.getRenderTarget();
@@ -37,7 +38,7 @@ export async function prepareRenderer(world){
   }
   jobs.push({camera,scene:contexts.get(targetScene),target:warmTarget,proxy,material:copy});
  };
- try{world.renderFrame();}finally{renderer.renderBufferDirect=draw;for(const object of hidden)object.visible=false;renderer.shadowMap.needsUpdate=true;}
+ try{world.renderFrame();}finally{renderer.renderBufferDirect=draw;restoreVisibility();renderer.shadowMap.needsUpdate=true;}
  await yieldToBrowser();
  world.preparedMaterials=jobs.map(job=>job.material);
  let sliceStart=performance.now();

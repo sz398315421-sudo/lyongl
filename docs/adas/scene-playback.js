@@ -1,4 +1,5 @@
 import {roadLaneState,sampleLanePath,junctionLaneEndZ} from './road-assist.js';
+import {canExitRamp,sampleRampExit,rampExitDurationMs} from './ramp-exit.js';
 import {planParking,sampleParkingPose,createParkingGraphics,parkingDurationMs} from './parking-maneuver.js';
 
 // Finite forward trips stay inside each authored environment. The camera and
@@ -12,7 +13,7 @@ export const sceneTrips=Object.freeze(Object.fromEntries(Object.entries({
 
 export function createScenePlayback(world,{requestFrame=callback=>requestAnimationFrame(callback),cancelFrame=id=>cancelAnimationFrame(id),onChange=()=>{}}={}){
  let status='idle',scene=null,trip=null,base=null,origin=null,root=null,elapsedMs=0,frame=0,lastTime=null,parkingGraphics=null;
- const snapshot=()=>({scene,status,progress:trip?elapsedMs/trip.durationMs:0,elapsedMs,durationMs:trip?.durationMs||sceneTripDurationMs,distanceMeters:trip?.distance||0,parking:trip?.parking?sampleParkingPose(trip.parking,elapsedMs):null,laneChange:trip?.laneChange?{direction:trip.laneChange.direction,fromLane:trip.laneChange.fromLane,toLane:trip.laneChange.toLane}:null});
+ const snapshot=()=>({scene,status,progress:trip?elapsedMs/trip.durationMs:0,elapsedMs,durationMs:trip?.durationMs||sceneTripDurationMs,distanceMeters:trip?.distance||0,parking:trip?.parking?sampleParkingPose(trip.parking,elapsedMs):null,rampExit:!!trip?.rampExit,laneChange:trip?.laneChange?{direction:trip.laneChange.direction,fromLane:trip.laneChange.fromLane,toLane:trip.laneChange.toLane}:null});
  const notify=()=>onChange(snapshot());
  const cancel=()=>{if(frame)cancelFrame(frame);frame=0;lastTime=null;};
  function apply(){
@@ -24,6 +25,15 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
   const t=Math.min(1,elapsedMs/trip.durationMs),ease=t*t*t*(t*(t*6-15)+10),distance=trip.distance*ease;
   const pose={...base,position:base.position.clone().addScaledVector(base.forward,distance),carPosition:base.carPosition.clone().addScaledVector(base.forward,distance),aim:base.aim.clone().addScaledVector(base.forward,distance)};
   world.car.quaternion.copy(base.carQuaternion);
+  if(trip.rampExit){
+   const point=sampleRampExit(trip.rampExit,distance);
+   pose.carPosition.set(point.x,base.carPosition.y,point.z);world.car.rotateY(point.yaw);
+   const turn=world.car.quaternion.clone().multiply(base.carQuaternion.clone().invert());
+   pose.position.copy(base.position).sub(base.carPosition).applyQuaternion(turn).add(pose.carPosition);
+   pose.aim.copy(base.aim).sub(base.carPosition).applyQuaternion(turn).add(pose.carPosition);
+   pose.quaternion=base.quaternion.clone().premultiply(turn);
+   world.roadGuidePath={...trip.rampExit,travelled:distance};
+  }
   if(trip.laneChange){
    const point=sampleLanePath(trip.laneChange,distance),offset=point.x-base.carPosition.x;
    pose.carPosition.x+=offset;pose.position.x+=offset;pose.aim.x+=offset;world.car.rotateY(point.yaw);
@@ -55,7 +65,7 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
  function play(key){
   if(!sceneTrips[key]||world.suspended)return false;
   if(status==='playing')return true;
-  if(scene===key&&world.root===root&&status==='finished'&&trip.laneChange){
+  if(scene===key&&world.root===root&&status==='finished'&&(trip.laneChange||trip.rampExit)){
    elapsedMs=0;world.applyCamera(base);world.car.quaternion.copy(base.carQuaternion);world.framing=base.framing;apply();
    status='playing';lastTime=null;notify();frame=requestFrame(tick);return true;
   }
@@ -79,6 +89,16 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
   return planDirection(direction);
  }
  function goStraight(){return planDirection(0);}
+ function exitRamp(){
+  if(!canExitRamp(world)||world.suspended||['playing','paused'].includes(status))return false;
+  if(root&&world.root!==root)reset({render:false});
+  root=world.root;scene='ramp';base=world.captureCamera();base.carQuaternion=world.car.quaternion.clone();
+  if(!origin)origin=base;
+  base.forward=base.carPosition.clone().set(0,0,-1);
+  const distance=base.carPosition.z+90;
+  trip={distance,durationMs:rampExitDurationMs,rampExit:{kind:'ramp-exit',startX:base.carPosition.x,startZ:base.carPosition.z,distance}};
+  elapsedMs=0;lastTime=null;status='planned';apply();notify();return true;
+ }
  function planDirection(direction){
   if(world.suspended||['playing','paused'].includes(status))return false;
   const info=roadLaneState(world);
@@ -98,7 +118,7 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
   status=elapsedMs>=trip.durationMs?'finished':nextStatus==='planned'&&elapsedMs===0?'planned':'paused';
   apply();if(notifyChange)notify();return true;
  }
- return {play,changeLane,goStraight,pause,reset,seek,snapshot,get active(){return !!base;}};
+ return {play,changeLane,goStraight,exitRamp,pause,reset,seek,snapshot,get active(){return !!base;}};
 }
 
 export function initScenePlaybackControls({onToggle,onReset}){

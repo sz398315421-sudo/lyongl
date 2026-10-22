@@ -124,11 +124,13 @@ export function prepareVehicleMaterials(model,id,length){
      if(role==='tail'||role==='tail-lens'){m.color.set('#a71724');m.metalness=.15;m.roughness=.26;m.emissive.set('#ff1729');m.emissiveIntensity=role==='tail'?1.1:.12;if(role==='tail-lens'){m.color.set('#5b101b');m.transparent=true;m.opacity=.48;m.depthWrite=false;}}
      if(role==='headlamp'||role==='head-lens'){m.color.set(role==='headlamp'?'#d7e1ec':'#758391');m.metalness=.2;m.roughness=.22;if(role==='headlamp'){m.emissive.set('#dce7f2');m.emissiveIntensity=.2;}else{m.transparent=true;m.opacity=.3;m.depthWrite=false;}}
     }
-    if(id==='model-3'){
-     if(role==='paint'){m.color.set('#edf0f4');m.metalness=.42;m.roughness=.24;m.clearcoat=1;m.clearcoatRoughness=.22;m.envMap=createModel3Reflections();m.envMapIntensity=.8;}
+    // Keep these default exteriors in the same restrained style as Model 3
+    // and X6: pearl white paint, broad soft reflections and dark neutral trim.
+    if(['model-3','clk-gtr','artura','lynk-05'].includes(id)){
+     if(role==='paint'){m.color.set('#edf0f4');m.metalness=.42;m.roughness=.24;m.clearcoat=1;m.clearcoatRoughness=.22;m.envMap=createModel3Reflections();m.envMapIntensity=.8;m.normalMap=null;m.bumpMap=null;}
      if(role==='trim'){m.color.set('#24282d');m.metalness=.08;m.roughness=.58;}
      if(role==='glass'){m.color.set('#202b35');m.metalness=0;m.roughness=.4;m.envMapIntensity=.5;}
-     if(role==='original'&&/cockpit/i.test(original.name)){m.emissive.set(0);m.emissiveIntensity=0;}
+     if(id==='model-3'&&role==='original'&&/cockpit/i.test(original.name)){m.emissive.set(0);m.emissiveIntensity=0;}
     }
     if(id==='xc90'&&role==='glass'){m.normalMap=null;m.bumpMap=null;m.flatShading=false;}
     if(['ix','xc90'].includes(id)){

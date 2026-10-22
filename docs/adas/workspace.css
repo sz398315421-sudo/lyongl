@@ -6,7 +6,7 @@
   --control-surface: #e9ebee;
   --control-hover: #e2e5e9;
   /* Reserve the largest controls footprint so switching scenes never moves the shell. */
-  --workspace-width: min(1280px, calc(clamp(140px, 100dvh - var(--header-height) - 343px, 720px) * 16 / 9));
+  --workspace-width: min(1280px, calc(clamp(140px, 100dvh - var(--header-height) - 343px, 720px) * var(--screen-aspect, 1.7777777778)));
   --desktop-nav-width: 184px;
   --desktop-column-gap: 40px;
   --desktop-gutter: 40px;
@@ -252,7 +252,7 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
 }
 /* On a short desktop or landscape tablet, use its spare width for the controls. */
 @media (min-width:1100px) and (max-height:800px), (min-width:761px) and (max-height:650px) {
-  :root { --shell-width: min(1600px, calc((100dvh - 189px) * 16 / 9 + 528px)); --desktop-nav-width: 160px; --desktop-column-gap: 24px; --desktop-gutter: 24px; }
+  :root { --shell-width: min(1600px, calc((100dvh - 189px) * var(--screen-aspect, 1.7777777778) + 528px)); --desktop-nav-width: 160px; --desktop-column-gap: 24px; --desktop-gutter: 24px; }
   main { padding-top: 16px; }
   .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 272px; gap: 24px; max-width: none; align-items: start; }
   .preview-shell { padding: 0; }
@@ -272,7 +272,7 @@ header:not(.credits-open) .header-backdrop { bottom: 0; }
     --desktop-nav-width: 160px;
     --desktop-column-gap: 24px;
     --desktop-gutter: 24px;
-    --workspace-width: min(1600px, calc(clamp(140px, 100dvh - var(--header-height) - 221px, 900px) * 16 / 9));
+    --workspace-width: min(1600px, calc(clamp(140px, 100dvh - var(--header-height) - 221px, 900px) * var(--screen-aspect, 1.7777777778)));
     --shell-width: min(2048px, calc(var(--workspace-width) + var(--desktop-nav-width) + var(--desktop-column-gap) + var(--desktop-gutter) * 2));
   }
   .workspace .preview-settings {
@@ -367,3 +367,15 @@ main { flex:0 0 auto; }
 /* Junction lane choices span the shared settings grid. */
 .workspace #junction-lane-control { grid-column:1/-1; }
 .workspace #junction-lane-control button { white-space:nowrap; }
+
+.workspace .preview { aspect-ratio:var(--screen-aspect, 1.7777777778); }
+.screen-format-toolbar { display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-bottom:12px; }
+#screen-format-label { color:var(--text-secondary); font-size:12px; font-weight:500; white-space:nowrap; }
+.screen-format-options { width:336px; max-width:336px; min-width:0; flex:0 1 336px; }
+.screen-format-options button { flex:1; min-width:0; white-space:nowrap; padding-inline:8px; font-variant-numeric:tabular-nums; }
+.screen-format-options button:disabled { cursor:wait; }
+@media(max-width:400px) {
+ .screen-format-toolbar { gap:8px; }
+ .screen-format-options { width:auto; flex:1; }
+ .screen-format-options button { padding-inline:4px; font-size:11px; }
+}
