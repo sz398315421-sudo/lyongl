@@ -13,7 +13,6 @@ import {recordCanvasVideo,videoFormat} from './video-export.js';
 import {initVehicleSelector} from './vehicle-selector.js';
 import {createVehiclePreview} from './vehicle-preview.js';
 import {vehicleCatalog,vehicleSpec,nearbyVehicleSpec,vehicleReadme} from './vehicle-catalog.js';
-import {createParkingVehiclePool} from './parking-vehicle-pool.js';
 import {createClayParkingVehiclePool} from './clay-parking-pool.js';
 import {refreshParkedVehicleModels} from './parked-vehicles.js';
 import {loadPreparedVehicle} from './vehicle-library/three/load-prepared.js';
@@ -24,7 +23,6 @@ import {prepareVehicleChoice} from './prepare-vehicle-choice.js';
 import {createScenePlayback,initScenePlaybackControls} from './scene-playback.js';
 import {initRoadAssistControls,roadLaneState,guidanceScenes,normalizeGuidanceColor,defaultGuidanceColor,normalizeJunctionLane,junctionDirection} from './road-assist.js';
 import {initParkingHmi} from './parking-maneuver.js';
-import {prepareGeometrySignatures} from './geometry-signature.js';
 import {setScreenFormat,sizeLabel} from './screen-format.js';
 import {initTrafficFlow} from './traffic-flow.js';
 import {readTrafficSettings,writeTrafficQuery,trafficScenes} from './traffic-simulation.js';
@@ -92,25 +90,15 @@ let roadGuidanceColor=normalizeGuidanceColor(query.get('guideColor'),normalizeGu
 async function loadVehicle(id){const car=await (id==='x6'?createVehicle():loadPreparedVehicle(id,{url:new URL(`./vehicle-library/prepared/${id}/model.glb.gz`,import.meta.url)}));car.userData.vehicleSpec.id=id;return car;}
 const vehicleCache=createVehicleCache({load:loadVehicle,dispose:disposeVehicle,maxEntries:matchMedia('(max-width:760px)').matches?2:4});
 const parkingPool=createClayParkingVehiclePool();
-const trafficModelPool=createParkingVehiclePool({ids:vehicleCatalog.map(model=>model.id),load:async id=>{
- await new Promise(resolve=>setTimeout(resolve,0));
- const car=await vehicleCache.get(id);await prepareChoice(car);await prepareGeometrySignatures(car);return car;
-},retain:id=>vehicleCache.retain(id),count:matchMedia('(max-width:760px)').matches?2:3,concurrency:1});
 let pendingParkingRender=null;
 function needsParkingModels(){return active()?.group==='closed'&&preferences.get(selected).parkedCars;}
 function needsTrafficModels(){return trafficScenes.includes(selected)&&trafficFlow.settings.enabled&&trafficFlow.settings.density>0;}
 function needsNearbyModels(){return needsParkingModels()||needsTrafficModels();}
-function parkingModelsReady(){return (!needsParkingModels()||parkingPool.ready(selectedVehicle))&&(!needsTrafficModels()||trafficModelPool.ready(selectedVehicle)&&trafficFlow.modelsReady(selectedVehicle));}
+function parkingModelsReady(){return !needsNearbyModels()||parkingPool.ready(selectedVehicle)&&(!needsTrafficModels()||trafficFlow.modelsReady(selectedVehicle));}
 async function prepareParkingModels(egoId){
- if(needsParkingModels()||parkingPool.current){
-  const pool=await parkingPool.ensure(egoId);if(!pool)return false;
-  world.parkingVehicleModels=pool.models;world.parkingVehicleAssignment=pool.assignment;
- }
- if(needsTrafficModels()||trafficModelPool.current){
-  const pool=await trafficModelPool.ensure(egoId);if(!pool)return false;
-  trafficFlow.setModels(pool.models,egoId);
- }
- return true;
+ const pool=await parkingPool.ensure(egoId);if(!pool)return false;
+ world.parkingVehicleModels=pool.models;world.parkingVehicleAssignment=pool.assignment;
+ trafficFlow.setModels(pool.models,egoId);return true;
 }
 const readyVehicles=new WeakSet(),warmingVehicles=new WeakMap();let preparationQueue=Promise.resolve();
 function prepareChoice(car){
@@ -197,12 +185,12 @@ const vehicleSelector=initVehicleSelector({selected:selectedVehicle,settings:veh
  syncScenePlayback();
  const release=vehicleCache.retain(id),timings={id,start:performance.now(),cacheHit:!!vehicleCache.peek(id)};let phase=timings.start;const mark=name=>{const now=performance.now();timings[name]=now-phase;phase=now;};
  try{
-  car=await vehicleCache.get(id);mark('load');timings.loader=car.userData.loadTimings;await prepareChoice(car);mark('prepare');restoreVehicleAppearance(previousCar);if(needsNearbyModels()||parkingPool.current||trafficModelPool.current)await prepareParkingModels(id);
+  car=await vehicleCache.get(id);mark('load');timings.loader=car.userData.loadTimings;await prepareChoice(car);mark('prepare');restoreVehicleAppearance(previousCar);if(needsNearbyModels()||parkingPool.current)await prepareParkingModels(id);
   selectedVehicle=id;world.setVehicle(car,{disposePrevious:false,preserveScene:true});mark('replace');world.update(state(),{deferRender:true});mark('update');world.renderFrame();mark('frame');vehicleCache.activate(id);
  }catch(error){
   selectedVehicle=previousId;
   applyVehicleAppearance(previousCar,vehicleSettings);
-  if(parkingPool.current&&!parkingPool.ready(previousId)||trafficModelPool.current&&!trafficModelPool.ready(previousId))await prepareParkingModels(previousId);
+  if(parkingPool.current&&!parkingPool.ready(previousId))await prepareParkingModels(previousId);
   if(car&&world.car===car){world.setVehicle(previousCar,{disposePrevious:false,preserveScene:true});world.update(state(),{deferRender:true});world.renderFrame();}vehicleCache.invalidate(id);
   throw error;
  }finally{release();vehicleChanging=false;render(false);mark('ui');rememberPreview();mark('snapshot');timings.total=performance.now()-timings.start;timings.cache=vehicleCache.stats();if(query.has('qa')){const records=JSON.parse(preview.dataset.vehiclePerformance||'[]');records.push(timings);preview.dataset.vehiclePerformance=JSON.stringify(records.slice(-12));}}
@@ -603,7 +591,7 @@ async function exportAssets(format='image'){
    const metadata=cameraMetadata(world,{sceneName:exportScene,sourceUrl:location.href});metadata.scene.vehicleModel=selectedVehicle;metadata.scene.vehicleSettings={...vehicleSettings};metadata.scene.vehicleAttribution={...vehicleSpec(selectedVehicle)};metadata.scene.parkedVehicles=world.state.parkedCars?world.parkedVehicles:[];metadata.scene.parkedVehicleAttributions=[...new Set(metadata.scene.parkedVehicles.map(car=>car.modelId))].map(id=>({...nearbyVehicleSpec(id)}));metadata.image.file=format==='kit'?'scene.png':name+'.png';metadata.depth.file=format==='kit'?'depth.png':name+'-depth.png';
    if(scenePlayback.active)metadata.scene.animation=scenePlayback.snapshot();
    metadata.scene.traffic=trafficFlow.snapshot();
-   metadata.scene.trafficVehicleAttributions=needsTrafficModels()?metadata.scene.traffic.fleet.models.map(model=>({...vehicleSpec(model.id)})):[];
+   metadata.scene.trafficVehicleAttributions=needsTrafficModels()?metadata.scene.traffic.fleet.models.map(model=>({...nearbyVehicleSpec(model.id)})):[];
    if(guidanceScenes.includes(selected))metadata.scene.roadAssist={guidance:roadGuidanceEnabled,color:roadGuidanceColor,lane:roadLaneState(world).index+1,lanesPerDirection:roadLaneState(world).count,laneChange:scenePlayback.snapshot().laneChange};
    const canvas=document.createElement('canvas');canvas.width=exportSize.width;canvas.height=exportSize.height;
    if(format==='image'||format==='kit')canvas.getContext('2d').drawImage(currentFrame(),0,0);

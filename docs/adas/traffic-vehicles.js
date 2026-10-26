@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import {maxTrafficVehicles,trafficVehicleLength} from './traffic-simulation.js';
 
-// Each instance is the supplied model's original geometry and material. Only
-// the object transforms change; no traffic-specific body, paint or trim is made.
+// Each instance reuses its source template's geometry and material. The app
+// supplies the same gray-white clay templates used by parking neighbors.
 export function createTrafficVehicles(scene,{retain=()=>()=>{}}={}){
  const group=new THREE.Group();group.name='Dynamic traffic';group.visible=false;scene.add(group);
  const pose=new THREE.Object3D(),matrix=new THREE.Matrix4();
@@ -66,7 +66,7 @@ export function createTrafficVehicles(scene,{retain=()=>()=>{}}={}){
  }
  return {group,setModels,update,ready(id){return templates.length>0&&egoId===id;},
   modelId(carId){return templates[assignments.get(carId)]?.id||null;},
-  audit(){return {source:'provided-vehicle-library',models:templates.map(template=>({id:template.id,length:template.length,width:template.width,meshes:template.parts.length})),renderedCount:templates.reduce((count,template)=>count+(template.parts[0]?.mesh.count||0),0)};},
+  audit(){return {source:'shared-nearby-clay-models',appearance:'clay',models:templates.map(template=>({id:template.id,length:template.length,width:template.width,meshes:template.parts.length})),renderedCount:templates.reduce((count,template)=>count+(template.parts[0]?.mesh.count||0),0)};},
   dispose(){release(templates);templates=[];assignments.clear();group.removeFromParent();}
  };
 }
