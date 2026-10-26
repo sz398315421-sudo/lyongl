@@ -1,0 +1,49 @@
+{
+  "author": "Quaternius",
+  "license": "CC0-1.0",
+  "source": "https://quaternius.itch.io/lowpoly-cars",
+  "models": [
+    {
+      "id": "sedan",
+      "file": "NormalCar1",
+      "name": "轿车",
+      "length": 4.5,
+      "triangles": 2954,
+      "bytes": 61186,
+      "size": [
+        1.9269522428512573,
+        1.2544326782226562,
+        4.5
+      ],
+      "sha256": "8bbdd9fdcefda20b9ff7a5e6ab3828ad967f6e364a73f9b76101de26810097c3"
+    },
+    {
+      "id": "hatchback",
+      "file": "NormalCar2",
+      "name": "两厢车",
+      "length": 4.15,
+      "triangles": 3124,
+      "bytes": 65423,
+      "size": [
+        2.0544815063476562,
+        1.4365098476409912,
+        4.150000095367432
+      ],
+      "sha256": "ddcd9d25b485227ac089830db58bab1601e2e94164ed016bab9faa257fb62c25"
+    },
+    {
+      "id": "suv",
+      "file": "SUV",
+      "name": "SUV",
+      "length": 4.75,
+      "triangles": 3294,
+      "bytes": 70070,
+      "size": [
+        2.3822531700134277,
+        1.7240889072418213,
+        4.75
+      ],
+      "sha256": "30244bf51c0a557e7d66a139f6fab89cc026516343a3f314e56a2f6f1f8f8d96"
+    }
+  ]
+}

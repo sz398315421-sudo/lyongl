@@ -12,8 +12,9 @@ import {canvasPng,depthPng,zipFiles,downloadFile} from './export-files.js';
 import {recordCanvasVideo,videoFormat} from './video-export.js';
 import {initVehicleSelector} from './vehicle-selector.js';
 import {createVehiclePreview} from './vehicle-preview.js';
-import {vehicleCatalog,vehicleSpec,vehicleReadme} from './vehicle-catalog.js';
+import {vehicleCatalog,vehicleSpec,nearbyVehicleSpec,vehicleReadme} from './vehicle-catalog.js';
 import {createParkingVehiclePool} from './parking-vehicle-pool.js';
+import {createClayParkingVehiclePool} from './clay-parking-pool.js';
 import {refreshParkedVehicleModels} from './parked-vehicles.js';
 import {loadPreparedVehicle} from './vehicle-library/three/load-prepared.js';
 import {savePreviewSnapshot,savePreviewSnapshotAsync,previewSnapshotKey,previewSnapshotSearch} from './preview-snapshot.js';
@@ -90,7 +91,8 @@ let savedGuidanceColor;try{savedGuidanceColor=localStorage.getItem('sr-guidance-
 let roadGuidanceColor=normalizeGuidanceColor(query.get('guideColor'),normalizeGuidanceColor(savedGuidanceColor));
 async function loadVehicle(id){const car=await (id==='x6'?createVehicle():loadPreparedVehicle(id,{url:new URL(`./vehicle-library/prepared/${id}/model.glb.gz`,import.meta.url)}));car.userData.vehicleSpec.id=id;return car;}
 const vehicleCache=createVehicleCache({load:loadVehicle,dispose:disposeVehicle,maxEntries:matchMedia('(max-width:760px)').matches?2:4});
-const parkingPool=createParkingVehiclePool({ids:vehicleCatalog.map(model=>model.id),load:async id=>{
+const parkingPool=createClayParkingVehiclePool();
+const trafficModelPool=createParkingVehiclePool({ids:vehicleCatalog.map(model=>model.id),load:async id=>{
  await new Promise(resolve=>setTimeout(resolve,0));
  const car=await vehicleCache.get(id);await prepareChoice(car);await prepareGeometrySignatures(car);return car;
 },retain:id=>vehicleCache.retain(id),count:matchMedia('(max-width:760px)').matches?2:3,concurrency:1});
@@ -98,10 +100,17 @@ let pendingParkingRender=null;
 function needsParkingModels(){return active()?.group==='closed'&&preferences.get(selected).parkedCars;}
 function needsTrafficModels(){return trafficScenes.includes(selected)&&trafficFlow.settings.enabled&&trafficFlow.settings.density>0;}
 function needsNearbyModels(){return needsParkingModels()||needsTrafficModels();}
-function parkingModelsReady(){return !needsNearbyModels()||parkingPool.ready(selectedVehicle)&&(!needsTrafficModels()||trafficFlow.modelsReady(selectedVehicle));}
+function parkingModelsReady(){return (!needsParkingModels()||parkingPool.ready(selectedVehicle))&&(!needsTrafficModels()||trafficModelPool.ready(selectedVehicle)&&trafficFlow.modelsReady(selectedVehicle));}
 async function prepareParkingModels(egoId){
- const pool=await parkingPool.ensure(egoId);if(!pool)return false;
- world.parkingVehicleModels=pool.models;world.parkingVehicleAssignment=pool.assignment;trafficFlow.setModels(pool.models,egoId);return true;
+ if(needsParkingModels()||parkingPool.current){
+  const pool=await parkingPool.ensure(egoId);if(!pool)return false;
+  world.parkingVehicleModels=pool.models;world.parkingVehicleAssignment=pool.assignment;
+ }
+ if(needsTrafficModels()||trafficModelPool.current){
+  const pool=await trafficModelPool.ensure(egoId);if(!pool)return false;
+  trafficFlow.setModels(pool.models,egoId);
+ }
+ return true;
 }
 const readyVehicles=new WeakSet(),warmingVehicles=new WeakMap();let preparationQueue=Promise.resolve();
 function prepareChoice(car){
@@ -120,7 +129,7 @@ $('scene-canvas').addEventListener('webglcontextlost',()=>{
  world.suspended=true;world.clearLayoutTransition();world.stopCameraMotion();world.stopEnvironmentMotion();world.stopLayoutMotion(false);
  scenePlayback.pause();syncScenePlayback();
 });
-world.retainVehicle=id=>vehicleCache.retain(id);
+world.retainVehicle=id=>vehicleCatalog.some(model=>model.id===id)?vehicleCache.retain(id):()=>{};
 world.vehicleSettings=vehicleSettings;
 world.initializingScene=true;
 world.roadGuidance.enabled=roadGuidanceEnabled;
@@ -188,12 +197,12 @@ const vehicleSelector=initVehicleSelector({selected:selectedVehicle,settings:veh
  syncScenePlayback();
  const release=vehicleCache.retain(id),timings={id,start:performance.now(),cacheHit:!!vehicleCache.peek(id)};let phase=timings.start;const mark=name=>{const now=performance.now();timings[name]=now-phase;phase=now;};
  try{
-  car=await vehicleCache.get(id);mark('load');timings.loader=car.userData.loadTimings;await prepareChoice(car);mark('prepare');restoreVehicleAppearance(previousCar);if(needsNearbyModels()||parkingPool.current)await prepareParkingModels(id);
+  car=await vehicleCache.get(id);mark('load');timings.loader=car.userData.loadTimings;await prepareChoice(car);mark('prepare');restoreVehicleAppearance(previousCar);if(needsNearbyModels()||parkingPool.current||trafficModelPool.current)await prepareParkingModels(id);
   selectedVehicle=id;world.setVehicle(car,{disposePrevious:false,preserveScene:true});mark('replace');world.update(state(),{deferRender:true});mark('update');world.renderFrame();mark('frame');vehicleCache.activate(id);
  }catch(error){
   selectedVehicle=previousId;
   applyVehicleAppearance(previousCar,vehicleSettings);
-  if(parkingPool.current&&!parkingPool.ready(previousId))await prepareParkingModels(previousId);
+  if(parkingPool.current&&!parkingPool.ready(previousId)||trafficModelPool.current&&!trafficModelPool.ready(previousId))await prepareParkingModels(previousId);
   if(car&&world.car===car){world.setVehicle(previousCar,{disposePrevious:false,preserveScene:true});world.update(state(),{deferRender:true});world.renderFrame();}vehicleCache.invalidate(id);
   throw error;
  }finally{release();vehicleChanging=false;render(false);mark('ui');rememberPreview();mark('snapshot');timings.total=performance.now()-timings.start;timings.cache=vehicleCache.stats();if(query.has('qa')){const records=JSON.parse(preview.dataset.vehiclePerformance||'[]');records.push(timings);preview.dataset.vehiclePerformance=JSON.stringify(records.slice(-12));}}
@@ -591,7 +600,7 @@ async function exportAssets(format='image'){
   const name=frameName(),exportScene=selected,exportTheme=mode;
   try{
    world.setResolution(exportSize.width,exportSize.height);world.update(state());
-   const metadata=cameraMetadata(world,{sceneName:exportScene,sourceUrl:location.href});metadata.scene.vehicleModel=selectedVehicle;metadata.scene.vehicleSettings={...vehicleSettings};metadata.scene.vehicleAttribution={...vehicleSpec(selectedVehicle)};metadata.scene.parkedVehicles=world.state.parkedCars?world.parkedVehicles:[];metadata.scene.parkedVehicleAttributions=[...new Set(metadata.scene.parkedVehicles.map(car=>car.modelId))].map(id=>({...vehicleSpec(id)}));metadata.image.file=format==='kit'?'scene.png':name+'.png';metadata.depth.file=format==='kit'?'depth.png':name+'-depth.png';
+   const metadata=cameraMetadata(world,{sceneName:exportScene,sourceUrl:location.href});metadata.scene.vehicleModel=selectedVehicle;metadata.scene.vehicleSettings={...vehicleSettings};metadata.scene.vehicleAttribution={...vehicleSpec(selectedVehicle)};metadata.scene.parkedVehicles=world.state.parkedCars?world.parkedVehicles:[];metadata.scene.parkedVehicleAttributions=[...new Set(metadata.scene.parkedVehicles.map(car=>car.modelId))].map(id=>({...nearbyVehicleSpec(id)}));metadata.image.file=format==='kit'?'scene.png':name+'.png';metadata.depth.file=format==='kit'?'depth.png':name+'-depth.png';
    if(scenePlayback.active)metadata.scene.animation=scenePlayback.snapshot();
    metadata.scene.traffic=trafficFlow.snapshot();
    metadata.scene.trafficVehicleAttributions=needsTrafficModels()?metadata.scene.traffic.fleet.models.map(model=>({...vehicleSpec(model.id)})):[];
