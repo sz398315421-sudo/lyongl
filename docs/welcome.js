@@ -15,8 +15,8 @@ function waitForHero() {
     const finish = () => {clearTimeout(timeout);document.removeEventListener('portfolio:scene-settled', finish);resolve();};
     document.addEventListener('portfolio:scene-settled', finish, {once:true});
     const timeout = setTimeout(() => {
-      // A failed or stalled scene remains static for this visit, avoiding a late
-      // swap after the visitor has already entered.
+      // Allow entry without cancelling a slow scene download. The host accepts
+      // a later ready message and restores the interactive courtyard.
       host.dataset.sceneState = 'fallback';
       document.querySelector('.hero').classList.add('scene-fallback');
       document.dispatchEvent(new Event('portfolio:scene-fallback'));

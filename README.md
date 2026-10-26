@@ -14,6 +14,8 @@
 
 探索中的独立项目保留原文件和地址：[ADAS 场景](https://lyongl.xyz/adas/)、[路有谱](https://lyongl.xyz/luyoupu/)、[CHROMAFALL](https://lyongl.xyz/danmugame/)、[星际外勤](https://lyongl.xyz/game-demo2/)。后续更新作品集时保留这些目录、旧的共享 `docs/assets/` 文件及 `docs/CNAME`，不要清空整个 `docs/`。`docs/.nojekyll` 让 Pages 直接提供静态资源。
 
+2026-10-27 修复首屏慢速加载：20 秒后允许静态浏览，但继续加载庭院，完成后自动恢复动态场景；确认失败时提供重试。首页和深链接统一使用带版本号的脚本及样式。回归检查：`node --test tests/scene-recovery.test.mjs`。
+
 ## 弹幕小游戏
 
 [打开 CHROMAFALL · 霓虹颜料领地](https://lyongl.xyz/danmugame/)

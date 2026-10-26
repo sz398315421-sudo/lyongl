@@ -60,7 +60,7 @@ function applyRoute({restore=false,focus=false}={}){
   link.setAttribute('aria-current',active?'page':'false');
  });
  document.querySelector('#home').setAttribute('aria-hidden',String(target!=='home'));
- if(['home','about'].includes(target)&&!heroLoaded){heroLoaded=true;import('./original-hero.js').catch(error=>console.warn('The static courtyard remains available.',error));}
+ if(['home','about'].includes(target)&&!heroLoaded){heroLoaded=true;import('./original-hero.js?v=20261027-scene-recovery').catch(error=>console.warn('The static courtyard remains available.',error));}
  const scroll=target==='projects'&&restore?workScroll:0;
  window.scrollTo({top:scroll,behavior:'instant'});
  document.dispatchEvent(new Event('portfolio:content'));
