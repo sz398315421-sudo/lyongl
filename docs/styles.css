@@ -44,3 +44,7 @@ body.diving{cursor:progress}.diving .hero-copy,.diving .hero-bottom{opacity:0;tr
 .next-project{margin-top:40px;border-top:1px solid #526a6e40;padding:60px 8vw 80px;background:#e3ece473}
 @media(max-width:600px){.in-water .site-header{height:76px}.work{padding-top:55px}.work-heading .eyebrow{font-size:6.5px;letter-spacing:.07em}.project-grid{gap:30px}.detail-header{padding:38px 22px 25px;grid-template-columns:1fr}.detail-header h2{font-size:34px}.detail-gallery{padding:0 14px;gap:22px}.detail-page span{font-size:6px;letter-spacing:0}.next-project{padding:36px 22px 60px;margin-top:25px}.aquatic-world{opacity:.5}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}.water-images{display:none}}
+
+/* Compact English wordmark, shared by every portfolio header. */
+.site-header .wordmark{font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:400;letter-spacing:-.25px;line-height:1;white-space:nowrap}
+.site-header .wordmark sup{font-size:8px;font-weight:400;letter-spacing:0;line-height:1;vertical-align:top;margin:0 0 0 2px;display:inline-block}
