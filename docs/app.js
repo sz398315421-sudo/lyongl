@@ -8,5 +8,5 @@ const projects = [
  {id:'psy',title:'Psy Website',en:'PSY / BRAND WEBSITE',category:'digital',type:'WEB DESIGN · VISUAL IDENTITY',cover:700,images:[700,701,702],description:'以克制的黑白视觉与清晰的版式，构建品牌在线上的表达。通过信息架构与页面设计，让内容形成有节奏的阅读体验。'},
  {id:'huawei',title:'华为 OneStorage',en:'HUAWEI / ONESTORAGE',category:'digital',type:'WEB DESIGN · ENTERPRISE EXPERIENCE',cover:800,images:[800,801,802,803,804],description:'围绕企业级存储产品，构建清晰的产品叙事与网站视觉。用图形、空间与蓝色视觉系统，呈现技术内容。'},
  {id:'visual',title:'视觉实验室',en:'VISUAL / EXPLORATIONS',category:'visual',type:'GRAPHIC DESIGN · CREATIVE EXPLORATION',cover:900,images:[900,901,902,903],description:'在日常项目之外，探索字体、色彩和构图的更多可能。以不同的视觉语言，回应不同的内容与情绪。'},
- {id:'cockpit',title:'座舱 · 更多可能',en:'COCKPIT / FURTHER POSSIBILITIES',category:'hmi',type:'HMI DESIGN · CONCEPT EXPLORATION',cover:1007,images:Array.from({length:10},(_,i)=>1000+i),description:'关于未来出行的持续探索。覆盖仪表、中控与座舱概念，以不同风格研究数字界面的层次、材质与空间感。'}
+ {id:'cockpit',title:'更多视觉探索',en:'MORE VISUAL EXPLORATIONS',category:'hmi',type:'HMI DESIGN · CONCEPT EXPLORATION',cover:1007,images:Array.from({length:10},(_,i)=>1000+i),description:'关于未来出行的持续探索。覆盖仪表、中控与座舱概念，以不同风格研究数字界面的层次、材质与空间感。'}
 ];
