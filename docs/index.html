@@ -11,13 +11,14 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="welcome.css">
-  <link rel="preload" as="image" href="assets/hero-scene.webp" media="(min-width:601px)" fetchpriority="high">
-  <link rel="preload" as="image" href="assets/hero-scene-mobile.webp" media="(max-width:600px)" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/hero-courtyard-poster.webp" media="(min-width:601px) and (max-aspect-ratio:2/1)" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/hero-courtyard-poster-wide.webp" media="(min-width:601px) and (min-aspect-ratio:2/1)" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/hero-courtyard-poster-mobile.webp" media="(max-width:600px)" fetchpriority="high">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
   <link rel="modulepreload" href="water.js?v=20261027-scene-recovery">
   <link rel="modulepreload" href="hero-interactions.js">
   <link rel="stylesheet" href="hero-interactions.css">
-  <link rel="stylesheet" href="original-hero.css?v=20261027-scene-recovery">
+  <link rel="stylesheet" href="original-hero.css?v=20261027-3d-poster">
   <link rel="stylesheet" href="gallery.css">
   <link rel="stylesheet" href="page-views.css">
   <link rel="stylesheet" href="deep-sea.css">
@@ -61,7 +62,7 @@
   </div>
   <main>
     <section class="hero" id="home" aria-labelledby="hero-title">
-      <picture class="hero-fallback" aria-hidden="true"><source media="(max-width:600px)" srcset="assets/hero-scene-mobile.webp"><img src="assets/hero-scene.webp" width="1280" height="720" alt="" fetchpriority="high" decoding="async"></picture>
+      <picture class="hero-fallback" aria-hidden="true"><source media="(max-width:600px)" srcset="assets/hero-courtyard-poster-mobile.webp"><source media="(min-aspect-ratio:2/1)" srcset="assets/hero-courtyard-poster-wide.webp"><img src="assets/hero-courtyard-poster.webp" width="1920" height="1080" alt="" fetchpriority="high" decoding="async"></picture>
       <div id="world" aria-hidden="true"></div><div class="grain" aria-hidden="true"></div>
       <div class="scene-cursor" aria-hidden="true"><span></span></div>
       <div class="hero-copy">

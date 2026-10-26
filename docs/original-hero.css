@@ -4,6 +4,13 @@
 .hero.original-engine-ready h1{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .hero.original-engine-ready>.grain,.hero.original-engine-ready>.scene-cursor,.hero.original-engine-ready:after{display:none}
 .hero.original-engine-ready{cursor:auto}
+.hero.scene-fallback .hero-copy{inset:0;transform:none!important;animation:none;pointer-events:none}
+.hero.scene-fallback .hero-copy>.eyebrow,.hero.scene-fallback .hero-description{display:none}
+.hero.scene-fallback h1{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.hero.scene-fallback>.grain,.hero.scene-fallback>.scene-cursor,.hero.scene-fallback:after{display:none}
+.hero.scene-fallback .hero-fallback img{filter:none}
+.hero.scene-fallback .primary-cta{position:absolute;left:50%;top:60%;transform:translateX(-50%)!important;padding:10px 20px;gap:16px;border:0;box-shadow:none;font-size:12px;line-height:normal;white-space:nowrap}
+@media(max-width:600px){.hero.scene-fallback .primary-cta{font-size:11px}}
 .hero:not(.original-engine-ready):not(.scene-fallback)>.hero-fallback,
 .hero:not(.original-engine-ready):not(.scene-fallback)>.hero-copy{visibility:hidden}
 .hero:not(.original-engine-ready):not(.scene-fallback):before{content:'正在准备场景…';position:absolute;inset:0;display:grid;place-items:center;font-size:12px;letter-spacing:.05em;color:var(--ink);z-index:2;pointer-events:none}
