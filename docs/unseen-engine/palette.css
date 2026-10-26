@@ -1,0 +1,6 @@
+html,body{background:#dddcd9}
+html,body{overscroll-behavior:none;touch-action:pinch-zoom}
+.scene-cta{background:#ffffff;color:#222222}
+.scene-cta:hover{background:#222222;color:#ffffff}
+.scene-cta:focus-visible{outline-color:#222222}
+.scene-cursor{border-color:#222222a0}

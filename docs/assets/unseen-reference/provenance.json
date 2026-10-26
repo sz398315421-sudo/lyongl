@@ -1,0 +1,15 @@
+{
+  "reference": "https://unseen.co/",
+  "source_base": "https://unseen.co/wp-content/themes/unseen/resources/assets/",
+  "retrieved": "2026-10-24",
+  "models": ["models/home/objectsData.glb", "models/home/room-1.glb", "models/home/rocks.glb", "models/home/land-group.glb"],
+  "textures": ["images/home/room-1.ktx2", "images/home/rocks.ktx2", "images/home/pearl-matcap.ktx2", "images/home/skymap-tile.ktx2"],
+  "fonts": ["fonts/NeueMontreal-Regular.woff2", "fonts/SaolDisplay-LightItalic.woff2"],
+  "gallery_models": ["models/project-menu/arch-dc.glb", "models/project-menu/floor-dc.glb"],
+  "gallery_textures": ["images/project-model-matcap.png", "images/gradient-noise.jpg"],
+  "motion_source": "https://unseen.co/wp-content/themes/unseen/public/scripts/theme.js?id=526293d4f0881c97e002ff784275a64b",
+  "motion_modules": ["reference-motion.js", "reference-fluid.js", "reference-gallery.js"],
+  "motion_adaptations": "Original ProjectMenu vertex/fragment shaders (1200-unit bend, 12-unit ripple), four fluid passes, screen spectrum/grain/vignette and HomeContact transition shader. Adapted to Three.js r180: renamed luminance to avoid a built-in name collision; guarded zero-length vectors; explicit color output conversion. DOM pixel-to-world scaling and local portfolio route/canvas integration are new. Native links, accessible content and clear-image fallback are retained.",
+  "clarity_adaptation": "Spectral blur, grain and vignette are restricted to the background pass. Full-resolution portfolio textures render directly to the antialiased display framebuffer at up to 2x DPR, with original geometric bend and fluid displacement. Additive image whitening is removed; image fog begins beyond the foreground plane. Offscreen viewport sizing no longer applies display DPR twice.",
+  "note": "Reference assets and motion code retained for the user's explicit request to use the original effect. Portfolio content is separate. No tracking scripts are loaded."
+}

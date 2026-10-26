@@ -1,0 +1,28 @@
+/* A separate layer keeps the existing portfolio and welcome screen intact. */
+@font-face{font-family:ReferenceMontreal;src:url('assets/unseen-reference/NeueMontreal-Regular.woff2') format('woff2');font-display:swap}
+@font-face{font-family:ReferenceSaol;src:url('assets/unseen-reference/SaolDisplay-LightItalic.woff2') format('woff2');font-style:italic;font-weight:300;font-display:swap}
+.hero-copy{font-family:ReferenceMontreal,var(--sans)}
+.hero h1 em{font-family:ReferenceSaol,var(--serif);font-weight:300}
+.hero-copy{animation:hero-arrive 1.3s .15s both;transform:translate3d(var(--copy-x,0px),var(--copy-y,0px),0);will-change:transform;inset:30% 0 auto}
+.hero h1{font-size:clamp(78px,7.5vw,126px);line-height:.85;margin-bottom:25px}
+.hero h1 em{line-height:1.04}
+.hero-letter{display:inline-block;transform-origin:50% 70%;will-change:transform}
+.hero-description{position:absolute;top:calc(100% + 20px);font-size:10px;margin:0;opacity:.72}
+.hero .grain{opacity:.35}
+.hero-copy .primary-cta{transform:translate3d(var(--magnet-x,0px),var(--magnet-y,0px),0);padding:10px 21px;transition:background .3s,color .3s}
+.hero-copy .primary-cta span{display:inline-block;transition:transform .4s}
+.hero-copy .primary-cta:hover span{transform:translate(2px,2px)}
+.scene-cursor{position:absolute;z-index:5;width:28px;height:28px;border:1px solid #29282570;border-radius:50%;transform:translate(-50%,-50%) scale(.5);pointer-events:none;opacity:0;transition:opacity .25s,transform .35s,border-color .35s;display:grid;place-items:center}
+.scene-cursor span{width:3px;height:3px;background:#292825;border-radius:50%;transition:transform .3s}
+.pointer-active .scene-cursor{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.over-water .scene-cursor{border-color:#fff9;box-shadow:0 0 0 5px #ffffff0a;transform:translate(-50%,-50%) scale(1.3)}
+.over-water .scene-cursor span{background:#fff9}
+.over-text .scene-cursor{transform:translate(-50%,-50%) scale(1.65);border-color:#29282545}
+.exploring .scene-cursor{transform:translate(-50%,-50%) scale(.7)}
+.hero.exploring .hero-copy{opacity:.08;filter:blur(4px)}
+.hero .side-label{font-size:7px;opacity:.65}
+@keyframes hero-arrive{from{opacity:0;translate:0 20px}to{opacity:1;translate:0 0}}
+@media(min-width:901px){.site-header{height:82px;padding-left:28px;padding-right:28px}.hero-bottom{left:28px;right:28px;bottom:26px}}
+@media(max-width:600px){.hero-copy{top:32%;padding:0 12px}.hero h1{font-size:clamp(66px,18.5vw,106px);line-height:.9;margin-bottom:22px}.hero-copy .eyebrow{font-size:8px;margin-bottom:18px}.hero-description{font-size:10px;margin-bottom:21px}.scene-cursor{display:none}.hero .side-label{font-size:6px;right:10px}}
+@media(pointer:coarse){.scene-cursor{display:none}}
+@media(prefers-reduced-motion:reduce){.hero-copy,.hero-letter,.hero-copy .primary-cta{transform:none!important;will-change:auto}.scene-cursor{display:none}.hero.exploring .hero-copy{opacity:1;filter:none}}

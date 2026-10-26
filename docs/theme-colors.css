@@ -1,0 +1,48 @@
+/* Warm plaster, pale sand and mist blue, paired with a monochrome interface. */
+:root{--ink:#222222;--paper:#eae7e2;--pink:#d8cbc3;--line:rgba(34,34,34,.2);--sea:#222222;--ice:#cbd7e8;--coral:#d8cbc3;--apricot:#ded1c5;--muted:#666666}
+::selection{background:#dedede;color:#222222}
+body,.intro-pending{background:var(--paper)}
+.hero,#world,.hero-fallback,.original-scene{background:#dddcd9}
+.hero-fallback img{filter:saturate(.15) hue-rotate(8deg) brightness(1.06)}
+.welcome{--welcome-paper:#e4e1dd}
+.welcome p,.intro-bottom p{color:var(--muted)}
+.eye-lid{fill:#d9cec4;stroke:var(--ink)}
+.welcome-eyes>ellipse{stroke:var(--ink)}
+.welcome-enter,.pill,.menu-toggle{background:#ffffff}
+.welcome-enter:hover,.pill:hover{background:var(--sea);color:#ffffff}
+button:focus-visible,a:focus-visible{outline-color:var(--sea)}
+.menu{background:#e1ddd7;color:var(--ink)}
+.intro .serif-word,.serif-word{color:#555555}
+.portrait-stamp{background:#dbcec2}
+.portrait-wrap>img{background:#d5d8de}
+.contact{background:#d9d6d3}
+.contact .pill{background:#ffffff}
+.contact .pill:hover{background:var(--sea);color:#ffffff}
+.filters{background:#ffffffe6;border-color:#ffffffa8}
+.filters button.active{background:var(--sea);border-color:var(--sea);color:#ffffff}
+.filters button:hover{background:#222222;color:#ffffff}
+.menu-toggle:hover{background:#222222}
+html[data-page] .menu-toggle:hover i{background:#ffffff}
+.project-switch-arrow{background:#ffffff;color:#222222;border-color:#22222233}
+.project-switch:hover .project-switch-arrow{background:#222222;color:#ffffff}
+.sound-toggle,.globe{color:#ffffff}
+.project-open{background:#ffffffe8;color:var(--ink)}
+.project-button:hover .project-open{background:var(--sea);color:#ffffff}
+.project-meta p,.project-index,.archive-end,.next-project small,.detail-page span,.detail-header>div>p:not(.eyebrow){color:var(--muted)}
+html[data-page="projects"] body{background:#dedde0}
+html[data-page="projects"] .site-header,.in-water .site-header{background:#eeece8e6;color:var(--ink)}
+.detail-top{background:#eeece8df;border-color:var(--line)}
+.next-project{background:#ddd9d380}
+#lightbox{background:#222222f7}
+.aquatic-haze{background:radial-gradient(ellipse at 50% 10%,#fbfaf775,transparent 68%),linear-gradient(100deg,#e0e3eb2b,transparent 45%,#f3efe82b)}
+html[data-page="about"] .menu,html[data-page="explore"] .menu,html[data-page="project"] .menu{background:#e1ddd7;color:#222222}
+html[data-page="about"] body,html[data-page="explore"] body,html[data-page="project"] body{--ink:#222222;--line:rgba(34,34,34,.2)}
+html[data-page="about"] .menu-toggle,html[data-page="explore"] .menu-toggle,html[data-page="project"] .menu-toggle{background:#ffffffc9}
+html[data-page="about"] .menu-toggle i,html[data-page="explore"] .menu-toggle i,html[data-page="project"] .menu-toggle i{background:#222222}
+.studio-doorway{background:#ffffffd9;color:#222222}
+.studio-doorway:hover{background:#ffffff}
+.studio-doorway small{color:#666666}
+.studio-doorway>span:first-child{border-color:#22222240}
+html[data-page="about"] .hero-fallback{filter:saturate(.18) brightness(1.04)}
+.explore .experiment-open{background:#ffffff;color:#222222}
+.explore .experiment-card:hover .experiment-open{background:#222222;color:#ffffff}

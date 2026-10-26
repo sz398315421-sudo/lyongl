@@ -1,0 +1,32 @@
+/* Home is a single viewport; the other destinations have their own views. */
+html[data-page="home"],html[data-page="home"] body{
+  height:100%;overflow:hidden;overscroll-behavior:none;
+}
+html[data-page="home"] .site-shell,html[data-page="home"] main{height:100%}
+html[data-page="home"] .hero{
+  height:100vh;height:100dvh;min-height:0;max-height:none;
+  touch-action:pinch-zoom;
+}
+html[data-page="home"] main>:not(#home),
+html[data-page="about"] main>:not(#about){display:none}
+.site-header a[aria-current="page"]:after{transform:scaleX(1)}
+.menu>.eyebrow>span{margin-left:10px;opacity:.65}
+.menu>a:not(.menu-mail){display:flex;align-items:flex-start}
+.menu-label{min-width:0}
+.menu-english{display:inline-block;margin-left:18px;font-size:clamp(16px,1.7vw,26px);letter-spacing:0;line-height:1.4;vertical-align:baseline;opacity:.65}
+@media(max-width:600px){.menu-english{display:block;margin:5px 0 0;font-size:14px}.menu-label{line-height:1.12}}
+/* A single sound control anchors the lower-left corner. */
+.hero-bottom{align-items:center;min-height:36px}
+.hero-bottom .world-link{left:50%;right:auto;transform:translateX(-50%);display:grid;grid-template-columns:40px auto 40px;gap:9px}
+.hero-bottom .world-link>span:first-child{display:block;text-align:right}
+.hero-bottom .world-link>span:last-child{text-align:left}
+.hero-bottom .globe svg{display:block}
+.hero-bottom .sound-toggle{left:0;right:auto;bottom:0}
+.hero-bottom .hero-edition{margin-left:auto;margin-right:0}
+.sound-toggle:hover{background:var(--sea)}
+.sound-toggle:not(.is-playing) .sound-bars{display:none}
+.sound-toggle:not(.is-playing):before{
+  content:'';width:0;height:0;margin-left:2px;
+  border-top:5px solid transparent;border-bottom:5px solid transparent;
+  border-left:8px solid currentColor;
+}

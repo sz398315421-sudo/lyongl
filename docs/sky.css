@@ -1,0 +1,60 @@
+/* Explore floats above the courtyard, between pale blue air and sunlit clouds. */
+html[data-page="explore"] body{background:#e0e5ed;color:#222222;--ink:#222222;--line:#22222230}
+html[data-page="explore"] .deep-sea-world{opacity:0;visibility:hidden}
+.sky-world{position:fixed;inset:0;z-index:0;pointer-events:none;visibility:hidden;opacity:0;overflow:hidden;background:linear-gradient(#bed1ec,#e2eaf4 55%,#f6f5f2);transition:opacity .7s}
+html[data-page="explore"] .sky-world{visibility:visible;opacity:1}
+.sky-world canvas{width:100%;height:100%;display:block}
+.sky-world:after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 73% 3%,#fff5df18,transparent 50%)}
+html[data-page="explore"] body .site-header{color:#222222;background:transparent;backdrop-filter:none;border:0;box-shadow:none;height:96px;position:fixed}
+html[data-page="explore"] .menu{background:#eae7e1c9;backdrop-filter:blur(12px)}
+html[data-page="explore"] .menu-toggle{background:#ffffff6b}
+html[data-page="explore"] .menu-toggle i{background:#222222}
+html[data-page="explore"] :focus-visible{outline-color:#222222}
+.explore .sea-kicker{color:#666666}.explore .sea-kicker i{background:#222222;box-shadow:0 0 0 4px #ffffff40}
+.explore-heading .eyebrow{color:#666666}.explore-heading h1 em{color:#333333}.explore-heading h1 sup{color:#666666}
+.explore-heading>p{color:#555555}.explore-heading>p span{color:#666666}
+.explore-heading>p .sky-interaction-hint{display:block;margin-top:12px;color:#555555;font-size:9px;letter-spacing:.03em}
+.explore .lab-directory{border-color:#3e6d7c40}.explore .lab-directory span+span{color:#666666}
+.explore .experiment-preview{background:#e1dfdf;box-shadow:0 23px 50px -26px #345a7069,0 1px 0 #ffffff9c}
+.explore .experiment-preview img{filter:saturate(.95)}
+#explore .experiment-grid{animation:none}
+/* Foreground moves less than the camera, keeping reading and hit areas steady. */
+.explore .explore-heading{translate:calc(var(--sky-x,0)*-8px) calc(var(--sky-y,0)*-5px)}
+.explore .experiment-preview{translate:calc(var(--sky-x,0)*-4px) calc(var(--sky-y,0)*-3px + var(--sky-scroll,0)*-9px)}
+@media(prefers-reduced-motion:reduce){.explore .explore-heading,.explore .experiment-preview{translate:none}}
+.explore .experiment-caption{color:#666666}.explore .experiment-details{border-color:#3e6d7c36}
+.explore .experiment-details p{color:#555555}.explore .experiment-action{color:#222222}
+.explore .experiment-open{background:#f6f9f4;color:#222222}.explore .experiment-card:hover .experiment-open{background:#ded1c5}
+.explore .sea-footer{color:#666666;border-color:#3e6d7c36}.explore .sea-footer a{color:#222222}.explore .sea-footer a:hover{color:#222222}
+/* Content arrives once the camera has passed through the cloud bank. */
+.ascending{overflow:hidden;cursor:progress}.ascending .site-header{z-index:1100;opacity:0;pointer-events:none;transition:opacity .35s}
+.ascending .sky-world,.descending .sky-world{transition:none}
+.ascending.sky-arriving .site-header{opacity:1;transition:opacity 1s ease .15s}
+.ascending .hero-bottom,.ascending .hero-copy{opacity:0;transition:opacity .4s}
+.ascending #explore{opacity:0;transform:translateY(20px);transition:none}
+.ascending.sky-arriving #explore{opacity:1;transform:none;transition:opacity 1s ease,transform 1.2s cubic-bezier(.18,.65,.3,1)}
+.ascending #explore .experiment-grid{animation:none}
+.sky-flight{position:fixed;inset:0;z-index:1000;pointer-events:auto;width:100%;height:100%;display:block}
+@media(prefers-reduced-motion:reduce){.sky-world{transition:none}.ascending #explore{opacity:1;transform:none;transition:none}}
+@media(prefers-reduced-motion:reduce){.sky-interaction-hint{display:none!important}}
+@media(max-width:600px){html[data-page="explore"] body .site-header{height:76px}}
+/* Lay out the destination without exposing its loading state. */
+html[data-page="explore"] main>#home{display:block!important;position:fixed;inset:0;width:100%;height:100vh;height:100dvh;min-height:0;max-height:none;opacity:0;pointer-events:none}
+html[data-sky-return] main>#home{display:block;position:fixed;inset:0;width:100%;height:100vh;height:100dvh;min-height:0;max-height:none;opacity:0;pointer-events:none}
+html[data-sky-return][data-page="home"] main>#home{opacity:1;pointer-events:auto}
+.descending{overflow:hidden;cursor:progress}
+.descending .site-header{opacity:0;z-index:1100;pointer-events:none;transition:opacity .4s}
+.descending #explore{opacity:0;translate:0 -15px;transition:opacity .65s,translate .9s}
+.descending .hero-bottom{opacity:0;transition:opacity .8s}
+.descending.sky-home-arriving .site-header,.descending.sky-home-arriving .hero-bottom{opacity:1;transition:opacity .8s}
+/* Contact and gallery share the same descent and reveal their own content
+   only as the camera settles. The outgoing sky stays visible while loading. */
+html[data-sky-destination="projects"][data-page="explore"] #work{visibility:hidden;z-index:0}
+.descending #work>.water-images{visibility:hidden}
+html[data-sky-return] body.descending .site-header{z-index:1100}
+html[data-sky-return][data-page="about"] main>#home{opacity:1}
+.descending #about .studio-grid,.descending #about .studio-bottom{opacity:0;translate:0 18px;transition:none}
+.descending.sky-home-arriving #about .studio-grid,.descending.sky-home-arriving #about .studio-bottom{opacity:1;translate:none;transition:opacity .9s ease,translate 1.1s cubic-bezier(.18,.65,.3,1)}
+.descending .studio-doorway{display:none}
+.descending #about{z-index:1001!important}
+@media(prefers-reduced-motion:reduce){.descending #explore{opacity:1;translate:none;transition:none}}

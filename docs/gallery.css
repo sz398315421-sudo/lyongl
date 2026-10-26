@@ -1,0 +1,112 @@
+/* Each gallery is a complete page, sharing the same submerged world. */
+[hidden]{display:none!important}
+html{overflow-x:clip}
+html[data-page="home"] #work{display:none}
+html[data-page="projects"] main>section:not(#work),html[data-page="projects"] main>footer{display:none}
+html[data-page="project"] main,html[data-page="project"] .site-header{display:none}
+html:is([data-page="projects"],[data-project-entry]) body,html[data-page="project"] body{background:#dce7e5}
+html:is([data-page="projects"],[data-project-entry]) .site-header{position:fixed;top:0;height:80px;z-index:20;background:transparent;border:0}
+html:is([data-page="projects"],[data-project-entry]) .site-header a[aria-current="page"]:after{transform:scaleX(1)}
+html:is([data-page="projects"],[data-project-entry]) #work{min-height:100svh;padding:275px max(6vw,calc((100vw - 1760px)/2)) 56px;background:none;border:0}
+.work-heading{justify-content:center;text-align:center;margin-bottom:26px}
+html:is([data-page="projects"],[data-project-entry]) .work-heading{position:fixed;top:80px;left:0;right:0;margin:0;z-index:9;pointer-events:none}
+html:is([data-page="projects"],[data-project-entry]) .work-heading .eyebrow{display:none}
+html:is([data-page="projects"],[data-project-entry]) .work-toolbar{position:fixed;top:176px;left:0;right:0;z-index:9;padding:0}
+.work-heading .eyebrow{font-size:8px;letter-spacing:.14em;margin-bottom:16px;color:#4d666b}
+#work-title{font-weight:400;font-size:clamp(48px,5.7vw,80px);line-height:1;letter-spacing:-.06em;margin:0;white-space:nowrap}
+#work-title em{font-family:var(--serif);font-weight:400}
+#work-title sup{display:inline-block;vertical-align:top;font:9px var(--sans);letter-spacing:0;margin:7px 0 0 10px}
+.work-note,.work .display-label{display:none}
+.work-toolbar{justify-content:center;border:0;padding:0 0 58px}
+.filters{background:#f8fcf6b8;border:1px solid #ffffffa8;backdrop-filter:blur(10px);padding:5px;border-radius:40px;gap:2px}
+.filters button{padding:8px 15px;border:0!important}
+.project-grid{gap:64px 36px;position:relative;z-index:2;clip-path:inset(var(--roll-clip,0px) -20vw -120px -20vw)}
+.project-card{position:relative;min-width:0;z-index:2}
+.project-card:nth-child(n){padding-top:0;margin-top:0}
+.project-button{position:relative;display:block}
+.project-button{transform-origin:50% 50%;will-change:transform}
+.project-card{transform-style:flat}
+.hero.submerging #world,.hero.submerging .hero-fallback{transform:none;filter:none}
+/* Incoming DOM uses the same camera-height timeline as the GPU scene. */
+html[data-project-entry] #work{display:block!important;position:fixed;inset:0;overflow:hidden;z-index:1001;pointer-events:none}
+html[data-project-entry] #work .project-grid,html[data-project-entry] .archive-end,html[data-project-entry] .work-contact{visibility:hidden}
+html[data-project-entry] .work-heading,html[data-project-entry] .work-toolbar{will-change:transform,opacity}
+html[data-project-return] #home{display:block!important;position:fixed;inset:0;height:100vh;height:100dvh;min-height:0;max-height:none;visibility:hidden;pointer-events:none}
+html[data-project-return] #work{z-index:1001;pointer-events:none}
+html[data-project-return] #work .project-grid,html[data-project-return] .archive-end,html[data-project-return] .work-contact{visibility:hidden}
+html[data-project-return] .work-heading,html[data-project-return] .work-toolbar{will-change:transform,opacity}
+.immersing{touch-action:none}
+.surface-preparing{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:1200;border-radius:30px;padding:12px 22px;background:#f5faf9e8;font-size:11px;color:#183f4a}
+@media(min-width:601px){html body.resurfacing .site-header{height:calc(96px - 16px * var(--surface-progress,1))}}
+html body.immersing .site-header{z-index:1100;pointer-events:none}
+.immersing .project-entry-canvas{z-index:1000;pointer-events:auto}
+html:is([data-page="projects"],[data-project-entry]) body .site-header{background:transparent;backdrop-filter:none}
+.immersing .hero-copy,.immersing .hero-bottom{opacity:0;transition:opacity .18s}
+/* Both surface rooms share the same vertical water crossing. */
+html[data-project-return][data-surface-view="about"] #home{display:block!important}
+html[data-project-entry][data-surface-view="about"] .studio-grid,
+html[data-project-entry][data-surface-view="about"] .studio-bottom{opacity:calc(1 - var(--immersion-progress,0));translate:0 calc(-70px * var(--immersion-progress,0));transition:none}
+html[data-surface-view] body.immersing{overflow:hidden;overscroll-behavior:none}
+html[data-scene-passage] main,html[data-scene-passage] #project-dialog{visibility:hidden}
+.scene-passage{overflow:hidden;overscroll-behavior:none;touch-action:none}
+.scene-passage .site-header{z-index:1100!important;pointer-events:none}
+.water-images{z-index:1}
+.project-card:nth-child(n) .project-image{background:transparent;box-shadow:none;border-radius:0;overflow:visible;aspect-ratio:16/9}
+.project-image img{border-radius:0}
+.water-ready>img{opacity:0}
+.surface-ready .project-meta,.surface-ready .project-open{opacity:0!important}
+.project-open{right:10px;bottom:14px;width:29px;height:29px;font-size:16px;background:#e9f2eddd}
+.project-meta{padding-top:17px;padding-bottom:13px;gap:8px;border-color:#425f6570}
+.project-meta h3{font-size:17px;margin-bottom:6px}.project-meta p{font-size:9px;color:#425e64}
+.project-index{font-size:8px;color:#425e64}
+.archive-end{margin-top:70px;font-size:7px;color:#425e64}
+.work-contact{position:relative;z-index:2;min-height:380px;margin-top:96px;padding:80px 0 32px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.work-contact .eyebrow{font-size:8px;letter-spacing:.13em;color:var(--muted);margin:0 0 18px}
+.work-contact h2{font-size:clamp(20px,2.1vw,28px);font-weight:500;line-height:1.5;letter-spacing:-.035em;margin:0 0 24px}
+.work-contact-email{display:inline-flex;align-items:center;justify-content:center;gap:30px;max-width:100%;padding:19px 36px 22px;border-radius:999px;background:#222222;color:#ffffff;font-size:clamp(24px,2.7vw,38px);line-height:1.2;letter-spacing:-.045em;white-space:nowrap;transition:background .3s,transform .3s}
+.work-contact-email>span:last-child{font-size:.8em;transition:transform .3s}
+.work-contact-email:hover{background:var(--sea);transform:translateY(-3px)}
+.work-contact-email:hover>span:last-child{transform:translate(3px,3px)}
+.work-contact-phone{margin-top:23px;font-size:12px;line-height:1.5;letter-spacing:.035em;color:var(--muted);padding:6px 0;border-bottom:1px solid transparent}
+.work-contact-phone:hover{color:var(--ink);border-color:currentColor}
+.aquatic-world{opacity:.9}.aquatic-haze{background:radial-gradient(ellipse at 50% 10%,#f8fcf9af,transparent 68%),linear-gradient(100deg,#eff8f43b,transparent 45%,#eff8f43b)}
+#project-dialog{position:relative;inset:auto;width:100%;height:auto;min-height:100svh;max-width:none;max-height:none;overflow:visible;overscroll-behavior:auto;background:none;z-index:1;isolation:auto;color:var(--ink)}
+.detail-top{position:sticky;top:0;height:80px;padding:0 4vw;background:#e7efedb8;z-index:10;border-color:#48656920}
+.detail-top .close-button{gap:15px}.detail-top .close-button span{font-size:20px}
+.detail-header{padding:72px 9vw 48px;grid-template-columns:1fr .42fr;gap:6vw}
+.detail-header h1{font-size:clamp(36px,5.2vw,76px);font-weight:400;line-height:1.15;letter-spacing:-.05em;margin:18px 0 24px}
+.detail-header>div>p:not(.eyebrow){line-height:2;color:#3f5b62}
+.detail-header .detail-type{color:#36535b;border-color:#48656945}
+.detail-gallery{padding:0 9vw;gap:12px}
+#detail-content{z-index:auto}.detail-header{position:relative;z-index:2}.detail-sheet{position:relative;z-index:2}
+.detail-visual{background:transparent;overflow:visible}
+.detail-page{display:block;line-height:0;background:transparent;overflow:visible;border:0;transform:none;will-change:auto}
+
+.next-project{padding:60px 9vw 85px;margin-top:65px;background:#e4eeea6b;align-items:center}
+.next-project small{display:block;font:9px var(--sans);letter-spacing:.12em;margin-bottom:17px;color:#425e64}
+h1[tabindex="-1"]:focus{outline:none}
+html[data-page="project"] .skip-link{display:none}
+@media(max-width:1000px){html:is([data-page="projects"],[data-project-entry]) #work{padding-left:32px;padding-right:32px}.project-grid{gap:48px 28px}.project-meta h3{font-size:16px}.project-index{font-size:7px}}
+@media(max-width:600px){
+ html:is([data-page="projects"],[data-project-entry]) .site-header{height:76px}
+ html:is([data-page="projects"],[data-project-entry]) #work{padding:240px 16px 48px}
+ html:is([data-page="projects"],[data-project-entry]) .work-heading{top:93px}
+ html:is([data-page="projects"],[data-project-entry]) .work-toolbar{top:167px}
+ #work-title{font-size:49px}#work-title sup{font-size:8px;margin-left:7px}
+ .work-heading{margin-bottom:24px}.work-heading .eyebrow{font-size:6px;letter-spacing:.08em}
+ .work-toolbar{padding-bottom:35px}.filters{gap:0;padding:4px;width:auto}
+ .filters button{font-size:9px;padding:8px 10px}.filters sup{font-size:6px;margin-left:3px}
+ .project-grid{gap:30px}.project-meta{padding-top:14px}.project-meta h3{font-size:17px}.project-meta p{font-size:8px}
+ .project-index{font-size:7px}.project-open{bottom:10px;right:8px}
+ .work-contact{min-height:340px;margin-top:56px;padding:70px 0 20px}
+ .work-contact .eyebrow{font-size:7px;letter-spacing:.08em;margin-bottom:14px}
+ .work-contact h2{font-size:20px;margin-bottom:22px}
+ .work-contact-email{padding:18px 24px;gap:20px;font-size:clamp(20px,6vw,26px)}
+ .work-contact-phone{font-size:11px;margin-top:20px}
+ .detail-top{height:74px;padding:0 20px}.detail-top .wordmark{font-size:24px}.detail-top .close-button{font-size:9px;gap:8px}
+ .detail-header{padding:40px 22px 30px;grid-template-columns:1fr;gap:14px}.detail-header h1{font-size:34px;margin:15px 0 20px}
+ .detail-gallery{padding:0 16px;gap:8px}
+ .next-project{padding:40px 22px 65px;margin-top:40px;font-size:27px}.next-project small{font-size:7px}
+ .aquatic-world{opacity:.8}
+}
+@media(prefers-reduced-motion:reduce){.water-ready>img{opacity:1}.project-button,.detail-page{transform:none!important;will-change:auto}}
