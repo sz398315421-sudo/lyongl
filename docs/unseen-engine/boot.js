@@ -53,26 +53,36 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
     window.unseenScene = {
       // UNSEEN HomeContact → ProjectMenu timing and camera offsets (ko.out).
       // The host supplies its own portfolio scene, driven by this same GSAP clock.
-      projectsTransition(state, draw, {returning=false,runTimeline}={}) {
+      projectsTransition(state, draw, {returning=false,runTimeline,surfaceOffset=-(innerHeight/2)*5e-5,duration=returning?2.4:3,ease=returning?'power2.inOut':'power4.inOut'}={}) {
         const home=o.HomeContact;
         o.Gl.clock.getDelta();o.clockDelta=0;
         const sceneStart=l.ZP.ticker.time+sceneTimeOffset;
-        const timeline=l.ZP.timeline({paused:true,defaults:{duration:3,ease:returning?'expo.inOut':'power4.inOut'},
-          onUpdate:()=>draw(renderTransitionFrame(sceneStart+timeline.time())),
+        const timeline=l.ZP.timeline({paused:true,defaults:{duration,ease},
+          onUpdate:()=>{
+            // GSAP rounds tiny world-space tween values into visible steps.
+            // Tween normalized progress and derive the camera offset in full precision.
+            home.tweenParams.cameraYOffset=surfaceOffset*state.progress;
+            home.updateCameraPosition();
+            draw(renderTransitionFrame(sceneStart+timeline.time()));
+          },
         });
         timeline
-          .fromTo(state,{progress:returning?1:0,cameraYOffset:returning?0:2*innerHeight},{progress:returning?0:1,cameraYOffset:returning?2*innerHeight:0},0)
-          .fromTo(home.tweenParams,{cameraYOffset:returning?(innerHeight/2)*-5e-5:0},{cameraYOffset:returning?0:(innerHeight/2)*-5e-5},0);
+          .fromTo(state,{progress:returning?1:0,cameraYOffset:returning?0:2*innerHeight},{progress:returning?0:1,cameraYOffset:returning?2*innerHeight:0},0);
         return runTimeline(timeline);
       },
       get view() {return o.HomeContact.isHome?'home':'about';},
+      immersionMetrics() {
+        const home=o.HomeContact;
+        const baseHeight=home.cameraCurvePath.getPointAt(home.tweenParams.cameraPathProgress).y;
+        return {clearance:Math.max(0,baseHeight-home.water.position.y)};
+      },
       setView(view,{instant=false}={}) {
         const home=o.HomeContact,isHome=view==='home';
         home.isHome=isHome;document.body.classList.toggle('home',isHome);
         button.style.display='none';
         if(instant){
           l.ZP.killTweensOf(home.tweenParams);l.ZP.killTweensOf(home.homeTextMesh.material.uniforms.uOpacity);
-          home.tweenParams.cameraPathProgress=isHome?1:0;home.homeTextMesh.material.uniforms.uOpacity.value=isHome?1:0;
+          home.tweenParams.cameraPathProgress=isHome?1:0;home.tweenParams.cameraYOffset=0;home.homeTextMesh.material.uniforms.uOpacity.value=isHome?1:0;
           button.style.display=isHome?'flex':'none';home.updateCameraPosition();o.Gl.composer.render();return Promise.resolve();
         }
         l.ZP.to(home.homeTextMesh.material.uniforms.uOpacity,{value:isHome?1:0,duration:isHome?1.2:.8,delay:isHome?1.6:0,ease:'power2.inOut',overwrite:true});

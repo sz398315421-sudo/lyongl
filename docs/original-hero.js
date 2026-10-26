@@ -5,7 +5,7 @@ const hero = document.querySelector('.hero');
 const frame = document.createElement('iframe');
 frame.className = 'original-scene';
 frame.title = '互动庭院：移动鼠标探索空间，触碰水面与文字';
-frame.src = new URL(document.documentElement.dataset.page==='about'?'./unseen-engine/?view=contact':'./unseen-engine/', import.meta.url).href;
+frame.src = new URL(document.documentElement.dataset.page==='about'?'./unseen-engine/?view=contact&v=20261027-home-return':'./unseen-engine/?v=20261027-home-return', import.meta.url).href;
 frame.setAttribute('allow', 'autoplay');
 host.removeAttribute('aria-hidden');
 let ready = false, inView = true, diving = false, travelling = false, abandoned = false;

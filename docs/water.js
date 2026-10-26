@@ -3,6 +3,7 @@ import {projectVertex,projectFragment,entryFragment,screenFragment} from './refe
 import {loadReferenceGallery} from './reference-gallery.js';
 import {createReferenceFluid} from './reference-fluid.js';
 import {runTransitionTimeline} from './transition-clock.js';
+import {homeImmersionProfile,immersionEase} from './home-return-motion.js';
 
 // One image compositor, one shared underwater world. Native images remain the fallback.
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -409,7 +410,7 @@ function frame(now) {
 
 async function prepareCourtyard(){
   const host=document.querySelector('#world');
-  await import('./original-hero.js?v=20261027-scene-recovery');
+  await import('./original-hero.js?v=20261027-home-return');
   if(!['ready','fallback'].includes(host.dataset.sceneState)){
     const status=document.createElement('div');status.className='surface-preparing';status.setAttribute('role','status');status.textContent='正在准备水面…';document.body.append(status);
     await new Promise(resolve=>{
@@ -452,6 +453,7 @@ async function immerse(change,{returning=false}={}){
     if(returning)document.body.classList.add('resurfacing');
     document.dispatchEvent(new CustomEvent('portfolio:dive',{detail:{active:true}}));
     if(returning){engine=await prepareCourtyard();await engine?.setView('home',{instant:true});}
+    const profile=homeImmersionProfile({viewportHeight:innerHeight,clearance:engine?.immersionMetrics?.().clearance,returning});
     sync();document.body.append(canvas);canvas.classList.add('project-entry-canvas');
     active=true;resize();entryYOffset=state.cameraYOffset;setControls();
     stage.classList.add('active');
@@ -483,7 +485,7 @@ async function immerse(change,{returning=false}={}){
       smoothPointer.lerp(pointer,.075);
       // Links are inert and scrolling is locked during this flight. Keep the
       // measured layout and animate the camera without forcing DOM layout again.
-      rollSheets(viewportChanged);drawImages(now,entryTarget);
+      if(!returning||state.progress>.04){rollSheets(viewportChanged);drawImages(now,entryTarget);}
       immersionMaterial.uniforms.u_progress.value=state.progress;immersionMaterial.uniforms.u_time.value=now;
       imageRenderer.setRenderTarget(null);imageRenderer.setViewport(0,0,innerWidth,innerHeight);imageRenderer.clear();
       imageRenderer.render(transitionScene,surfaceCamera);
@@ -491,12 +493,12 @@ async function immerse(change,{returning=false}={}){
     };
     draw();
     motionStart=performance.now();
-    if(engine?.projectsTransition)await engine.projectsTransition(state,draw,{returning,runTimeline:runTransitionTimeline});
+    if(engine?.projectsTransition)await engine.projectsTransition(state,draw,{returning,runTimeline:runTransitionTimeline,surfaceOffset:profile.offset,duration:profile.duration,ease:profile.ease});
     else await new Promise(resolve=>{
       const start=performance.now();
       const tick=now=>{
-        const p=Math.min(1,(now-start)/3000);
-        const eased=returning?(p===0?0:p===1?1:p<.5?2**(20*p-10)/2:(2-2**(-20*p+10))/2):(p<.5?16*p**5:1-(-2*p+2)**5/2);
+        const p=Math.min(1,(now-start)/(profile.duration*1000));
+        const eased=immersionEase(p,returning);
         state.progress=returning?1-eased:eased;state.cameraYOffset=2*innerHeight*(1-state.progress);draw();
         if(p<1)requestAnimationFrame(tick);else resolve();
       };

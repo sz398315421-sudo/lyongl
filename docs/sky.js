@@ -12,7 +12,7 @@
  document.querySelector('.explore-heading > p')?.append(hint);
  let cloudWorld=null,loading=null,raf=0,last=0,time=0,busy=false,lifecycle='';
  let courtyardImport=null,courtyardScheduled=false;
- const preloadCourtyard=()=>courtyardImport??=import('./original-hero.js?v=20261027-scene-recovery').catch(error=>{console.warn('Static courtyard remains available.',error);return null;});
+ const preloadCourtyard=()=>courtyardImport??=import('./original-hero.js?v=20261027-home-return').catch(error=>{console.warn('Static courtyard remains available.',error);return null;});
  function scheduleCourtyard(){
   if(courtyardScheduled)return;courtyardScheduled=true;
   setTimeout(()=>{if(document.documentElement.dataset.page==='explore')preloadCourtyard();else courtyardScheduled=false;},1300);
