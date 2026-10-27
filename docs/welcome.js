@@ -152,8 +152,17 @@ soundButton.addEventListener('click', () => setSound(!soundEnabled));
 welcome.addEventListener('pointermove', event => {
   if (motionReduced) return;
   const eyes = welcome.querySelector('svg').getBoundingClientRect();
-  const x = Math.max(-6, Math.min(6, (event.clientX - eyes.left - eyes.width / 2) / 65));
-  const y = Math.max(-5, Math.min(5, (event.clientY - eyes.top - eyes.height / 2) / 75));
+  const page=welcome.getBoundingClientRect();
+  const cx=eyes.left+eyes.width/2,cy=eyes.top+eyes.height/2;
+  const dx=event.clientX-cx,dy=event.clientY-cy;
+  // Normalize against the available space on each side, so the top edge always
+  // reaches the upward limit even in a short window. The pupils start below
+  // the eye centers, leaving substantially more room above than below.
+  const nx=Math.max(-1,Math.min(1,dx/Math.max(1,dx<0?cx-page.left:page.right-cx)));
+  const ny=Math.max(-1,Math.min(1,dy/Math.max(1,dy<0?cy-page.top:page.bottom-cy)));
+  const radius=Math.max(1,Math.hypot(nx,ny));
+  const x=nx/radius*(nx<0?12:9);
+  const y=ny/radius*(ny<0?20:7);
   welcome.style.setProperty('--eye-x', `${x}px`); welcome.style.setProperty('--eye-y', `${y}px`);
 });
 welcome.addEventListener('pointerleave', () => { welcome.style.setProperty('--eye-x', '0px'); welcome.style.setProperty('--eye-y', '0px'); });
