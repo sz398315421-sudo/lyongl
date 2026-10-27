@@ -8,7 +8,7 @@ async function boot({mobile=true,assetError=false,search=''}={}){
   class Element extends EventTarget {style={};dataset={};classList={toggle(){},remove(){}};}
   const canvas=new Element(),button=new Element(),cursor=new Element(),document=new Element();
   document.body=new Element();document.querySelector=selector=>selector==='#gl'?canvas:selector==='.scene-cta'?button:cursor;
-  const messages=[],limits=[],events=new Map();let renders=0,updates=0,glyphsReady=0;
+  const messages=[],limits=[],events=new Map(),times=[];let renders=0,updates=0,glyphsReady=0,ticks=0;
   const o={window:{dpr:3}};
   const n={on:(name,fn)=>events.set(name,fn),off:name=>events.delete(name)};
   class Assets {
@@ -35,11 +35,30 @@ async function boot({mobile=true,assetError=false,search=''}={}){
     innerWidth:mobile?390:1920,innerHeight:mobile?844:1080,console:{error(){}}};
   // Deliberately provide no requestAnimationFrame. A hidden WebView may never fire it.
   vm.runInNewContext(source,context);
-  await window.bootUnseenScene({o,n,c:class{constructor(){o.events={RAF:'RAF'};}},m:class{fire(){updates++;}},tt:Assets,
+  await window.bootUnseenScene({o,n,c:class{constructor(){o.events={RAF:'RAF'};}},m:class{fire(time){if(!window.__unseenPaused){updates++;times.push(time);}}},tt:Assets,
     Lt:class{clock={getDelta(){}};composer={render(){renders++;}};renderer={getPixelRatio(){return Math.min(2,o.window.dpr);}};addPasses(){}},
-    ws:Home,co:class{},l:{ZP:{ticker:{time:0}}}});
-  return {messages,limits,o,canvas};
+    ws:Home,co:class{},l:{ZP:{ticker:{time:0,tick(){ticks++;events.get('RAF')?.(0);},wake(){}}}}});
+  return {messages,limits,o,canvas,window,times,get ticks(){return ticks;}};
 }
+
+test('the host advances live scene callbacks even when iframe RAF never fires',async()=>{
+  const result=await boot(),scene=result.window.unseenScene;
+  scene.setHostDriven(true);scene.pause(false);
+  const before=result.times.length;
+  scene.renderFrame(1);scene.renderFrame(2);
+  assert.equal(result.ticks,2);assert.equal(result.times.length,before+2);
+  assert.deepEqual(result.times.slice(-2),[1,2]);assert.equal(result.window.__unseenPaused,true);
+  assert.equal(result.canvas.dataset.frameCount,'2');
+});
+
+test('lost or empty WebGL output cannot pass the live frame verification',async()=>{
+  const result=await boot(),scene=result.window.unseenScene;
+  result.o.Gl.renderer.getContext=()=>({isContextLost:()=>true});
+  assert.throws(()=>scene.renderFrame(1,{validate:true}),/graphics-context-lost/);
+  result.o.Gl.renderer.getContext=()=>({isContextLost:()=>false,readPixels(){}});
+  assert.throws(()=>scene.renderFrame(2,{validate:true}),/empty-render-frame/);
+  assert.equal(result.canvas.dataset.frameCount,undefined);
+});
 
 test('a hidden mobile scene becomes ready without waiting for animation frames',async()=>{
   const result=await boot();const ready=result.messages.find(m=>m.type==='unseen:ready');

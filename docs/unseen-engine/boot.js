@@ -65,7 +65,7 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
     button.style.display=initialContact?'none':'flex';
     o.HomeContact.updateCameraPosition();
     window.store = o;
-    let submerge = null, ascent = null;
+    let submerge = null, ascent = null,hostDriven=false,scenePaused=false,renderedFrames=0;
     const canvas = document.querySelector('#gl');
     const renderTransitionFrame = time => {
       // Run the same fluid, text, water and composer callbacks as the live hero.
@@ -118,9 +118,34 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
         });
       },
       capture() { o.Gl.composer.render(); return canvas; },
+      setHostDriven(value) {
+        hostDriven=value;
+        window.__unseenPaused=scenePaused||hostDriven;
+      },
+      renderFrame(time,{validate=false}={}) {
+        const gl=o.Gl.renderer.getContext?.();
+        if(gl?.isContextLost())throw new Error('graphics-context-lost');
+        // A phone WebView may stop its hidden iframe ticker. Advance both the
+        // native tweens and scene callbacks from the visible parent's clock.
+        window.__unseenPaused=true;
+        l.ZP.ticker.tick();
+        const source=renderTransitionFrame(time);
+        if(validate&&gl?.readPixels){
+          o.Gl.composer.render();
+          const pixel=new Uint8Array(4);let visible=false;
+          for(const [x,y] of [[.25,.75],[.75,.75],[.5,.25]]){
+            gl.readPixels(Math.floor(canvas.width*x),Math.floor(canvas.height*y),1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
+            if(pixel[3]&&pixel[0]+pixel[1]+pixel[2]>0)visible=true;
+          }
+          if(!visible)throw new Error('empty-render-frame');
+        }
+        canvas.dataset.frameCount=String(++renderedFrames);canvas.dataset.frameTime=String(time);
+        return source;
+      },
       pause(value) {
-        if(window.__unseenPaused&&!value){o.Gl.clock.getDelta();o.clockDelta=0;}
-        window.__unseenPaused = value;
+        if(scenePaused&&!value){o.Gl.clock.getDelta();o.clockDelta=0;l.ZP.ticker.wake();}
+        scenePaused=value;
+        window.__unseenPaused = value||hostDriven;
       },
       ascend(progress, end = false) {
         const home = o.HomeContact, camera = home.camera;

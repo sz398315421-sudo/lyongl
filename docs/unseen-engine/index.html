@@ -16,5 +16,5 @@ window.addEventListener('error',event=>{
 window.addEventListener('unhandledrejection',event=>parent.postMessage({type:'unseen:error',message:String(event.reason)},location.origin));
 document.addEventListener('webglcontextlost',()=>parent.postMessage({type:'unseen:error',message:'graphics-context-lost'},location.origin),true);
 </script>
-<script defer src="palette.js"></script><script defer src="boot.js?v=20261027-mobile-loading"></script><script defer src="scripts/manifest.js"></script><script defer src="scripts/vendor.js"></script><script defer src="scripts/engine.js"></script>
+<script defer src="palette.js"></script><script defer src="boot.js?v=20261027-live-scene"></script><script defer src="scripts/manifest.js"></script><script defer src="scripts/vendor.js"></script><script defer src="scripts/engine.js"></script>
 </head><body class="home"><div class="height-div"></div><canvas id="gl" data-engine="unseen-original" aria-hidden="true"></canvas><a class="scene-cta js-view-projects-btn" href="/projects/" target="_parent">探索我的作品 <span>↘</span></a><div class="contact-content js-contact-content"></div><div class="scene-cursor" aria-hidden="true"></div></body></html>

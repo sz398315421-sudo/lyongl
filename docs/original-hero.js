@@ -5,10 +5,11 @@ const hero = document.querySelector('.hero');
 const frame = document.createElement('iframe');
 frame.className = 'original-scene';
 frame.title = '互动庭院：移动鼠标探索空间，触碰水面与文字';
-frame.src = new URL(document.documentElement.dataset.page==='about'?'./unseen-engine/?view=contact&v=20261027-mobile-loading':'./unseen-engine/?v=20261027-mobile-loading', import.meta.url).href;
+frame.src = new URL(document.documentElement.dataset.page==='about'?'./unseen-engine/?view=contact&v=20261027-live-scene':'./unseen-engine/?v=20261027-live-scene', import.meta.url).href;
 frame.setAttribute('allow', 'autoplay');
 host.removeAttribute('aria-hidden');
-let ready = false, inView = true, diving = false, travelling = false, abandoned = false;
+let ready = false, prepared = false, verifying = false, diving = false, travelling = false, abandoned = false;
+let renderAllowed=false,renderFrame=0,verifiedFrames=0,renderedFrames=0,motionOverride=false;
 const status = document.createElement('div');
 status.className = 'scene-status';status.hidden = true;
 const statusCopy = document.createElement('span');statusCopy.setAttribute('role','status');
@@ -30,6 +31,7 @@ if (host.dataset.sceneState !== 'fallback') host.dataset.sceneState = 'loading';
 host.dataset.sceneLoading = 'true';host.append(frame);
 host.dataset.sceneProgress='0';startDeadlines();
 retry.addEventListener('click', () => {
+  if(ready&&reduced.matches&&!motionOverride){motionOverride=true;sync();return;}
   clearDeadlines();frame.remove();
   abandoned = false;ready = false;host.dataset.sceneLoading = 'true';
   host.dataset.sceneReason = 'retry';
@@ -39,7 +41,26 @@ retry.addEventListener('click', () => {
   startDeadlines();
 });
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-function engine() { return ready ? frame.contentWindow?.unseenScene : null; }
+function engine() { return prepared ? frame.contentWindow?.unseenScene : null; }
+function drawFrame(now) {
+  renderFrame=0;
+  if(!renderAllowed||!prepared)return;
+  try{
+    if(!engine()?.renderFrame(now/1000,{validate:verifying}))throw new Error('scene-frame-unavailable');
+    host.dataset.sceneFrames=String(++renderedFrames);host.dataset.sceneFrameTime=String(now);
+    if(verifying&&++verifiedFrames>=2)finishReady();
+  }catch(error){useFallback({permanent:true,reason:String(error)});return;}
+  if(renderAllowed&&!renderFrame)renderFrame=requestAnimationFrame(drawFrame);
+}
+function finishReady() {
+  ready=true;verifying=false;clearDeadlines();
+  host.classList.add('ready');host.dataset.scene='unseen-original';
+  host.dataset.sceneLoading='false';delete host.dataset.sceneReason;
+  status.hidden=true;hero.classList.remove('scene-fallback');hero.classList.add('original-engine-ready');
+  const cta=hero.querySelector('.primary-cta');cta.tabIndex=-1;cta.setAttribute('aria-hidden','true');
+  host.dataset.sceneState='ready';reportProgress(100,'ready');sync();
+  document.dispatchEvent(new Event('portfolio:scene-settled'));
+}
 export async function prepareCourtyardView(view='home') {
   if(!ready&&!abandoned){
     await new Promise(resolve=>{
@@ -56,8 +77,19 @@ function sync() {
   const view=document.documentElement.dataset.page;
   const sceneVisible=['home','about'].includes(view);
   if(ready&&sceneVisible&&!travelling&&engine()?.view!==view)engine()?.setView(view,{instant:true});
-  const paused = (!inView&&!travelling) || document.hidden || document.body.classList.contains('intro-pending') || document.body.classList.contains('locked') || !sceneVisible || reduced.matches || diving;
-  engine()?.pause(paused);
+  const intro=document.body.classList.contains('intro-pending');
+  const reason=document.hidden?'hidden':!sceneVisible?'other-page':intro?'welcome':document.body.classList.contains('locked')?'menu':diving?'transition':reduced.matches&&!motionOverride?'reduced-motion':'';
+  host.dataset.scenePauseReason=reason;
+  renderAllowed=prepared&&!document.hidden&&(verifying||!reason);
+  engine()?.pause(!renderAllowed);
+  if(renderAllowed&&!renderFrame)renderFrame=requestAnimationFrame(drawFrame);
+  if(!renderAllowed&&renderFrame){cancelAnimationFrame(renderFrame);renderFrame=0;}
+  if(ready){
+    const reducedMode=reason==='reduced-motion'&&view==='home';
+    status.hidden=!reducedMode;
+    retry.textContent=reducedMode?'播放动画':'重试动态场景';retry.hidden=false;
+    if(reducedMode)statusCopy.textContent='已减少动态效果。';
+  }
   if (ready && !document.body.classList.contains('intro-pending') && document.activeElement === hero.querySelector('.primary-cta')) {
     const title = hero.querySelector('h1'); title.tabIndex = -1; title.focus({ preventScroll: true });
   }
@@ -77,7 +109,9 @@ function useFallback({ permanent = false, reason = 'timeout' } = {}) {
   // A slow download can still finish; only a confirmed failure removes it.
   if (ready && !permanent) return;
   clearTimeout(retryTimeout);if(permanent)clearTimeout(attemptTimeout);
-  abandoned = permanent;ready = false;if(permanent)frame.remove();host.classList.remove('ready');
+  abandoned = permanent;ready = false;prepared=false;verifying=false;renderAllowed=false;
+  if(renderFrame){cancelAnimationFrame(renderFrame);renderFrame=0;}
+  if(permanent)frame.remove();host.classList.remove('ready');
   host.dataset.sceneState = 'fallback';hero.classList.remove('original-engine-ready');hero.classList.add('scene-fallback');
   const cta = hero.querySelector('.primary-cta');cta.removeAttribute('tabindex');cta.removeAttribute('aria-hidden');
   host.dataset.sceneLoading = String(!permanent);host.dataset.sceneReason = reason;
@@ -90,15 +124,10 @@ frame.addEventListener('error', () => useFallback({permanent:true,reason:'frame-
 window.addEventListener('message', event => {
   if (abandoned || event.origin !== location.origin || event.source !== frame.contentWindow) return;
   if (event.data?.type === 'unseen:ready') {
-    ready = true; host.classList.add('ready'); host.dataset.scene = 'unseen-original';
-    clearDeadlines();reportProgress(100,'ready');
-    host.dataset.sceneLoading = 'false';delete host.dataset.sceneReason;
-    status.hidden = true;hero.classList.remove('scene-fallback');
-    hero.classList.add('original-engine-ready');
-    const cta = hero.querySelector('.primary-cta'); cta.tabIndex = -1; cta.setAttribute('aria-hidden', 'true');
-    host.dataset.sceneState = 'ready';sync();
+    prepared=true;verifying=true;verifiedFrames=0;
+    host.dataset.sceneState='verifying';reportProgress(99,'render');
+    engine()?.setHostDriven(true);sync();
     if(Number.isFinite(event.data.pixelRatio))host.dataset.scenePixelRatio=String(event.data.pixelRatio);
-    document.dispatchEvent(new Event('portfolio:scene-settled'));
   } else if (event.data?.type === 'unseen:progress') {
     reportProgress(event.data.progress,event.data.stage);
   } else if (event.data?.type === 'unseen:projects') {
@@ -110,7 +139,6 @@ window.addEventListener('message', event => {
 });
 // The welcome timeout can elapse before this module arrives over the network.
 if(host.dataset.sceneState === 'fallback')useFallback();
-new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; sync(); }).observe(hero);
 new MutationObserver(sync).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['data-page'] });
 document.addEventListener('visibilitychange', sync);
