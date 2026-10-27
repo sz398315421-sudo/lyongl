@@ -4,6 +4,11 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
     const initialContact=new URLSearchParams(location.search).get('view')==='contact';
     document.body.classList.toggle('home',!initialContact);
     Object.assign(o, window.globalData);
+    const mobile=matchMedia('(max-width:600px), (pointer:coarse)').matches;
+    const lowQuality=new URLSearchParams(location.search).get('quality')==='low';
+    if(mobile||lowQuality)o.window.dpr=Math.min(o.window.dpr,lowQuality?1:1.25);
+    const progress=(value,stage='assets')=>parent.postMessage({type:'unseen:progress',progress:value,stage},location.origin);
+    progress(5,'scripts');
     // Cached assets can finish before the first renderer tick. Camera noise
     // needs a finite delta even when the scene starts paused behind another page.
     o.clockDelta = 0;
@@ -18,6 +23,8 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
     o.RAFCollection.fire=time=>fire(time+sceneTimeOffset);
     n.on(o.events.RAF,o.RAFCollection.fire);
     o.AssetLoader = new tt();
+    o.AssetLoader.dracoLoader?.setWorkerLimit?.(mobile?1:2);
+    o.AssetLoader.ktxLoader?.setWorkerLimit?.(mobile?1:2);
     o.TextLoader = new tt({ name: 'TextLoader', progressEventName: 'TextLoaderProgress' });
     o.TaskScheduler = new co();
     o.Gl = new Lt(); o.Gl.addPasses();
@@ -28,12 +35,32 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
     };
     ws.prototype.updateHtmlScale = function () {};
     o.HomeContact = new ws();
-    await o.AssetLoader.load({ element: document.body });
+    const onProgress=event=>progress(5+Math.min(100,event.percent)*.9);
+    n.on('AssetsProgress',onProgress);
+    try{
+      const loaded=o.AssetLoader.load({ element: document.body });
+      // The original loader's aggregate promise never rejects on asset failure.
+      await Promise.all([loaded,...o.AssetLoader.promisesToLoad]);
+    }finally{n.off('AssetsProgress',onProgress);}
+    progress(95,'render');
     o.HomeContact.build();
     window.applyCourtyardPalette(o);
     o.HomeContact.enable();
     o.HomeContact.homeTextMesh.material.uniforms.uOpacity.value = initialContact?0:1;
     o.HomeContact.homeTextMesh.material.uniforms.uProgress.value = 1;
+    const home=o.HomeContact;
+    await Promise.all([home.introText,home.line1,home.line2].filter(Boolean).map(text=>{
+      if(text.textRenderInfo)return Promise.resolve();
+      return new Promise(resolve=>{
+        const complete=()=>{text.removeEventListener('synccomplete',complete);resolve();};
+        text.addEventListener('synccomplete',complete);text.sync();
+      });
+    }));
+    // Font workers complete independently from the render ticker. Rebuild the
+    // native text target once all three lines are available, even without RAF.
+    if(home.textScene&&home.textRT){
+      o.Gl.renderer.setRenderTarget(home.textRT);o.Gl.renderer.clear();o.Gl.renderer.render(home.textScene,home.textCamera);o.Gl.renderer.setRenderTarget(null);
+    }
     o.HomeContact.showUI();
     button.style.display=initialContact?'none':'flex';
     o.HomeContact.updateCameraPosition();
@@ -137,10 +164,18 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
       if (event.ctrlKey) return;
       event.preventDefault();
     }, { passive: false });
-    await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame);
+    // Hidden iframes can suspend RAF in mobile WebViews. Readiness must not wait
+    // for visibility that the host itself only grants after this ready message.
+    for(let warm=0;warm<3;warm++){
+      o.Gl.clock.getDelta();o.clockDelta=0;
+      // Also fill text, fluid and reflection targets, rather than presenting
+      // an uninitialized composer frame with missing type or a black waterplane.
+      o.RAFCollection.fire(l.ZP.ticker.time);
+    }
+    o.HomeContact.updateCameraPosition();o.Gl.composer.render();
     canvas.dataset.effectSource = 'unseen-original';
     canvas.dataset.ready = 'true';
-    parent.postMessage({ type: 'unseen:ready' }, location.origin);
+    parent.postMessage({ type: 'unseen:ready',pixelRatio:o.Gl.renderer.getPixelRatio() }, location.origin);
   } catch (error) {
     console.error('Original courtyard engine failed:', error);
     parent.postMessage({ type: 'unseen:error', message: String(error) }, location.origin);

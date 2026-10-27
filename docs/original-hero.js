@@ -5,7 +5,7 @@ const hero = document.querySelector('.hero');
 const frame = document.createElement('iframe');
 frame.className = 'original-scene';
 frame.title = '互动庭院：移动鼠标探索空间，触碰水面与文字';
-frame.src = new URL(document.documentElement.dataset.page==='about'?'./unseen-engine/?view=contact&v=20261027-home-return':'./unseen-engine/?v=20261027-home-return', import.meta.url).href;
+frame.src = new URL(document.documentElement.dataset.page==='about'?'./unseen-engine/?view=contact&v=20261027-mobile-loading':'./unseen-engine/?v=20261027-mobile-loading', import.meta.url).href;
 frame.setAttribute('allow', 'autoplay');
 host.removeAttribute('aria-hidden');
 let ready = false, inView = true, diving = false, travelling = false, abandoned = false;
@@ -13,17 +13,30 @@ const status = document.createElement('div');
 status.className = 'scene-status';status.hidden = true;
 const statusCopy = document.createElement('span');statusCopy.setAttribute('role','status');
 const retry = document.createElement('button');retry.type = 'button';retry.textContent = '重试动态场景';
-let retryTimeout;
+let retryTimeout,attemptTimeout;
+function reportProgress(value,stage='assets') {
+  const progress=Math.max(Number(host.dataset.sceneProgress)||0,Math.min(100,Math.max(0,Number(value)||0)));
+  host.dataset.sceneProgress=String(progress);host.dataset.scenePhase=stage;
+  document.dispatchEvent(new CustomEvent('portfolio:scene-progress',{detail:{progress,stage}}));
+}
+function clearDeadlines(){clearTimeout(retryTimeout);clearTimeout(attemptTimeout);}
+function startDeadlines(){
+  clearDeadlines();
+  retryTimeout=setTimeout(()=>useFallback(),20000);
+  attemptTimeout=setTimeout(()=>useFallback({permanent:true,reason:'load-timeout'}),45000);
+}
 status.append(statusCopy,retry);hero.append(status);
 if (host.dataset.sceneState !== 'fallback') host.dataset.sceneState = 'loading';
 host.dataset.sceneLoading = 'true';host.append(frame);
+host.dataset.sceneProgress='0';startDeadlines();
 retry.addEventListener('click', () => {
-  clearTimeout(retryTimeout);frame.remove();
+  clearDeadlines();frame.remove();
   abandoned = false;ready = false;host.dataset.sceneLoading = 'true';
   host.dataset.sceneReason = 'retry';
   statusCopy.textContent = '正在重新加载动态场景…';retry.hidden = true;
-  frame.src = new URL(frame.src).href;host.append(frame);
-  retryTimeout = setTimeout(() => useFallback(),20000);
+  host.dataset.sceneProgress='0';reportProgress(0,'scripts');
+  const url=new URL(frame.src);url.searchParams.set('quality','low');frame.src=url.href;host.append(frame);
+  startDeadlines();
 });
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 function engine() { return ready ? frame.contentWindow?.unseenScene : null; }
@@ -63,13 +76,13 @@ window.portfolioCourtyard={
 function useFallback({ permanent = false, reason = 'timeout' } = {}) {
   // A slow download can still finish; only a confirmed failure removes it.
   if (ready && !permanent) return;
-  clearTimeout(retryTimeout);
+  clearTimeout(retryTimeout);if(permanent)clearTimeout(attemptTimeout);
   abandoned = permanent;ready = false;if(permanent)frame.remove();host.classList.remove('ready');
   host.dataset.sceneState = 'fallback';hero.classList.remove('original-engine-ready');hero.classList.add('scene-fallback');
   const cta = hero.querySelector('.primary-cta');cta.removeAttribute('tabindex');cta.removeAttribute('aria-hidden');
   host.dataset.sceneLoading = String(!permanent);host.dataset.sceneReason = reason;
   status.hidden = false;retry.hidden = false;
-  statusCopy.textContent = permanent ? '动态场景加载失败，当前为静态预览。' : '动态场景仍在加载，完成后将自动恢复。';
+  statusCopy.textContent = permanent ? '当前为静态首页。' : '动态场景加载较慢，正在继续尝试…';
   document.dispatchEvent(new Event('portfolio:scene-settled'));
 }
 document.addEventListener('portfolio:scene-fallback', () => useFallback());
@@ -78,13 +91,16 @@ window.addEventListener('message', event => {
   if (abandoned || event.origin !== location.origin || event.source !== frame.contentWindow) return;
   if (event.data?.type === 'unseen:ready') {
     ready = true; host.classList.add('ready'); host.dataset.scene = 'unseen-original';
-    clearTimeout(retryTimeout);
+    clearDeadlines();reportProgress(100,'ready');
     host.dataset.sceneLoading = 'false';delete host.dataset.sceneReason;
     status.hidden = true;hero.classList.remove('scene-fallback');
     hero.classList.add('original-engine-ready');
     const cta = hero.querySelector('.primary-cta'); cta.tabIndex = -1; cta.setAttribute('aria-hidden', 'true');
     host.dataset.sceneState = 'ready';sync();
+    if(Number.isFinite(event.data.pixelRatio))host.dataset.scenePixelRatio=String(event.data.pixelRatio);
     document.dispatchEvent(new Event('portfolio:scene-settled'));
+  } else if (event.data?.type === 'unseen:progress') {
+    reportProgress(event.data.progress,event.data.stage);
   } else if (event.data?.type === 'unseen:projects') {
     hero.querySelector('.primary-cta').click();
   } else if (event.data?.type === 'unseen:error') {

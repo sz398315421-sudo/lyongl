@@ -10,12 +10,10 @@
   <title>Psy Website — 刘泳乐 · Design Portfolio</title>
   <link rel="icon" href="favicon.svg?v=20261027-y2" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css?v=20261027-english-wordmark">
-  <link rel="stylesheet" href="welcome.css">
+  <link rel="stylesheet" href="welcome.css?v=20261027-mobile-loading">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
-  <link rel="modulepreload" href="water.js?v=20261027-home-return">
-  <link rel="modulepreload" href="hero-interactions.js">
   <link rel="stylesheet" href="hero-interactions.css">
-  <link rel="stylesheet" href="original-hero.css?v=20261027-3d-poster">
+  <link rel="stylesheet" href="original-hero.css?v=20261027-mobile-loading">
   <link rel="stylesheet" href="gallery.css">
   <link rel="stylesheet" href="page-views.css">
   <link rel="stylesheet" href="deep-sea.css">
@@ -23,11 +21,8 @@
   <link rel="stylesheet" href="studio.css">
   <link rel="stylesheet" href="project-detail.css">
   <link rel="stylesheet" href="theme-colors.css">
-  <link rel="modulepreload" href="vendor/three.module.js">
-  <link rel="modulepreload" href="vendor/three.core.js">
-  <link rel="modulepreload" href="vendor/Reflector.js">
   <script>if(/^\/(projects|explore|about)/.test(location.pathname) || (location.hash && location.hash !== '#home'))document.documentElement.dataset.skipWelcome='';</script>
-  <script src="welcome.js?v=20261027-scene-recovery" defer></script>
+  <script src="welcome.js?v=20261027-mobile-loading" defer></script>
 </head>
 <body class="intro-pending">
   <section class="welcome" id="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title" aria-describedby="welcome-description">
@@ -41,10 +36,30 @@
       </svg>
       <h2 id="welcome-title">YONGLE LIU<sup>®</sup></h2>
       <p id="welcome-description">一位专注智能座舱、数字产品与视觉表达的设计师。<br>用好奇心探索，让想象成为可感知的体验。</p>
-      <button class="welcome-enter pill" id="enter-world">Enter <span aria-hidden="true">↘</span></button>
+      <div class="welcome-loader" data-progress-known="false">
+        <div class="welcome-load-label"><span class="welcome-load-copy" role="status">正在加载场景…</span><span class="welcome-load-percent" aria-hidden="true">0%</span></div>
+        <span class="welcome-load-track" role="progressbar" aria-label="首页加载进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></span>
+      </div>
+      <button class="welcome-enter pill" id="enter-world" disabled>Enter <span aria-hidden="true">↘</span></button>
     </div>
-    <button class="welcome-muted" id="enter-muted">ENTER WITHOUT AUDIO <span>静音进入</span></button>
+    <button class="welcome-muted" id="enter-muted" disabled>ENTER WITHOUT AUDIO <span>静音进入</span></button>
   </section>
+  <script>
+  setTimeout(function(){
+    if(window.portfolioWelcomeInitialized)return;
+    var w=document.getElementById('welcome'),host=document.getElementById('world'),hero=document.getElementById('home');
+    var enter=document.getElementById('enter-world'),muted=document.getElementById('enter-muted');
+    if(!w||!host)return;
+    if(host.dataset.sceneState!=='ready'){host.dataset.sceneState='fallback';hero.classList.add('scene-fallback');document.dispatchEvent(new Event('portfolio:scene-fallback'));}
+    w.dataset.sceneReady='';w.removeAttribute('aria-busy');
+    var loader=w.querySelector('.welcome-loader');loader.dataset.progressKnown='true';loader.style.setProperty('--load-progress','100%');
+    loader.querySelector('[role="progressbar"]').setAttribute('aria-valuenow','100');
+    loader.querySelector('.welcome-load-percent').textContent='100%';loader.querySelector('.welcome-load-copy').textContent='首页已就绪';
+    enter.disabled=muted.disabled=false;
+    function open(){if(window.portfolioWelcomeInitialized)return;w.hidden=true;document.body.classList.remove('intro-pending');document.getElementById('site-shell').inert=false;}
+    enter.addEventListener('click',open);muted.addEventListener('click',open);
+  },20000);
+  </script>
   <div class="site-shell" id="site-shell">
   <a class="skip-link" href="/projects/">跳到作品</a>
   <header class="site-header" id="header">
@@ -113,6 +128,6 @@
   <section id="project-dialog" hidden aria-labelledby="detail-title"><div id="detail-content"></div><nav class="project-pagination" aria-label="切换作品"><a href="/projects/" id="prev-project" class="project-switch project-previous"></a><a href="/projects/" id="next-project" class="project-switch project-next"></a></nav></section>
   <dialog id="lightbox" aria-label="作品大图"><button id="close-lightbox" class="close-button" aria-label="关闭大图">关闭 <span>×</span></button><button id="prev-image" class="image-nav prev" aria-label="上一张">←</button><img id="lightbox-image" alt=""><button id="next-image" class="image-nav next" aria-label="下一张">→</button><span id="lightbox-count"></span></dialog>
   </div>
-  <script src="deep-sea.js" defer></script><script src="studio.js" defer></script><script src="sky.js?v=20261027-home-return" defer></script><script src="app.js?v=20261027-visual-explorations" defer></script><script src="app-controller.js?v=20261027-home-return" defer></script><script type="module" src="water.js?v=20261027-home-return"></script><script type="module" src="project-ocean.js"></script>
+  <script src="deep-sea.js" defer></script><script src="studio.js" defer></script><script src="sky.js?v=20261027-mobile-loading" defer></script><script src="app.js?v=20261027-visual-explorations" defer></script><script src="app-controller.js?v=20261027-mobile-loading" defer></script><script type="module" src="scene-start.js?v=20261027-mobile-loading"></script>
 </body>
 </html>

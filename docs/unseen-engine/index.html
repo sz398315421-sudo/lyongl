@@ -7,12 +7,14 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#efded9;fon
 <link rel="stylesheet" href="palette.css">
 <script>
 window.globalData={publicUrl:new URL('./',location.href).href,assetsUrl:new URL('./assets/',location.href).href};
+parent.postMessage({type:'unseen:progress',progress:2,stage:'scripts'},location.origin);
 // Surface real resource/decoder failures to the host so static mode offers retry.
 window.addEventListener('error',event=>{
   const resource=event.target;
-  if(resource?.tagName==='SCRIPT')parent.postMessage({type:'unseen:error',message:'Unable to load '+resource.src},location.origin);
+  if(resource?.tagName==='SCRIPT'||event.error)parent.postMessage({type:'unseen:error',message:resource?.src?'Unable to load '+resource.src:String(event.error)},location.origin);
 },true);
 window.addEventListener('unhandledrejection',event=>parent.postMessage({type:'unseen:error',message:String(event.reason)},location.origin));
+document.addEventListener('webglcontextlost',()=>parent.postMessage({type:'unseen:error',message:'graphics-context-lost'},location.origin),true);
 </script>
-<script defer src="palette.js"></script><script defer src="boot.js?v=20261027-home-return"></script><script defer src="scripts/manifest.js"></script><script defer src="scripts/vendor.js"></script><script defer src="scripts/engine.js"></script>
+<script defer src="palette.js"></script><script defer src="boot.js?v=20261027-mobile-loading"></script><script defer src="scripts/manifest.js"></script><script defer src="scripts/vendor.js"></script><script defer src="scripts/engine.js"></script>
 </head><body class="home"><div class="height-div"></div><canvas id="gl" data-engine="unseen-original" aria-hidden="true"></canvas><a class="scene-cta js-view-projects-btn" href="/projects/" target="_parent">探索我的作品 <span>↘</span></a><div class="contact-content js-contact-content"></div><div class="scene-cursor" aria-hidden="true"></div></body></html>

@@ -27,10 +27,10 @@ function setup(initialState='loading') {
   let frame;
   document.createElement=tag=>{const el=new Element();if(tag==='iframe'){frame=el;el.contentWindow={unseenScene:{view:'home',pause(){}}};}return el;};
   const timers=new Map();let nextTimer=0;
-  vm.runInNewContext(source,{document,window,URL,Event,console:{warn(){}},location:{origin:'https://portfolio.test'},
+  vm.runInNewContext(source,{document,window,URL,Event,CustomEvent,console:{warn(){}},location:{origin:'https://portfolio.test'},
     matchMedia:()=>Object.assign(new EventTarget(),{matches:false}),
     IntersectionObserver:class{observe(){}},MutationObserver:class{observe(){}},
-    setTimeout:fn=>{timers.set(++nextTimer,fn);return nextTimer;},clearTimeout:id=>timers.delete(id)});
+    setTimeout:(fn,delay)=>{fn.delay=delay;timers.set(++nextTimer,fn);return nextTimer;},clearTimeout:id=>timers.delete(id)});
   const status=hero.children[0],retry=status.children[1];
   function message(type,extra={},origin='https://portfolio.test',sender=frame.contentWindow){
     const event=new Event('message');Object.assign(event,{origin,source:sender,data:{type,...extra}});window.dispatchEvent(event);
@@ -63,9 +63,24 @@ test('a confirmed engine failure offers retry and restores the fallback link',()
 });
 test('retry remains available if another download stalls',()=>{
   const s=setup();s.timeout();s.retry.dispatchEvent(new Event('click'));
-  for(const timer of [...s.timers.values()])timer();
+  for(const timer of [...s.timers.values()].filter(timer=>timer.delay===20000))timer();
   assert.equal(s.retry.hidden,false);assert.equal(s.frame.parent,s.host);
   s.message('unseen:ready');assert.equal(s.host.dataset.sceneState,'ready');
+});
+test('a stalled attempt ends in static mode instead of promising to load forever',()=>{
+  const s=setup();s.timeout();
+  const deadline=[...s.timers.values()].find(timer=>timer.delay===45000);assert.ok(deadline);deadline();
+  assert.equal(s.host.dataset.sceneLoading,'false');assert.equal(s.frame.parent,null);
+  assert.equal(s.host.dataset.sceneReason,'load-timeout');
+  assert.equal(s.status.children[0].textContent,'当前为静态首页。');assert.equal(s.retry.hidden,false);
+  s.retry.dispatchEvent(new Event('click'));assert.equal(s.frame.parent,s.host);
+  assert.equal(new URL(s.frame.src).searchParams.get('quality'),'low');
+  s.message('unseen:ready');assert.equal(s.host.dataset.sceneState,'ready');assert.equal(s.timers.size,0);
+});
+test('genuine scene progress is monotonic and completion clears every deadline',()=>{
+  const s=setup();s.message('unseen:progress',{progress:42,stage:'assets'});assert.equal(s.host.dataset.sceneProgress,'42');
+  s.message('unseen:progress',{progress:10,stage:'assets'});assert.equal(s.host.dataset.sceneProgress,'42');
+  s.message('unseen:ready');assert.equal(s.host.dataset.sceneProgress,'100');assert.equal(s.timers.size,0);
 });
 test('only the same-origin scene frame can mark the courtyard ready',()=>{
   const s=setup();s.message('unseen:ready',{},'https://other.test');

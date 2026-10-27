@@ -29,12 +29,24 @@ async function prepareWelcome() {
   // Preload immediately behind the welcome screen, before any Enter click.
   welcome.setAttribute('aria-busy','true');
   enterButton.disabled = mutedButton.disabled = true;
-  const loader = document.createElement('div');
-  loader.className = 'welcome-loader';loader.setAttribute('role','status');
-  loader.innerHTML = '<span class="welcome-load-track" aria-hidden="true"><span></span></span><span class="welcome-load-copy">正在准备场景…</span>';
-  welcome.querySelector('.welcome-content').append(loader);
+  const loader = welcome.querySelector('.welcome-loader');
+  const track=loader.querySelector('[role="progressbar"]');
+  const copy=loader.querySelector('.welcome-load-copy');
+  const percent=loader.querySelector('.welcome-load-percent');
+  const update=()=>{
+    const host=document.querySelector('#world');
+    const value=Number(host.dataset.sceneProgress)||0;
+    loader.dataset.progressKnown=String(value>0);
+    track.setAttribute('aria-valuenow',String(value));loader.style.setProperty('--load-progress',value+'%');
+    percent.textContent=Math.round(value)+'%';
+    copy.textContent=host.dataset.scenePhase==='render'?'正在生成场景…':'正在加载场景…';
+  };
+  document.addEventListener('portfolio:scene-progress',update);update();
   await waitForHero();
-  loader.remove();welcome.removeAttribute('aria-busy');welcome.dataset.sceneReady = '';
+  document.removeEventListener('portfolio:scene-progress',update);
+  loader.dataset.progressKnown='true';loader.style.setProperty('--load-progress','100%');track.setAttribute('aria-valuenow','100');percent.textContent='100%';
+  copy.textContent=document.querySelector('#world').dataset.sceneState==='ready'?'动态场景已就绪':'静态首页已就绪';
+  welcome.removeAttribute('aria-busy');welcome.dataset.sceneReady = '';
   enterButton.disabled = mutedButton.disabled = false;
   if (document.activeElement === document.body || welcome.contains(document.activeElement)) enterButton.focus({preventScroll:true});
 }
@@ -157,5 +169,11 @@ document.addEventListener('visibilitychange', () => {
   else if (soundRequested) setSound(true);
   syncSoundButton();
 });
-if (document.documentElement.hasAttribute('data-skip-welcome')) enterWorld(false, false);
-else { shell.inert = true; prepareWelcome(); }
+window.portfolioWelcomeInitialized=true;
+if (document.documentElement.hasAttribute('data-skip-welcome')||welcome.hidden||!document.body.classList.contains('intro-pending')) enterWorld(false, false);
+else { shell.inert = true; prepareWelcome().catch(error=>{
+  console.warn('Welcome uses the static homepage.',error);
+  document.querySelector('#world').dataset.sceneState='fallback';document.querySelector('.hero').classList.add('scene-fallback');
+  document.dispatchEvent(new Event('portfolio:scene-fallback'));welcome.dataset.sceneReady='';
+  welcome.removeAttribute('aria-busy');enterButton.disabled=mutedButton.disabled=false;
+}); }
