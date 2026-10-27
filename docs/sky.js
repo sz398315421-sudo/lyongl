@@ -117,7 +117,7 @@
    // Keep the cloud page visible while the incoming courtyard loads off-screen.
    const [scene,module]=await Promise.all([initialize(),to==='projects'?null:preloadCourtyard()]);
    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-   if(to==='projects')arrival=await window.portfolioWater?.prepareSkyArrival();
+   if(to==='projects'){await window.portfolioScenes?.prepareWater();arrival=await window.portfolioWater?.prepareSkyArrival();}
    else engine=await module?.prepareCourtyardView(to);
    if(reduced.matches||!scene){change();changed=true;return true;}
    overlay=document.createElement('canvas');overlay.className='sky-flight';overlay.setAttribute('aria-hidden','true');overlay.dataset.motion=`clouds-to-${to}`;

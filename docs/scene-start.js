@@ -19,6 +19,13 @@ let water;
 function startWater(){
   return water??=import('./water.js?v=20261027-live-scene').catch(error=>console.warn('Native gallery remains available.',error));
 }
+window.portfolioScenes={async prepareWater(){
+  if(window.portfolioWater)return window.portfolioWater;
+  const status=document.createElement('div');status.className='surface-preparing';
+  status.setAttribute('role','status');status.textContent='正在准备场景切换…';document.body.append(status);
+  try{await startWater();return window.portfolioWater;}
+  finally{status.remove();}
+}};
 if(mobile&&surface()){
   const onDeparture=()=>{if(!surface()){document.removeEventListener('portfolio:content',onDeparture);startWater();}};
   document.addEventListener('portfolio:content',onDeparture);

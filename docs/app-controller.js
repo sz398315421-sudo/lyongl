@@ -86,7 +86,10 @@ async function navigate(url,{image,origin,restore=false}={}){
   else if(page()==='explore'&&window.portfolioSky&&(toHome||toAbout||/^\/projects\/?$/.test(destination.pathname)))await window.portfolioSky.descend(change,{to:toAbout?'about':toHome?'home':'projects'});
   else if(page()==='project'&&/^\/projects\/[^/]+\/?$/.test(destination.pathname))change();
   else if(window.portfolioSky&&(destination.pathname.startsWith('/explore')||destination.hash==='#explore'))await window.portfolioSky.fly(change);
-  else if(window.portfolioWater)await window.portfolioWater.dive(change,{image,origin,to:url});else change();
+  else{
+   await window.portfolioScenes?.prepareWater();
+   if(window.portfolioWater)await window.portfolioWater.dive(change,{image,origin,to:url});else change();
+  }
  }finally{navigating=false;}
 }
 
