@@ -5,7 +5,7 @@ const hero = document.querySelector('.hero');
 const frame = document.createElement('iframe');
 frame.className = 'original-scene';
 frame.title = '互动庭院：移动鼠标探索空间，触碰水面与文字';
-frame.src = new URL(document.documentElement.dataset.page==='about'?'./unseen-engine/?view=contact&v=20261027-live-scene':'./unseen-engine/?v=20261027-live-scene', import.meta.url).href;
+frame.src = new URL(document.documentElement.dataset.page==='about'?'./unseen-engine/?view=contact&v=20261028-mobile-sync':'./unseen-engine/?v=20261028-mobile-sync', import.meta.url).href;
 frame.setAttribute('allow', 'autoplay');
 host.removeAttribute('aria-hidden');
 let ready = false, prepared = false, verifying = false, diving = false, travelling = false, abandoned = false;
@@ -46,6 +46,7 @@ function drawFrame(now) {
   renderFrame=0;
   if(!renderAllowed||!prepared)return;
   try{
+    engine()?.setMotion?.(window.portfolioMotion);
     if(!engine()?.renderFrame(now/1000,{validate:verifying}))throw new Error('scene-frame-unavailable');
     host.dataset.sceneFrames=String(++renderedFrames);host.dataset.sceneFrameTime=String(now);
     if(verifying&&++verifiedFrames>=2)finishReady();

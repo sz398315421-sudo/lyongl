@@ -23,6 +23,20 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
     o.RAFCollection.fire=time=>fire(time+sceneTimeOffset);
     n.on(o.events.RAF,o.RAFCollection.fire);
     o.AssetLoader = new tt();
+    if((mobile||lowQuality)&&o.AssetLoader.loadTexture&&o.AssetLoader.loadKtxTexture){
+      // The mobile set is decoded once at authoring time. Native WebP loading
+      // avoids downloading/compiling Basis WASM and transcoding large textures.
+      const loadTexture=o.AssetLoader.loadTexture.bind(o.AssetLoader);
+      const loadKtx=o.AssetLoader.loadKtxTexture.bind(o.AssetLoader);
+      o.AssetLoader.loadTexture=(url,options)=>loadTexture(
+        url.replace(/\/images\/matcap-white\.png(?:\?.*)?$/, '/images/mobile/matcap-white.webp?v=20261027-mobile-fast'),options);
+      o.AssetLoader.loadKtxTexture=(url,options)=>{
+        const mobileUrl=url.replace(/\/images\/home\/([^/?]+)\.ktx2(?:\?.*)?$/, '/images/mobile/$1.webp?v=20261027-mobile-fast');
+        // Compressed GPU uploads ignore flipY. Keep the same UV orientation
+        // when uploading their decoded image equivalents.
+        return mobileUrl===url?loadKtx(url,options):loadTexture(mobileUrl,{...options,flipY:false});
+      };
+    }
     o.AssetLoader.dracoLoader?.setWorkerLimit?.(mobile?1:2);
     o.AssetLoader.ktxLoader?.setWorkerLimit?.(mobile?1:2);
     o.TextLoader = new tt({ name: 'TextLoader', progressEventName: 'TextLoaderProgress' });
@@ -44,11 +58,33 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
     }finally{n.off('AssetsProgress',onProgress);}
     progress(95,'render');
     o.HomeContact.build();
+    if(mobile||lowQuality){
+      // The original scene reassigns these compressed-texture flags in build().
+      for(const name of ['pearlMatcap','skymap']){
+        const texture=o.HomeContact.assets?.textures[name];
+        if(texture){texture.flipY=false;texture.needsUpdate=true;}
+      }
+    }
     window.applyCourtyardPalette(o);
     o.HomeContact.enable();
     o.HomeContact.homeTextMesh.material.uniforms.uOpacity.value = initialContact?0:1;
     o.HomeContact.homeTextMesh.material.uniforms.uProgress.value = 1;
     const home=o.HomeContact;
+    // Touch keeps its native hit testing. Apply only the camera part of the
+    // desktop cursor effect, without synthesizing mouse or fluid interactions.
+    const tilt={x:0,y:0,targetX:0,targetY:0};
+    const updateCamera=home.updateCameraPosition;
+    home.updateCameraPosition=function(...args){
+      updateCamera.apply(this,args);
+      if(!o.isTouch)return;
+      const ease=1-Math.exp(-Math.min(.05,Math.max(0,o.clockDelta||1/60))*5);
+      tilt.x+=(tilt.targetX-tilt.x)*ease;tilt.y+=(tilt.targetY-tilt.y)*ease;
+      if(!tilt.x&&!tilt.y)return;
+      this.camera.translateZ(-this.options.cameraZOffset);
+      this._e.set(tilt.y*this.options.mouseMoveAngleY,-tilt.x*this.options.mouseMoveAngleX,0);
+      this._q.setFromEuler(this._e);this.camera.quaternion.multiply(this._q);
+      this.camera.translateZ(this.options.cameraZOffset);this.camera.updateMatrixWorld();
+    };
     await Promise.all([home.introText,home.line1,home.line2].filter(Boolean).map(text=>{
       if(text.textRenderInfo)return Promise.resolve();
       return new Promise(resolve=>{
@@ -78,6 +114,10 @@ window.bootUnseenScene = async ({ o, n, c, m, tt, Lt, ws, co, l }) => {
       return canvas;
     };
     window.unseenScene = {
+      setMotion(input) {
+        tilt.targetX=input?.active?Math.max(-.65,Math.min(.65,input.x*.65)):0;
+        tilt.targetY=input?.active?Math.max(-.65,Math.min(.65,-input.y*.65)):0;
+      },
       // UNSEEN HomeContact → ProjectMenu timing and camera offsets (ko.out).
       // The host supplies its own portfolio scene, driven by this same GSAP clock.
       projectsTransition(state, draw, {returning=false,runTimeline,surfaceOffset=-(innerHeight/2)*5e-5,duration=returning?2.4:3,ease=returning?'power2.inOut':'power4.inOut'}={}) {

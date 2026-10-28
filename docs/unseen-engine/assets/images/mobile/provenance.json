@@ -1,0 +1,83 @@
+{
+  "source": "../home/*.ktx2 and ../matcap-white.png",
+  "purpose": "Mobile derivatives of the existing courtyard textures; RGBA decoded with the bundled Basis transcoder, WebP encoded locally.",
+  "maxRoomSize": 1024,
+  "maxObjectSize": 512,
+  "lossless": [
+    "ao",
+    "particles",
+    "skymap-tile"
+  ],
+  "textures": [
+    {
+      "file": "ao.ktx2",
+      "width": 2048,
+      "height": 2048,
+      "original": 61835,
+      "mobile": 19592
+    },
+    {
+      "file": "chair.ktx2",
+      "width": 1024,
+      "height": 1024,
+      "original": 105811,
+      "mobile": 35488
+    },
+    {
+      "file": "particles.ktx2",
+      "width": 512,
+      "height": 128,
+      "original": 16740,
+      "mobile": 35972
+    },
+    {
+      "file": "pearl-matcap.ktx2",
+      "width": 256,
+      "height": 256,
+      "original": 17350,
+      "mobile": 3180
+    },
+    {
+      "file": "pillows.ktx2",
+      "width": 1024,
+      "height": 1024,
+      "original": 65251,
+      "mobile": 14364
+    },
+    {
+      "file": "rocks.ktx2",
+      "width": 512,
+      "height": 512,
+      "original": 28984,
+      "mobile": 31448
+    },
+    {
+      "file": "room-1.ktx2",
+      "width": 2048,
+      "height": 2048,
+      "original": 963274,
+      "mobile": 25566
+    },
+    {
+      "file": "room-2.ktx2",
+      "width": 2048,
+      "height": 2048,
+      "original": 899929,
+      "mobile": 22672
+    },
+    {
+      "file": "skymap-tile.ktx2",
+      "width": 512,
+      "height": 512,
+      "original": 8669,
+      "mobile": 13528
+    },
+    {
+      "file": "table.ktx2",
+      "width": 512,
+      "height": 512,
+      "original": 26663,
+      "mobile": 23280
+    }
+  ]
+}

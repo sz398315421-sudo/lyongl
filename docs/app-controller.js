@@ -1,5 +1,5 @@
 const grid=document.querySelector('#projects');
-grid.innerHTML=projects.map((p,i)=>`<article class="project-card" data-category="${p.category}"><a class="project-button" href="/projects/${p.id}/" data-project="${p.id}" aria-label="查看${p.title}，${p.images.length}张设计页"><div class="project-image"><img src="assets/${p.cover}.webp" srcset="assets/${p.cover}-sm.webp 760w, assets/${p.cover}.webp 1920w" sizes="(max-width:600px) calc(100vw - 32px), (max-width:1000px) calc(50vw - 46px), (min-width:2000px) 862px, calc(44vw - 18px)" width="1920" height="1080" loading="${i<4?'eager':'lazy'}" alt="${p.title}作品封面"></div><div class="project-meta"><div><h3>${p.title}</h3><p>${p.type}</p></div><span class="project-index">${String(i+1).padStart(2,'0')} / ${String(p.images.length).padStart(2,'0')} PAGES</span></div></a></article>`).join('');
+grid.innerHTML=projects.map((p,i)=>`<article class="project-card" data-category="${p.category}"><a class="project-button" href="/projects/${p.id}/" data-project="${p.id}" aria-label="查看${p.title}，${p.images.length}张设计页"><div class="project-image"><img src="assets/${p.cover}.webp" srcset="assets/${p.cover}-sm.webp 760w, assets/${p.cover}.webp 1920w" sizes="(max-width:600px) calc(100vw - 32px), (max-width:1000px) calc(50vw - 46px), (min-width:2000px) 862px, calc(44vw - 18px)" width="1920" height="1080" loading="${document.documentElement.dataset.page==='projects'&&i<4?'eager':'lazy'}" alt="${p.title}作品封面"></div><div class="project-meta"><div><h3>${p.title}</h3><p>${p.type}</p></div><span class="project-index">${String(i+1).padStart(2,'0')} / ${String(p.images.length).padStart(2,'0')} PAGES</span></div></a></article>`).join('');
 
 const detail=document.querySelector('#project-dialog'),lightbox=document.querySelector('#lightbox');
 const menu=document.querySelector('#menu'),menuButton=document.querySelector('.menu-toggle');
@@ -60,7 +60,7 @@ function applyRoute({restore=false,focus=false}={}){
   link.setAttribute('aria-current',active?'page':'false');
  });
  document.querySelector('#home').setAttribute('aria-hidden',String(target!=='home'));
- if(['home','about'].includes(target)&&!heroLoaded){heroLoaded=true;import('./original-hero.js?v=20261027-live-scene').catch(error=>console.warn('The static courtyard remains available.',error));}
+ if(['home','about'].includes(target)&&!heroLoaded){heroLoaded=true;import('./original-hero.js?v=20261028-mobile-sync').catch(error=>console.warn('The static courtyard remains available.',error));}
  const scroll=target==='projects'&&restore?workScroll:0;
  window.scrollTo({top:scroll,behavior:'instant'});
  document.dispatchEvent(new Event('portfolio:content'));

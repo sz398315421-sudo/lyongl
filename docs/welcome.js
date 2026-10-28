@@ -149,8 +149,18 @@ function enterWorld(withSound, animate = true) {
 enterButton.addEventListener('click', () => enterWorld(true));
 mutedButton.addEventListener('click', () => enterWorld(false));
 soundButton.addEventListener('click', () => setSound(!soundEnabled));
+function moveWelcomeEyes(x, y) {
+  welcome.style.setProperty('--eye-x', `${x}px`);
+  welcome.style.setProperty('--eye-y', `${y}px`);
+  for (const pupil of welcome.querySelectorAll('.eye-pupil')) pupil.style.transform = `translate(${x}px, ${y}px)`;
+}
+document.addEventListener('portfolio:tilt', event => {
+  if (motionReduced || entered || welcome.hidden) return;
+  const {x, y, active} = event.detail;
+  moveWelcomeEyes(active ? x * 12 : 0, active ? y * 14 : 0);
+});
 welcome.addEventListener('pointermove', event => {
-  if (motionReduced) return;
+  if (motionReduced || event.pointerType === 'touch' || window.portfolioMotion?.active) return;
   const eyes = welcome.querySelector('svg').getBoundingClientRect();
   const page=welcome.getBoundingClientRect();
   const cx=eyes.left+eyes.width/2,cy=eyes.top+eyes.height/2;
@@ -163,14 +173,19 @@ welcome.addEventListener('pointermove', event => {
   const radius=Math.max(1,Math.hypot(nx,ny));
   const x=nx/radius*(nx<0?12:9);
   const y=ny/radius*(ny<0?20:7);
-  welcome.style.setProperty('--eye-x', `${x}px`); welcome.style.setProperty('--eye-y', `${y}px`);
+  moveWelcomeEyes(x, y);
 });
-welcome.addEventListener('pointerleave', () => { welcome.style.setProperty('--eye-x', '0px'); welcome.style.setProperty('--eye-y', '0px'); });
+welcome.addEventListener('pointerleave', () => {
+  if (window.portfolioMotion?.active) return;
+  moveWelcomeEyes(0, 0);
+});
 welcome.addEventListener('keydown', event => {
   if (event.key === 'Escape') enterWorld(false);
   if (event.key !== 'Tab') return;
-  if (event.shiftKey && document.activeElement === enterButton) { event.preventDefault(); mutedButton.focus(); }
-  else if (!event.shiftKey && document.activeElement === mutedButton) { event.preventDefault(); enterButton.focus(); }
+  const controls = [...welcome.querySelectorAll('button:not([disabled])')].filter(button => !button.hidden && getComputedStyle(button).visibility !== 'hidden');
+  const first = controls[0], last = controls.at(-1);
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
 });
 document.addEventListener('visibilitychange', () => {
   if (!audioContext) return;

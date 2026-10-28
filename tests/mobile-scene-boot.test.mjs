@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import {PerspectiveCamera,Euler,Quaternion} from '../docs/vendor/three.module.js';
 const source=await readFile(new URL('../docs/unseen-engine/boot.js',import.meta.url),'utf8');
 
 async function boot({mobile=true,assetError=false,search=''}={}){
@@ -9,9 +10,11 @@ async function boot({mobile=true,assetError=false,search=''}={}){
   const canvas=new Element(),button=new Element(),cursor=new Element(),document=new Element();
   document.body=new Element();document.querySelector=selector=>selector==='#gl'?canvas:selector==='.scene-cta'?button:cursor;
   const messages=[],limits=[],events=new Map(),times=[];let renders=0,updates=0,glyphsReady=0,ticks=0;
-  const o={window:{dpr:3}};
+  const o={window:{dpr:3},isTouch:mobile};
   const n={on:(name,fn)=>events.set(name,fn),off:name=>events.delete(name)};
   class Assets {
+    loadTexture(url,options){return Promise.resolve({kind:'image',url,options});}
+    loadKtxTexture(url,options){return Promise.resolve({kind:'ktx',url,options});}
     constructor(options={}){
       this.promisesToLoad=options.name==='TextLoader'?[]:[assetError?Promise.reject(new Error('asset failed')):Promise.resolve()];
       this.dracoLoader={setWorkerLimit:value=>limits.push(['draco',value])};
@@ -20,6 +23,9 @@ async function boot({mobile=true,assetError=false,search=''}={}){
     load(){events.get('AssetsProgress')?.({percent:50});return assetError?new Promise(()=>{}):Promise.resolve();}
   }
   class Home {
+    assets={textures:{pearlMatcap:{flipY:true},skymap:{flipY:true}}};
+    camera=new PerspectiveCamera();options={cameraZOffset:.1,mouseMoveAngleX:.135,mouseMoveAngleY:.035};
+    _e=new Euler();_q=new Quaternion();
     constructor(){
       this.homeTextMesh={material:{uniforms:{uOpacity:{},uProgress:{}}}};
       for(const name of ['introText','line1','line2'])this[name]=new class extends EventTarget {
@@ -27,7 +33,8 @@ async function boot({mobile=true,assetError=false,search=''}={}){
         sync(){Promise.resolve().then(()=>{this.textRenderInfo={};glyphsReady++;this.dispatchEvent(new Event('synccomplete'));});}
       }();
     }
-    build(){}enable(){}showUI(){}updateCameraPosition(){}
+    build(){}enable(){}showUI(){}
+    updateCameraPosition(){this.camera.position.set(0,0,0);this.camera.quaternion.identity();}
   }
   const window={globalData:{},applyCourtyardPalette(){}};
   const context={window,document,URLSearchParams,location:{search,origin:'https://portfolio.test'},
@@ -76,4 +83,30 @@ test('retry uses a smaller render scale while desktop retains its usual quality'
   const low=await boot({mobile:false,search:'?quality=low'});
   assert.equal(low.messages.find(m=>m.type==='unseen:ready').pixelRatio,1);
   const desktop=await boot({mobile:false});assert.equal(desktop.messages.find(m=>m.type==='unseen:ready').pixelRatio,2);
+});
+
+test('mobile textures bypass Basis downloads while desktop retains its full-resolution KTX assets',async()=>{
+  for(const mobile of [true,false]){
+    const s=await boot({mobile}),loader=s.o.AssetLoader;
+    const texture=await loader.loadKtxTexture('https://portfolio.test/unseen-engine/assets/images/home/room-1.ktx2?v=123');
+    assert.equal(texture.kind,mobile?'image':'ktx');
+    if(mobile){assert.match(texture.url,/images\/mobile\/room-1\.webp/);assert.equal(texture.options.flipY,false);}
+    const unrelated=await loader.loadKtxTexture('https://portfolio.test/other.ktx2');assert.equal(unrelated.kind,'ktx');
+    for(const name of ['pearlMatcap','skymap'])assert.equal(s.o.HomeContact.assets.textures[name].flipY,!mobile);
+  }
+});
+
+test('tilt moves the real mobile camera smoothly while desktop stays on its native cursor',async()=>{
+  for(const mobile of [true,false]){
+    const s=await boot({mobile}),scene=s.window.unseenScene,home=s.o.HomeContact;
+    scene.setMotion({x:1,y:1,active:true});home.updateCameraPosition();
+    const first=Math.abs(home.camera.rotation.y);
+    for(let i=0;i<50;i++)home.updateCameraPosition();
+    const full=Math.abs(home.camera.rotation.y);
+    if(!mobile){assert.equal(full,0);continue;}
+    assert.ok(first>0&&first<full);assert.ok(full<=.135*.65+.001);
+    assert.ok(Math.abs(home.camera.position.x)>0,'camera pivot creates scene parallax');
+    scene.setMotion({active:false});for(let i=0;i<100;i++)home.updateCameraPosition();
+    assert.ok(Math.abs(home.camera.rotation.y)<.0001,'returns to neutral without accumulating rotation');
+  }
 });

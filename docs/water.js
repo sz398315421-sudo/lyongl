@@ -424,7 +424,7 @@ function frame(now) {
 
 async function prepareCourtyard(){
   const host=document.querySelector('#world');
-  await import('./original-hero.js?v=20261027-live-scene');
+  await import('./original-hero.js?v=20261028-mobile-sync');
   if(!['ready','fallback'].includes(host.dataset.sceneState)){
     const status=document.createElement('div');status.className='surface-preparing';status.setAttribute('role','status');status.textContent='正在准备水面…';document.body.append(status);
     await new Promise(resolve=>{

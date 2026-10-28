@@ -3,16 +3,21 @@
  const world=document.createElement('div');world.className='sky-world';world.setAttribute('aria-hidden','true');document.body.prepend(world);
  const smooth=(a,b,v)=>{const p=Math.max(0,Math.min(1,(v-a)/(b-a)));return p*p*(3-2*p);};
  const pointer={x:0,y:0},view={x:0,y:0};
+ document.addEventListener('portfolio:tilt',event=>{
+  pointer.x=event.detail.active?event.detail.x*.32:0;
+  pointer.y=event.detail.active?event.detail.y*.32:0;
+ });
+
  const travel={target:0,position:0,impulse:0,velocity:0};let lastScroll=0,wasExploring=false;
  const explore=document.querySelector('#explore');
  const interaction={pointer:{x:0,y:0},wind:{x:0,y:0},energy:0,pulses:[]};
  const windTarget={x:0,y:0,energy:0};let lastPointer=null,touchTap=null;
  const hint=document.createElement('span');hint.className='sky-interaction-hint';hint.hidden=true;
- hint.textContent=matchMedia('(pointer:coarse)').matches?'滑动穿行云间 · 轻触拨开云朵':'移动鼠标环顾云海 · 滚动穿行云间 · 点击拨开云朵';
+ hint.textContent=matchMedia('(pointer:coarse)').matches?'倾斜手机环顾 · 滑动穿行云间 · 轻触拨开云朵':'移动鼠标环顾云海 · 滚动穿行云间 · 点击拨开云朵';
  document.querySelector('.explore-heading > p')?.append(hint);
  let cloudWorld=null,loading=null,raf=0,last=0,time=0,busy=false,lifecycle='';
  let courtyardImport=null,courtyardScheduled=false;
- const preloadCourtyard=()=>courtyardImport??=import('./original-hero.js?v=20261027-live-scene').catch(error=>{console.warn('Static courtyard remains available.',error);return null;});
+ const preloadCourtyard=()=>courtyardImport??=import('./original-hero.js?v=20261028-mobile-sync').catch(error=>{console.warn('Static courtyard remains available.',error);return null;});
  function scheduleCourtyard(){
   if(courtyardScheduled)return;courtyardScheduled=true;
   setTimeout(()=>{if(document.documentElement.dataset.page==='explore')preloadCourtyard();else courtyardScheduled=false;},1300);

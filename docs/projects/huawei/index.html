@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="welcome.css?v=20261027-ready-clean">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
   <link rel="stylesheet" href="hero-interactions.css">
-  <link rel="stylesheet" href="original-hero.css?v=20261027-live-scene">
+  <link rel="stylesheet" href="original-hero.css?v=20261028-mobile-sync">
   <link rel="stylesheet" href="gallery.css">
   <link rel="stylesheet" href="page-views.css">
   <link rel="stylesheet" href="deep-sea.css">
@@ -21,8 +21,9 @@
   <link rel="stylesheet" href="studio.css">
   <link rel="stylesheet" href="project-detail.css">
   <link rel="stylesheet" href="theme-colors.css">
+  <link rel="stylesheet" href="device-parallax.css?v=20261028-mobile-sync">
   <script>if(/^\/(projects|explore|about)/.test(location.pathname) || (location.hash && location.hash !== '#home'))document.documentElement.dataset.skipWelcome='';</script>
-  <script src="welcome.js?v=20261027-eye-gaze" defer></script>
+  <script src="welcome.js?v=20261028-mobile-sync" defer></script>
 </head>
 <body class="intro-pending">
   <section class="welcome" id="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title" aria-describedby="welcome-description">
@@ -128,6 +129,6 @@
   <section id="project-dialog" hidden aria-labelledby="detail-title"><div id="detail-content"></div><nav class="project-pagination" aria-label="切换作品"><a href="/projects/" id="prev-project" class="project-switch project-previous"></a><a href="/projects/" id="next-project" class="project-switch project-next"></a></nav></section>
   <dialog id="lightbox" aria-label="作品大图"><button id="close-lightbox" class="close-button" aria-label="关闭大图">关闭 <span>×</span></button><button id="prev-image" class="image-nav prev" aria-label="上一张">←</button><img id="lightbox-image" alt=""><button id="next-image" class="image-nav next" aria-label="下一张">→</button><span id="lightbox-count"></span></dialog>
   </div>
-  <script src="deep-sea.js" defer></script><script src="studio.js" defer></script><script src="sky.js?v=20261027-first-transition" defer></script><script src="app.js?v=20261027-visual-explorations" defer></script><script src="app-controller.js?v=20261027-first-transition" defer></script><script type="module" src="scene-start.js?v=20261027-first-transition"></script>
+  <script src="device-parallax.js?v=20261028-mobile-sync" defer></script><script src="deep-sea.js?v=20261028-mobile-sync" defer></script><script src="studio.js" defer></script><script src="sky.js?v=20261028-mobile-sync" defer></script><script src="app.js?v=20261027-visual-explorations" defer></script><script src="app-controller.js?v=20261028-mobile-sync" defer></script><script type="module" src="scene-start.js?v=20261028-mobile-sync"></script>
 </body>
 </html>
