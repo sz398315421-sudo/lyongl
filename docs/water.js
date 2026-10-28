@@ -37,8 +37,17 @@ document.fonts.ready.then(()=>fontRevision++);
 const vertexShader = 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }';
 const geometry = new THREE.PlaneGeometry(2, 2);
 const sheetGeometry=new THREE.PlaneGeometry(1,1,24,24);
-// Preserve UNSEEN's world-space bend, ripple and projection equations.
-const sheetVertex=projectVertex;
+// Preserve the original backward roll, with a modest reduction in its amplitude.
+// The CPU hit area uses these same strengths in referencePoint below.
+const galleryMotion={depth:1,fold:.8,wave:.7,idleWave:.3};
+let waveStrength=galleryMotion.idleWave,waveUpdatedAt=0;
+const sheetVertex=projectVertex
+  .replace('uniform float u_time;','uniform float u_time;\nuniform float u_waveStrength;')
+  .replace('* 50.;','* 50. * u_waveStrength;')
+  .replace('* 0.5;','* 0.5 * u_waveStrength;')
+  .replace('* 12.;','* 12. * u_waveStrength;')
+  .replace('1200. *',`${(1200*galleryMotion.depth).toFixed(3)} *`)
+  .replace(') * u_heightOffset;',`) * u_heightOffset * ${galleryMotion.fold};`);
 let galleryRoom=null;
 const galleryCamera=new THREE.PerspectiveCamera(30,1,100,4500);
 galleryCamera.position.z=2000;
@@ -193,7 +202,7 @@ function hydrate() {
   document.querySelectorAll('.project-image > img').forEach(img=>{
     if(surfaces.has(img)||!imageRenderer||reduced.matches)return;
     const material = new THREE.ShaderMaterial({transparent:true,depthTest:false,depthWrite:false,side:THREE.DoubleSide,defines:fluid?{FLUID:1}:{},uniforms:{
-      uTexture:{value:null},u_time:{value:0},u_random:{value:1},u_fluidTex:{value:null},
+      uTexture:{value:null},u_time:{value:0},u_waveStrength:{value:waveStrength},u_random:{value:1},u_fluidTex:{value:null},
       u_imageSize:{value:new THREE.Vector2(1,1)},u_meshSize:{value:new THREE.Vector2(1,1)},
       u_innerScale:{value:1},u_heightOffset:{value:1},u_bendPoint:{value:new THREE.Vector2(100,700)},u_opacity:{value:1},
       fogColor:{value:new THREE.Color('#dedde0')},fogNear:{value:1250},fogFar:{value:3000},
@@ -275,11 +284,11 @@ function referencePoint(x,y,time,imageHeight=0){
   const worldX=(x-innerWidth*.5)*.5,worldY=(innerHeight*.5-y)*.5;
   const lower=innerWidth<700?100:100*innerHeight/1100,upper=innerWidth<700?500:700*innerHeight/1100;
   const bend=THREE.MathUtils.smoothstep(worldY,lower,upper);
-  const noise=Math.sin((worldX-worldY*.1)*.03-time*1.1+Math.cos(40)*10)*50;
-  const ripple=Math.sin((worldX-worldY)*.02-time*2)*12;
-  const z=1000+ripple-(1200+noise)*bend;
-  const noise2=Math.sin((worldX+worldY*.1)*.01-time*.4)*.5;
-  const curvedY=worldY-(1.5-noise2)*THREE.MathUtils.smoothstep(worldY,lower*1.1,upper*.7)*imageHeight*.5;
+  const noise=Math.sin((worldX-worldY*.1)*.03-time*1.1+Math.cos(40)*10)*50*waveStrength;
+  const ripple=Math.sin((worldX-worldY)*.02-time*2)*12*waveStrength;
+  const z=1000+ripple-(1200*galleryMotion.depth+noise)*bend;
+  const noise2=Math.sin((worldX+worldY*.1)*.01-time*.4)*.5*waveStrength;
+  const curvedY=worldY-(1.5-noise2)*THREE.MathUtils.smoothstep(worldY,lower*1.1,upper*.7)*imageHeight*.5*galleryMotion.fold;
   const distance=galleryCamera.position.z-z,scale=2000/Math.max(100,distance);
   const projected=new THREE.Vector3(worldX,curvedY,z).project(galleryCamera);
   return {x:(projected.x*.5+.5)*innerWidth,y:(.5-projected.y*.5)*innerHeight,depth:distance-1000};
@@ -287,6 +296,11 @@ function referencePoint(x,y,time,imageHeight=0){
 function rollSheets(measure=true){
   if(!active||reduced.matches)return;
   const time=performance.now()/1000;
+  // Let idle ripples settle softly; scrolling keeps the existing roll and waves.
+  const activity=enteringProjects?1:THREE.MathUtils.smoothstep(Math.abs(scrollVelocity),.1,3);
+  const target=THREE.MathUtils.lerp(galleryMotion.idleWave,galleryMotion.wave,activity);
+  const elapsed=waveUpdatedAt?Math.min(.05,time-waveUpdatedAt):0;waveUpdatedAt=time;
+  waveStrength=THREE.MathUtils.damp(waveStrength,target,activity>.5?12:3,elapsed);
   galleryCamera.position.set(0,0,2000);
   // Original mouse camera orbit around the project plane (z=1000).
   galleryCamera.rotation.set((.5-smoothPointer.y)*.07,(.5-smoothPointer.x)*.1,0);
@@ -354,7 +368,7 @@ function drawImages(time,target=null) {
     if(layout.top>innerHeight+80||layout.top+layout.height < -innerHeight*2)continue;
     surfaceTexture(s,img,layout);
     const u=s.material.uniforms;
-    u.u_time.value=time;u.u_meshSize.value.set(layout.width,layout.height);
+    u.u_time.value=time;u.u_waveStrength.value=waveStrength;u.u_meshSize.value.set(layout.width,layout.height);
     if(fluid)u.u_fluidTex.value=fluid.texture;
     u.u_innerScale.value+=(1+s.hover*.05-u.u_innerScale.value)*.1;
     u.u_heightOffset.value=img.offsetHeight/layout.height;

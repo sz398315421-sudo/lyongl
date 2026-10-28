@@ -17,7 +17,7 @@ if(surface())import('./original-hero.js?v=20261027-live-scene').catch(error=>{
 });
 let water;
 function startWater(){
-  return water??=import('./water.js?v=20261027-live-scene').catch(error=>console.warn('Native gallery remains available.',error));
+  return water??=import('./water.js?v=20261028-idle-ripples').catch(error=>console.warn('Native gallery remains available.',error));
 }
 window.portfolioScenes={async prepareWater(){
   if(window.portfolioWater)return window.portfolioWater;
