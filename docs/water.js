@@ -4,6 +4,7 @@ import {loadReferenceGallery} from './reference-gallery.js';
 import {createReferenceFluid} from './reference-fluid.js';
 import {runTransitionTimeline} from './transition-clock.js';
 import {homeImmersionProfile,immersionEase} from './home-return-motion.js';
+import {prepareGalleryImages} from './gallery-preload.js';
 
 // One image compositor, one shared underwater world. Native images remain the fallback.
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -474,7 +475,7 @@ async function immerse(change,{returning=false}={}){
     rollSheets();drawImages(performance.now()/1000,entryTarget);
     // Decode and upload covers, and compile both passes before the visible clock starts.
     const images=[...work.querySelectorAll('.project-card:not([hidden]) img')].slice(0,4);
-    if(!returning)await Promise.all(images.map(img=>img.decode().catch(()=>{})));
+    if(!returning)await prepareGalleryImages(images);
     if(!returning)await Promise.all([...surfaces.values()].slice(0,4).map(s=>new Promise(resolve=>{
       if(s.texture)return resolve();
       let frames=0;const check=()=>s.texture||++frames>120?resolve():requestAnimationFrame(check);check();
@@ -611,7 +612,7 @@ async function prepareSkyArrival(){
   try{
     layout();
     const images=[...work.querySelectorAll('.project-card:not([hidden]) img')].slice(0,4);
-    await Promise.all(images.map(img=>img.decode().catch(()=>{})));
+    await prepareGalleryImages(images);
     await new Promise(resolve=>{let frames=0;const check=()=>images.every(img=>surfaces.get(img)?.texture)||++frames>120?resolve():requestAnimationFrame(check);check();});
     return{
       layout,finish,

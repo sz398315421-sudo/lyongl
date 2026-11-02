@@ -17,7 +17,7 @@ if(surface())import('./original-hero.js?v=20261028-mobile-sync').catch(error=>{
 });
 let water;
 function startWater(){
-  return water??=import('./water.js?v=20261028-mobile-sync').catch(error=>console.warn('Native gallery remains available.',error));
+  return water??=import('./water.js?v=20261102-gallery-ready').catch(error=>console.warn('Native gallery remains available.',error));
 }
 window.portfolioScenes={async prepareWater(){
   if(window.portfolioWater)return window.portfolioWater;

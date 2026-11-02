@@ -38,6 +38,7 @@ for (const route of routes) {
     .replace(/<head>/, `<head>${head}`)
     .replace(/<body([^>]*)>/, `<body$1>${gate}`)
     .replace(/app-controller\.js\?v=[^" ]+/, 'app-controller.js?v=20261102-secret')
+    .replace(/scene-start\.js\?v=[^" ]+/, 'scene-start.js?v=20261102-gallery-ready')
     .replace(/welcome\.js\?v=[^" ]+/, 'welcome.js?v=20261102-secret');
   await writeFile(url, html);
 }
