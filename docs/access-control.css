@@ -1,0 +1,49 @@
+html[data-access="locked"], html[data-access="locked"] body { overflow: hidden !important; }
+html[data-access="locked"] body > :not(#access-gate):not(.access-noscript) { visibility: hidden !important; pointer-events: none !important; }
+html:not([data-access="locked"]) #access-gate,
+#access-gate[hidden] { display: none !important; }
+#access-gate {
+  position: fixed; inset: 0; z-index: 2147483647; margin: 0;
+  width: 100%; height: 100%; max-width: none; max-height: none;
+  min-height: 100svh; overflow: auto; border: 0; padding: 32px;
+  display: grid; grid-template-rows: auto 1fr auto;
+  color: #292825; background: #e4e1dd;
+  font-family: var(--sans, 'Microsoft YaHei UI', sans-serif);
+  box-sizing: border-box; text-wrap: pretty;
+}
+#access-gate::backdrop { background: #e4e1dd; }
+#access-gate * { box-sizing: border-box; }
+.access-header, .access-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.access-brand { font-size: 24px; line-height: 32px; letter-spacing: -1px; }
+.access-brand sup { font-size: 12px; vertical-align: top; margin-left: 4px; }
+.access-edition, .access-footer { font-size: 12px; line-height: 16px; letter-spacing: 1px; }
+.access-content { width: 100%; max-width: 384px; margin: auto; padding: 48px 0; }
+.access-mark { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 32px; border: 1px solid #b8b4af; border-radius: 50%; }
+.access-mark svg { width: 24px; height: 24px; }
+.access-kicker { margin: 0 0 12px; font-size: 12px; line-height: 16px; letter-spacing: 2px; color: #716d67; }
+#access-title { margin: 0 0 16px; font-size: 36px; line-height: 40px; font-weight: 500; letter-spacing: -1px; text-wrap: balance; }
+.access-description { margin: 0 0 32px; font-size: 14px; line-height: 20px; color: #716d67; }
+#access-form label { display: block; margin-bottom: 8px; font-size: 12px; line-height: 16px; }
+#access-password { width: 100%; height: 56px; border: 1px solid #b8b4af; border-radius: 8px; padding: 16px; color: #292825; background: #f4f3ee; font: inherit; font-size: 18px; line-height: 28px; letter-spacing: 8px; }
+#access-password::placeholder { color: #918c85; font-size: 14px; letter-spacing: 1px; }
+#access-password[aria-invalid="true"] { border-color: #a34032; }
+#access-password:focus-visible { outline: 2px solid #75594f; outline-offset: 4px; }
+#access-error { min-height: 20px; margin: 8px 0 12px; color: #a34032; font-size: 14px; line-height: 20px; }
+.access-submit { width: 100%; min-height: 48px; border: 0; border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; color: #fffdf9; background: #292825; font: inherit; font-size: 16px; line-height: 24px; font-weight: 600; cursor: pointer; transition: background .3s cubic-bezier(.22,1,.36,1), transform .3s cubic-bezier(.22,1,.36,1); }
+.access-submit:hover { background: #514b44; }
+.access-submit:active { transform: scale(.98); }
+#access-explore { display: flex; justify-content: center; align-items: center; gap: 12px; width: fit-content; margin: 24px auto 0; padding: 8px 12px; color: inherit; font-size: 14px; line-height: 20px; text-decoration: none; transition: opacity .3s cubic-bezier(.22,1,.36,1); }
+#access-explore:hover { opacity: .6; }
+#access-explore:active { transform: translateY(1px); }
+.access-submit:focus-visible, #access-explore:focus-visible { outline: 2px solid #75594f; outline-offset: 4px; }
+.access-note { margin: 8px 0 0; text-align: center; color: #716d67; font-size: 12px; line-height: 16px; }
+.access-footer { color: #716d67; letter-spacing: 0; }
+.access-noscript { position: fixed; z-index: 2147483647; inset: auto 16px 16px; padding: 12px; background: #f4f3ee; color: #292825; text-align: center; }
+@media(max-width:600px) {
+  #access-gate { padding: 24px; }
+  .access-brand { font-size: 20px; line-height: 28px; }
+  .access-edition { font-size: 12px; letter-spacing: 0; }
+  .access-content { padding: 40px 0; }
+  .access-mark { margin-bottom: 24px; }
+  .access-footer { align-items: flex-end; }
+}

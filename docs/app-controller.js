@@ -38,8 +38,9 @@ function renderProject(id){
 }
 
 function applyRoute({restore=false,focus=false}={}){
+ if(window.portfolioAccess&&!window.portfolioAccess.sync())return;
  if(lightbox.open)lightbox.close();toggleMenu(false);
- let path=location.pathname,hash=location.hash;
+ let path=location.pathname.replace(/\/index\.html$/, '/'),hash=location.hash;
  // Keep links to earlier versions useful, while giving every view a real URL.
  if(hash==='#work'){history.replaceState(null,'','/projects/');path='/projects/';hash='';}
  else if(hash.startsWith('#project/')){path=`/projects/${hash.split('/')[1]}/`;history.replaceState(null,'',path);hash='';}
@@ -74,6 +75,7 @@ function applyRoute({restore=false,focus=false}={}){
 }
 
 async function navigate(url,{image,origin,restore=false}={}){
+ if(window.portfolioAccess&&!window.portfolioAccess.canView(url)){location.assign(url);return;}
  if(navigating||window.portfolioWater?.busy||window.portfolioSky?.busy||window.portfolioCourtyard?.busy)return;
  navigating=true;
  if(page()==='projects')workScroll=window.scrollY;
@@ -116,6 +118,7 @@ document.querySelector('#close-lightbox').addEventListener('click',()=>lightbox.
 lightbox.addEventListener('close',()=>document.body.classList.remove('locked'));
 lightbox.addEventListener('keydown',event=>{if(event.key==='ArrowLeft')moveImage(-1);if(event.key==='ArrowRight')moveImage(1);});
 window.addEventListener('popstate',async()=>{
+ if(window.portfolioAccess&&!window.portfolioAccess.sync())return;
  const skyDestination=/^\/about\/?$/.test(location.pathname)?'about':/^\/projects\/?$/.test(location.pathname)?'projects':location.pathname==='/'&&(!location.hash||location.hash==='#home')?'home':null;
  const fromSky=page()==='explore'&&skyDestination;
  if(fromSky&&window.portfolioSky&&!navigating&&!window.portfolioSky.busy){
@@ -131,4 +134,6 @@ window.addEventListener('popstate',async()=>{
   finally{navigating=false;}
  }else applyRoute({restore:true,focus:true});
 });
+window.addEventListener('hashchange',()=>applyRoute({focus:true}));
+document.addEventListener('portfolio:unlocked',()=>applyRoute({focus:true}));
 applyRoute();

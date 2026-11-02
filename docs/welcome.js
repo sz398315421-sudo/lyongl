@@ -48,7 +48,7 @@ async function prepareWelcome() {
   copy.textContent=document.querySelector('#world').dataset.sceneState==='ready'?'动态场景已就绪':'静态首页已就绪';
   welcome.removeAttribute('aria-busy');welcome.dataset.sceneReady = '';
   enterButton.disabled = mutedButton.disabled = false;
-  if (document.activeElement === document.body || welcome.contains(document.activeElement)) enterButton.focus({preventScroll:true});
+  if (document.documentElement.dataset.access !== 'locked' && (document.activeElement === document.body || welcome.contains(document.activeElement))) enterButton.focus({preventScroll:true});
 }
 
 // A quiet original score, generated locally after the visitor enables audio.
@@ -134,6 +134,7 @@ async function setSound(enabled) {
   }
 }
 function enterWorld(withSound, animate = true) {
+  if (document.documentElement.dataset.access === 'locked') return;
   if (entered) return;
   if (document.documentElement.dataset.page === 'home' && !['ready','fallback'].includes(document.querySelector('#world').dataset.sceneState)) return;
   entered = true;
@@ -194,6 +195,10 @@ document.addEventListener('visibilitychange', () => {
   syncSoundButton();
 });
 window.portfolioWelcomeInitialized=true;
+document.addEventListener('portfolio:unlocked', () => {
+  if (document.documentElement.hasAttribute('data-skip-welcome')) enterWorld(false, false);
+  else if (!enterButton.disabled) enterButton.focus({preventScroll:true});
+});
 if (document.documentElement.hasAttribute('data-skip-welcome')||welcome.hidden||!document.body.classList.contains('intro-pending')) enterWorld(false, false);
 else { shell.inert = true; prepareWelcome().catch(error=>{
   console.warn('Welcome uses the static homepage.',error);
