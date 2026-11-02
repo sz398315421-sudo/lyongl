@@ -40,7 +40,7 @@
     form.addEventListener('submit', event => {
       event.preventDefault();
       if (input.value !== '6666') {
-        error.textContent = input.value ? '秘密不对，再试一次。' : '请先输入访问密码。';
+        error.textContent = input.value ? '密码不正确，请重试。' : '请输入密码。';
         input.setAttribute('aria-invalid', 'true');
         input.focus(); input.select();
         return;
