@@ -1,0 +1,106 @@
+import { GlitchParams, Preset } from '@/types'
+
+export const GLITCH_PRESETS: Preset<GlitchParams>[] = [
+  {
+    id: 'light-glitch',
+    name: 'Light Glitch',
+    nameZh: '轻微故障',
+    params: {
+      stripeDensity: 10,
+      displacement: 15,
+      verticalSpeed: 0,
+      rgbSplit: 5,
+      rgbSplitDirection: 0,
+      rgbSplitDirectionAnim: false,
+      clipShape: 'none',
+dotSize: 2.2,
+      dotOpacity: 0.28,
+      corruption: 0,
+      scanlines: false,
+    },
+  },
+  {
+    id: 'heavy-damage',
+    name: 'Heavy Damage',
+    nameZh: '重度损坏',
+    params: {
+      stripeDensity: 30,
+      displacement: 20,
+      verticalSpeed: 0,
+      rgbSplit: 25,
+      rgbSplitDirection: 0,
+      rgbSplitDirectionAnim: false,
+      clipShape: 'none',
+dotSize: 2.2,
+      dotOpacity: 0.28,
+      corruption: 0,
+      scanlines: false,
+    },
+  },
+  {
+    id: 'retro-crt',
+    name: 'Retro CRT',
+    nameZh: '复古 CRT',
+    params: {
+      stripeDensity: 40,
+      displacement: 10,
+      verticalSpeed: 0,
+      rgbSplit: 15,
+      rgbSplitDirection: 0,
+      rgbSplitDirectionAnim: false,
+      clipShape: 'none',
+dotSize: 2.2,
+      dotOpacity: 0.28,
+      corruption: 0,
+      scanlines: true,
+    },
+  },
+  {
+    id: 'cyber-pulse',
+    name: 'Cyber Pulse',
+    nameZh: '赛博脉冲',
+    params: {
+      stripeDensity: 20,
+      displacement: 18,
+      verticalSpeed: 0,
+      rgbSplit: 25,
+      rgbSplitDirection: 0,
+      rgbSplitDirectionAnim: false,
+      clipShape: 'none',
+dotSize: 2.2,
+      dotOpacity: 0.28,
+      corruption: 0,
+      scanlines: false,
+    },
+  },
+]
+
+export function randomizeGlitchParams(): GlitchParams {
+  return {
+    stripeDensity: Math.floor(Math.random() * 51),
+    displacement: Math.floor(Math.random() * 21),
+    verticalSpeed: Math.random() > 0.6 ? Math.floor(Math.random() * 15) : 0,
+    rgbSplit: Math.floor(Math.random() * 26),
+    rgbSplitDirection: Math.floor(Math.random() * 361),
+    rgbSplitDirectionAnim: Math.random() > 0.7,
+    clipShape: 'none',
+    dotSize: Math.random() > 0.5 ? Math.round(Math.random() * 50) / 10 : 0,
+    dotOpacity: Math.round(Math.random() * 70) / 100,
+    corruption: Math.random() > 0.6 ? Math.floor(Math.random() * 60) : 0,
+    scanlines: Math.random() > 0.6,
+  }
+}
+
+export const DEFAULT_GLITCH_PARAMS: GlitchParams = {
+  stripeDensity: 0,
+  displacement: 0,
+  verticalSpeed: 0,
+  rgbSplit: 0,
+  rgbSplitDirection: 0,
+  rgbSplitDirectionAnim: false,
+  clipShape: 'none',
+  dotSize: 0,
+  dotOpacity: 0,
+  corruption: 0,
+  scanlines: false,
+}

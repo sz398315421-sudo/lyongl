@@ -28,13 +28,13 @@ function fixture(route, {stored = false, storageBlocked = false} = {}) {
     submit(value) { node('access-password').value=value;fields['access-form:submit']({preventDefault(){}}); }};
 }
 
-test('only exploration and its four experiment trees are public', () => {
+test('only exploration and its experiment trees are public', () => {
   for (const route of ['/explore/','/explore','/explore/index.html','/#explore','/index.html#explore','/adas/','/adas/privacy.html',
-    '/adas/vehicle-library/','/luyoupu/','/danmugame/','/game-demo2/']) {
+    '/adas/vehicle-library/','/luyoupu/','/danmugame/','/game-demo2/','/xszw','/xszw/','/xszw/index.html']) {
     const f=fixture(route);assert.equal(f.root.dataset.access,'open',route);assert.equal(f.node('access-gate').hidden,true);
   }
   for (const route of ['/','/#home','/#about','/#work','/#project/hongqi','/about/','/projects/',
-    '/projects/hongqi/','/projects/hongqi/#explore','/explore-private/','/explore/private/','/adas-private/','/unseen-engine/']) {
+    '/projects/hongqi/','/projects/hongqi/#explore','/explore-private/','/explore/private/','/adas-private/','/xszw-private/','/unseen-engine/']) {
     const f=fixture(route);assert.equal(f.root.dataset.access,'locked',route);assert.equal(f.node('access-gate').modal,true);
   }
 });
@@ -77,7 +77,7 @@ test('every portfolio document locks before other scripts; public products are u
     assert.equal((html.match(/id="access-gate"/g)||[]).length,1,route);
     assert.ok(html.indexOf('/access-control.js?')<html.indexOf('</head>'));
   }
-  for (const route of ['adas/index.html','adas/privacy.html','luyoupu/index.html','danmugame/index.html','game-demo2/index.html']) {
+  for (const route of ['adas/index.html','adas/privacy.html','luyoupu/index.html','danmugame/index.html','game-demo2/index.html','xszw/index.html']) {
     assert.doesNotMatch(await readFile(new URL(route,root),'utf8'),/access-control|access-gate/);
   }
 });

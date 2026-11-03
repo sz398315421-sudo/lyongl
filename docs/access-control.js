@@ -10,7 +10,7 @@
     const url = new URL(value, location.href);
     if (url.origin !== location.origin) return false;
     return /^\/explore\/?$/.test(url.pathname) || url.pathname === '/explore/index.html'
-      || /^\/(adas|luyoupu|danmugame|game-demo2)(\/|$)/.test(url.pathname)
+      || /^\/(adas|luyoupu|danmugame|game-demo2|xszw)(\/|$)/.test(url.pathname)
       || (['/', '/index.html'].includes(url.pathname) && url.hash === '#explore');
   }
   const canView = value => unlocked || isPublicRoute(value);
