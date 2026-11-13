@@ -9,7 +9,7 @@ import {vehicleFrame} from '../adas/framing.js';
 import {guidanceSceneIds} from '../adas/road-assist.js';
 import {startLayout} from './hud-start.mjs';
 import {prepareTransparentOutput} from './hud-export.mjs';
-import {blueRoadPreset, createBlueRoadTraffic} from './hud-blue-road.mjs';
+import {blueRoadPreset, carpetPreset, createBlueRoadTraffic} from './hud-blue-road.mjs';
 import {createBlueRoadMarkings} from './hud-blue-markings.mjs';
 import {isBlueRoad} from './hud-right-pass.mjs';
 
@@ -28,14 +28,17 @@ export const World = {
     }
     const controls = createHudControls(key => {
       if (!world.state || world.suspended) return;
-      if (key === 'blueRoad') {
+      if (key === 'blueRoad' || key === 'carpet') {
         if (!beforePreset) {
           beforePreset = {appearance: structuredClone(controls.settings), state: world.hudCapturePresetState(), environment: document.documentElement.hasAttribute('data-hud-environment')};
           try { hudSnapshots.setItem('before-blue-road', JSON.stringify(beforePreset)); } catch {}
         }
         setEnvironment(false);
-        controls.applyBlueRoad();
-        world.hudApplyBlueRoad(blueRoadPreset.color);
+        const carpet = key === 'carpet';
+        const preset = carpet ? carpetPreset : blueRoadPreset;
+        controls.applyRoadPreset(preset, carpet);
+        camera.reset();
+        world.hudApplyBlueRoad(preset.color);
         return;
       }
       if (key === 'restorePreset' && beforePreset) {
@@ -74,8 +77,9 @@ export const World = {
     world.scene.add(traffic);
     world.composer.render = (...frame) => {
       const blueRoad = isBlueRoad(world);
+      const carpet = blueRoad && controls.settings.carpet;
       controls.syncPreset(blueRoad, !!beforePreset);
-      traffic.visible = blueRoad && (!!world.hudRightPass || !world.traffic?.group.visible);
+      traffic.visible = blueRoad && !carpet && (!!world.hudRightPass || !world.traffic?.group.visible);
       if (traffic.visible) {
         if (!traffic.children.length) traffic.add(createBlueRoadTraffic());
         const origin = world.hudPlayback?.basePose?.carPosition ?? world.car.position;
@@ -98,14 +102,16 @@ export const World = {
         junctionLock = null;
       }
       camera.sync(['playing', 'paused', 'finished'].includes(status) || !!junctionLock, junctionLock ? null : playback?.basePose);
-      const draw = () => drawLanes(layout, controls.settings.colors, () => camera.withView(() => withHudLayers(world, () => {
+      const draw = () => camera.withView(() => withHudLayers(world, () => {
         if (world.vehicleDetail.enabled) {
           const frame = controls.settings.customCamera || controls.settings.follow ? vehicleFrame(world.car, world.camera) : world.framing.vehicleFrame;
           world.vehicleDetail.setVehicleFrame(frame, world.car.visible);
         }
         return render(...frame);
-      }, background)));
-      return blueRoad ? drawBlueMarkings(draw) : draw();
+      }, background));
+      if (carpet) return draw();
+      const drawRoad = () => drawLanes(layout, controls.settings.colors, draw);
+      return blueRoad ? drawBlueMarkings(drawRoad) : drawRoad();
     };
 
     const shadowRender = world.renderer.shadowMap.render.bind(world.renderer.shadowMap);

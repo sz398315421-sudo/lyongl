@@ -26,7 +26,8 @@ globalThis.__studioEnvironmentRequest=preloadAsset("../adas/assets/studio-enviro
   <summary>HUD 设置</summary>
   <div class="hud-settings-body">
     <div class="hud-preset-actions">
-      <button type="button" id="hud-blue-road" aria-pressed="false" disabled><span class="hud-preset-swatch" aria-hidden="true"></span>蓝色光轨</button>
+      <button type="button" id="hud-blue-road" data-hud-preset aria-pressed="false" disabled><span class="hud-preset-swatch" aria-hidden="true"></span>蓝色光轨</button>
+      <button type="button" id="hud-carpet" data-hud-preset aria-pressed="false" disabled><span class="hud-preset-swatch" aria-hidden="true"></span>HUD 光毯</button>
       <button type="button" id="hud-restore-preset" hidden>恢复应用前设置</button>
     </div>
     <label class="hud-switch"><span>显示本车</span><input id="hud-ego" type="checkbox" role="switch" checked></label>
@@ -88,4 +89,4 @@ globalThis.__studioEnvironmentRequest=preloadAsset("../adas/assets/studio-enviro
 if(cachedPreviewScroll>0)window.scrollTo({top:cachedPreviewScroll,behavior:'instant'});
 })();
 </script><dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
-<script type="module" src="./hud.mjs"></script><script src="./hud-startup.js?v=40da479914bc"></script></body></html>
+<script type="module" src="./hud.mjs"></script><script src="./hud-startup.js?v=afe47f78de2c"></script></body></html>

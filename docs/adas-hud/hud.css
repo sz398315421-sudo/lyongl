@@ -51,8 +51,8 @@ html:not([data-hud-environment]) #preview .parking-hmi {
 
 .hud-settings-body { padding: 0 12px 10px; }
 .hud-preset-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 0 0 9px; }
-.hud-settings #hud-blue-road { display: inline-flex; align-items: center; gap: 8px; }
-.hud-settings #hud-blue-road[aria-pressed="true"] { border-color: #2477d3; }
+.hud-settings [data-hud-preset] { display: inline-flex; align-items: center; gap: 8px; }
+.hud-settings [data-hud-preset][aria-pressed="true"] { border-color: #2477d3; }
 .hud-preset-swatch { width: 16px; height: 9px; border-radius: 2px; background: linear-gradient(90deg, #01cff3, transparent); }
 .hud-switch, .hud-lane-controls {
   min-height: 42px;

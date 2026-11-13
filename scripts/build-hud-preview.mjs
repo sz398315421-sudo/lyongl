@@ -147,7 +147,8 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, 'gl_FragColor=vec4(color,alpha*displayOpacity);', `if(displayOpacity>1.0){
      vec3 tint=mix(guideColor,guideFar,smoothstep(.06,1.,vUv.y)*guideGradient);
      color=mix(tint/12.92,pow((tint+.055)/1.055,vec3(2.4)),step(vec3(.04045),tint));
-     alpha=(1.-smoothstep(.90,.99,side))*smoothstep(0.,.014,vUv.y)*(1.-smoothstep(.74,1.,vUv.y));
+     float carpet=step(1.5,displayOpacity);
+     alpha=(1.-smoothstep(mix(.90,.78,carpet),.99,side))*smoothstep(0.,mix(.014,.032,carpet),vUv.y)*(1.-smoothstep(mix(.74,.30,carpet),1.,vUv.y));
      gl_FragColor=vec4(color,alpha);
     }else gl_FragColor=vec4(color,alpha*displayOpacity);`);
         contents = replace(contents, 'const near=(car.userData.vehicleSpec.length||4.85)*.40;let far=34;', `const effect=getEffect?.(),near=(car.userData.vehicleSpec.length||4.85)*.40;let far=effect?near+effect.length:34;
@@ -158,7 +159,7 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, 'custom.disabled=!ready;', "document.getElementById('hud-guide-near-hex').disabled=custom.disabled=!ready;");
         contents = replace(contents, 'return {sync(scene,ready,snapshot,world){', 'return {setGuideAppearance(enabled,color){input.checked=enabled;selectedColor=color;syncColor();},sync(scene,ready,snapshot,world){');
         contents = replace(contents, "const scene=drivingSceneKey(world.state?.id),centered=['elevated','ramp'].includes(scene);", "const scene=drivingSceneKey(world.state?.id),blueRoad=scene==='road'&&world.state?.laneCount===3,centered=blueRoad||['elevated','ramp'].includes(scene);");
-        contents = replace(contents, "if(effect?.gradient&&material.userData.far!==effect.far)", "material.uniforms.displayOpacity.value=world.state.id==='02'&&world.state.laneCount===3?1.13:1;\n  if(effect?.gradient&&material.userData.far!==effect.far)");
+        contents = replace(contents, "if(effect?.gradient&&material.userData.far!==effect.far)", "material.uniforms.displayOpacity.value=world.state.id==='02'&&world.state.laneCount===3?(world.hudSettings?.carpet?2:1.13):1;\n  if(effect?.gradient&&material.userData.far!==effect.far)");
       }
       if (args.path === path.join(adas, 'export-controls.js')) {
         contents = `import {supportsHudWebm} from '../hud/hud-video.mjs';\nimport {createSequenceFields} from '../hud/hud-png-sequence.mjs';\n${contents}`;
@@ -201,7 +202,7 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
    //`);
         contents = replace(contents, "if(key==='road'&&world.state?.roadworks", "if(key==='road'&&!trip.hudRightPass&&world.state?.roadworks");
         contents = replace(contents, 'if(trip.parking)apply();notify();frame=', 'if(trip.parking||trip.hudRightPass)apply();notify();frame=');
-        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", "heading.textContent=parking?'自动泊车动画':document.getElementById('hud-blue-road').getAttribute('aria-pressed')==='true'?'右变道演示':'场景动画';");
+        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", "heading.textContent=parking?'自动泊车动画':document.querySelector('[data-hud-preset][aria-pressed=true]')?'右变道演示':'场景动画';");
         contents = replace(contents, 'seek,snapshot,get active()', 'seek,snapshot,get status(){return status;},get basePose(){return base;},get active()');
       }
       if (args.path === path.join(adas, 'vehicle-selector.js')) {

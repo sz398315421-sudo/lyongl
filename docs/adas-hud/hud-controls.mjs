@@ -1,6 +1,5 @@
 import {hudPreferences} from './hud-storage.mjs';
 import {bindHexColor} from './hud-hex.mjs';
-import {blueRoadPreset} from './hud-blue-road.mjs';
 
 const cameraFields = [
   ['yaw', '水平角', -180, 180, 0, '°'],
@@ -42,7 +41,7 @@ function readSettings() {
       starts[key] = {distance: Math.round(start.distance), lane: Number.isInteger(start.lane) && start.lane >= 0 ? start.lane : null};
     }
   }
-  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true, colors, view, guide, starts};
+  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true, carpet: saved?.carpet === true, colors, view, guide, starts};
 }
 
 function slider([key, name, min, max, , unit, step = 1], values, prefix, change) {
@@ -77,6 +76,7 @@ export function createHudControls(onChange) {
   const byId = id => document.getElementById(id);
   const settings = readSettings();
   const presetButton = byId('hud-blue-road');
+  const carpetButton = byId('hud-carpet');
   const restoreButton = byId('hud-restore-preset');
   const panel = byId('hud-camera-controls');
   const lanePanel = byId('hud-lane-controls');
@@ -100,14 +100,19 @@ export function createHudControls(onChange) {
   };
 
   function syncPreset(active, canRestore) {
-    presetButton.setAttribute('aria-pressed', String(active));
+    presetButton.setAttribute('aria-pressed', String(active && !settings.carpet));
+    carpetButton.setAttribute('aria-pressed', String(active && settings.carpet));
+    const carpetActive = active && settings.carpet;
+    byId('hud-ego').disabled = carpetActive;
+    byId('hud-ego').checked = !carpetActive && settings.ego;
     restoreButton.hidden = !canRestore;
   }
 
   presetButton.addEventListener('click', () => change('blueRoad'));
+  carpetButton.addEventListener('click', () => change('carpet'));
   restoreButton.addEventListener('click', () => change('restorePreset'));
-  window.addEventListener('studio:ready', () => { presetButton.disabled = false; });
-  window.addEventListener('studio:error', () => { presetButton.disabled = true; });
+  window.addEventListener('studio:ready', () => { presetButton.disabled = carpetButton.disabled = false; });
+  window.addEventListener('studio:error', () => { presetButton.disabled = carpetButton.disabled = true; });
 
   const controls = [['hud-ego', 'ego'], ['hud-follow', 'follow'], ['hud-camera', 'customCamera']];
   for (const [id, key] of controls) {
@@ -211,16 +216,19 @@ export function createHudControls(onChange) {
   }
 
   return {settings, syncPreset, syncAppearance,
-  applyBlueRoad() {
-    Object.assign(settings.view, blueRoadPreset.view);
-    Object.assign(settings.guide, blueRoadPreset.guide);
+  applyRoadPreset(preset, carpet) {
+    Object.assign(settings.view, preset.view);
+    Object.assign(settings.guide, preset.guide);
     settings.starts.road = {distance: 0, lane: 1};
-    settings.customCamera = settings.ego = true;
+    settings.customCamera = true;
+    if (!carpet) settings.ego = true;
+    settings.carpet = carpet;
     syncAppearance();
   }, restoreAppearance(previous) {
     Object.assign(settings.view, previous.view);
     Object.assign(settings.guide, previous.guide);
     settings.ego = previous.ego;
+    settings.carpet = previous.carpet === true;
     settings.customCamera = previous.customCamera;
     if (previous.starts.road) settings.starts.road = previous.starts.road;
     else delete settings.starts.road;

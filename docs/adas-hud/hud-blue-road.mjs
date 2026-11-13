@@ -10,6 +10,12 @@ export const blueRoadPreset = {
   color: blueRoadColor
 };
 
+export const carpetPreset = {
+  view: {yaw: 0, pitch: 12, distance: 8, fov: 36, ahead: 12},
+  guide: {width: 2.9, length: 43, gradient: true, far: '#063038'},
+  color: blueRoadColor
+};
+
 export function createBlueRoadTraffic() {
   const material = color => new MeshStandardMaterial({color, roughness: .68});
   const cargo = material('#a0a9b8');

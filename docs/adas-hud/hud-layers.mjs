@@ -1,3 +1,5 @@
+import {isBlueRoad} from './hud-right-pass.mjs';
+
 function isMarking(object, world) {
   if (!object.isMesh || object.userData.construction || object.userData.reflectiveSurface) return false;
   if (object.geometry.hasAttribute('paintSize')) return true;
@@ -9,7 +11,8 @@ function isMarking(object, world) {
 export function withHudLayers(world, draw, background) {
   if (!world.root) return draw();
   const transparent = world.hudTransparency?.value;
-  const minimal = transparent || !document.documentElement.hasAttribute('data-hud-environment');
+  const carpet = world.hudSettings?.carpet && isBlueRoad(world);
+  const minimal = carpet || transparent || !document.documentElement.hasAttribute('data-hud-environment');
 
   const {scene, root} = world;
   const sceneObjects = [world.car, root, world.roadGuidance.mesh, world.traffic?.group, world.hudPresetTraffic];
@@ -31,6 +34,12 @@ export function withHudLayers(world, draw, background) {
   }
 
   try {
+    if (carpet) {
+      for (const object of scene.children) {
+        if (object !== world.roadGuidance.mesh) hide(object);
+      }
+      return draw();
+    }
     if (world.hudRightPass && world.traffic?.group) hide(world.traffic.group);
     if (world.hudSettings?.ego === false) {
       for (const object of [world.car, world.egoContact, world.tailReflection]) hide(object);
