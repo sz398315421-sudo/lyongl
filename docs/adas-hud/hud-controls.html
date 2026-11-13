@@ -1,0 +1,43 @@
+<details class="hud-settings" open>
+  <summary>HUD 设置</summary>
+  <div class="hud-settings-body">
+    <div class="hud-preset-actions">
+      <button type="button" id="hud-blue-road" aria-pressed="false" disabled><span class="hud-preset-swatch" aria-hidden="true"></span>蓝色光轨</button>
+      <button type="button" id="hud-restore-preset" hidden>恢复应用前设置</button>
+    </div>
+    <label class="hud-switch"><span>显示本车</span><input id="hud-ego" type="checkbox" role="switch" checked></label>
+    <label class="hud-switch"><span>固定跟随本车</span><input id="hud-follow" type="checkbox" role="switch"></label>
+    <fieldset class="hud-section" id="hud-start-controls" hidden>
+      <legend>起始位置</legend>
+      <label id="hud-start-lane-row" class="hud-value-row">起始车道<select id="hud-start-lane"></select></label>
+      <label class="hud-value-row">沿道路偏移（m）<input id="hud-start-distance" type="number" step="1" value="0" required></label>
+      <p class="hud-control-note" id="hud-start-note">正值向前，负值向后。</p>
+      <div class="hud-setting-actions"><button type="button" id="hud-start-apply">应用起始位置</button><button type="button" id="hud-start-reset">恢复默认</button></div>
+    </fieldset>
+    <div id="hud-lane-controls" class="hud-lane-controls" hidden>
+      <label for="hud-lane">车道颜色</label>
+      <select id="hud-lane" aria-label="选择车道"></select>
+      <div class="hud-lane-color">
+        <input id="hud-lane-color" type="color" aria-label="指定车道颜色">
+        <input id="hud-lane-hex" type="text" class="hud-hex" aria-label="车道颜色 HEX" maxlength="7" spellcheck="false" placeholder="#FFFFFF">
+        <button type="button" id="hud-lane-reset">恢复车道颜色</button>
+      </div>
+    </div>
+    <details class="hud-effect" id="hud-guide-controls" hidden>
+      <summary>引导线效果</summary>
+      <div id="hud-guide-values" class="hud-camera-controls"></div>
+      <label class="hud-value-row" for="hud-guide-near-hex">近端颜色<input id="hud-guide-near-hex" type="text" class="hud-hex" maxlength="7" spellcheck="false" placeholder="#FFFFFF"></label>
+      <label class="hud-switch"><span>启用渐变</span><input id="hud-guide-gradient" type="checkbox" role="switch"></label>
+      <div id="hud-guide-far-row" class="hud-value-row" hidden>
+        <label for="hud-guide-far-hex">远端颜色</label>
+        <input id="hud-guide-far" type="color" aria-label="选择远端颜色">
+        <input id="hud-guide-far-hex" type="text" class="hud-hex" maxlength="7" spellcheck="false" placeholder="#FFFFFF">
+      </div>
+      <button type="button" id="hud-guide-reset">重置引导线效果</button>
+    </details>
+    <label class="hud-switch"><span>自定义相机</span><input id="hud-camera" type="checkbox" role="switch"></label>
+    <div id="hud-camera-controls" class="hud-camera-controls" hidden>
+      <button type="button" id="hud-camera-reset">重置相机参数</button>
+    </div>
+  </div>
+</details>
