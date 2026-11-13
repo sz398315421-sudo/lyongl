@@ -147,8 +147,13 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, 'gl_FragColor=vec4(color,alpha*displayOpacity);', `if(displayOpacity>1.0){
      vec3 tint=mix(guideColor,guideFar,smoothstep(.06,1.,vUv.y)*guideGradient);
      color=mix(tint/12.92,pow((tint+.055)/1.055,vec3(2.4)),step(vec3(.04045),tint));
-     float carpet=step(1.5,displayOpacity);
-     alpha=(1.-smoothstep(mix(.90,.78,carpet),.99,side))*smoothstep(0.,mix(.014,.032,carpet),vUv.y)*(1.-smoothstep(mix(.74,.30,carpet),1.,vUv.y));
+     if(displayOpacity>1.5){
+      // Keep the mesh boundary sharp and antialias only the inner edge of the outline.
+      float aa=min(fwidth(side)*.5,.012);
+      float outline=smoothstep(.956-aa,.956+aa,side);
+      color=mix(color,mix(color,vec3(.56,.96,1.0),.53),outline);
+      alpha=smoothstep(0.,.032,vUv.y)*(1.-smoothstep(.30,1.,vUv.y));
+     }else alpha=(1.-smoothstep(.90,.99,side))*smoothstep(0.,.014,vUv.y)*(1.-smoothstep(.74,1.,vUv.y));
      gl_FragColor=vec4(color,alpha);
     }else gl_FragColor=vec4(color,alpha*displayOpacity);`);
         contents = replace(contents, 'const near=(car.userData.vehicleSpec.length||4.85)*.40;let far=34;', `const effect=getEffect?.(),near=(car.userData.vehicleSpec.length||4.85)*.40;let far=effect?near+effect.length:34;
