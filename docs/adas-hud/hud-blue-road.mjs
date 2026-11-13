@@ -6,7 +6,7 @@ export const blueRoadColor = '#01cff3';
 
 export const blueRoadPreset = {
   view: {yaw: 0, pitch: 20, distance: 15, fov: 37, ahead: 5},
-  guide: {width: 2.4, length: 70, gradient: true, far: blueRoadColor},
+  guide: {width: 2.4, length: 70, gradient: true, far: '#082b32'},
   color: blueRoadColor
 };
 

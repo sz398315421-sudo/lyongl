@@ -84,6 +84,7 @@ export const World = {
         const pass = world.hudRightPass;
         left.position.x = pass ? pass.leadX : -laneWidth;
         left.position.z = pass ? pass.leadZ - origin.z : -11.5;
+        left.rotation.y = pass?.leadYaw ?? 0;
         right.visible = !world.hudRightPass;
       }
       const layout = hudLaneLayout(world);

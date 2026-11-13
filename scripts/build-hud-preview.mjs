@@ -2,6 +2,7 @@ import {createRequire} from 'node:module';
 import {readFile, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
 
 const require = createRequire(process.env.HMI_BUILD_PACKAGE || import.meta.url);
 const {build} = require('esbuild');
@@ -50,7 +51,7 @@ html = replace(html, '</button></div></div><div class="preview-settings">', `</b
 html = replace(html, /<script src="startup\.js[^"]*"><\/script>(?:<script type="module">[^<]*<\/script>)?<\/body>/g, `<dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
 <script type="module" src="./hud.mjs"></script><script src="./hud-startup.js"></script></body>`);
 
-const startup = replace((await readFile(path.join(adas, 'startup.js'), 'utf8')).replaceAll('\r\n', '\n'), /\.\/app\.bundle\.js[^']*/g, './hud-scene.bundle.mjs');
+const startup = (await readFile(path.join(adas, 'startup.js'), 'utf8')).replaceAll('\r\n', '\n');
 
 await build({
   entryPoints: [path.join(adas, 'app.js')],
@@ -129,6 +130,12 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, 'displayOpacity:{value:1}', 'displayOpacity:{value:1},guideFar:{value:new THREE.Vector3()},guideGradient:{value:0}');
         contents = replace(contents, 'uniform vec3 guideColor;uniform float displayOpacity;', 'uniform vec3 guideColor;uniform vec3 guideFar;uniform float guideGradient;uniform float displayOpacity;');
         contents = replace(contents, 'vec3 color=mix(guideColor,mix(guideColor,vec3(1.),.12),.28*(1.-side));', 'vec3 hue=mix(guideColor,guideFar,smoothstep(0.,.80,vUv.y)*guideGradient);\n    vec3 color=mix(hue,mix(hue,vec3(1.),.12),.28*(1.-side));');
+        contents = replace(contents, 'gl_FragColor=vec4(color,alpha*displayOpacity);', `if(displayOpacity>1.0){
+     vec3 tint=mix(guideColor,guideFar,smoothstep(.06,1.,vUv.y)*guideGradient);
+     color=mix(tint/12.92,pow((tint+.055)/1.055,vec3(2.4)),step(vec3(.04045),tint));
+     alpha=(1.-smoothstep(.90,.99,side))*smoothstep(0.,.014,vUv.y)*(1.-smoothstep(.74,1.,vUv.y));
+     gl_FragColor=vec4(color,alpha);
+    }else gl_FragColor=vec4(color,alpha*displayOpacity);`);
         contents = replace(contents, 'const near=(car.userData.vehicleSpec.length||4.85)*.40;let far=34;', `const effect=getEffect?.(),near=(car.userData.vehicleSpec.length||4.85)*.40;let far=effect?near+effect.length:34;
   material.uniforms.guideGradient.value=effect?.gradient?1:0;
   if(effect?.gradient&&material.userData.far!==effect.far){material.uniforms.guideFar.value.copy(guidanceColorVector(effect.far));material.userData.far=effect.far;}`);
@@ -177,11 +184,14 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
 });
 
 const bundlePath = path.join(hud, 'hud-scene.bundle.mjs');
-const bundle = await readFile(bundlePath, 'utf8');
+const bundle = (await readFile(bundlePath, 'utf8')).replace(/[\t ]+$/gm, '');
+const version = createHash('sha256').update(bundle).digest('hex').slice(0, 12);
+const startupVersion = replace(startup, /\.\/app\.bundle\.js[^']*/g, `./hud-scene.bundle.mjs?v=${version}`);
+html = replace(html, 'src="./hud-startup.js"', `src="./hud-startup.js?v=${version}"`);
 await Promise.all([
-  writeFile(bundlePath, bundle.replace(/[\t ]+$/gm, '')),
+  writeFile(bundlePath, bundle),
   writeFile(path.join(hud, 'index.html'), html.replace('<!doctype html>', '<!doctype html>\n<!-- Generated from the ADAS page by scripts/build-hud-preview.mjs. -->')),
-  writeFile(path.join(hud, 'hud-startup.js'), startup)
+  writeFile(path.join(hud, 'hud-startup.js'), startupVersion)
 ]);
 
 console.log('Built the HUD page and renderer from the shared ADAS controls');

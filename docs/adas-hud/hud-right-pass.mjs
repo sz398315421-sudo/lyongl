@@ -1,16 +1,18 @@
 import {sampleLanePath} from '../adas/road-assist.js';
 
-export const rightPassDuration = 6000;
+export const rightPassDuration = 9200;
 const speed = 12;
-const turnAt = 2.6;
-const turnDuration = 2.4;
-const leadSpeed = 5;
-const approachGap = 9;
-const braking = .55;
-const acceleration = .9;
-const followDuration = .55;
+const turnAt = 4.3;
+const turnDuration = 3.6;
+const leadSpeed = 7;
+const approachGap = 10;
+const braking = .85;
+const acceleration = 2;
+const followDuration = .65;
 const catchAt = turnAt - followDuration;
 const leadStartGap = approachGap + (speed - leadSpeed) * (catchAt - braking / 2);
+const leadMergeAt = .65;
+const leadMergeDuration = 2.2;
 
 export function isBlueRoad(world) {
   return world.state?.id === '02' && world.state.laneCount === 3;
@@ -25,7 +27,8 @@ export function createRightPass(base, lanes) {
     startX, targetX: lanes[2], startZ: base.carPosition.z - travelAt(turnAt),
     distance: travelAt(turnAt + turnDuration) - travelAt(turnAt), direction: 'right', fromLane: 2, toLane: 3
   };
-  return {pose, trip: {hudRightPass: true, durationMs: rightPassDuration, distance: travelAt(rightPassDuration / 1000), laneChange}};
+  const leadMerge = {startX: lanes[0], targetX: startX, startZ: base.carPosition.z - leadStartGap - leadSpeed * leadMergeAt, distance: leadSpeed * leadMergeDuration};
+  return {pose, trip: {hudRightPass: true, durationMs: rightPassDuration, distance: travelAt(rightPassDuration / 1000), laneChange, leadMerge}};
 }
 
 function travelAt(seconds) {
@@ -55,7 +58,8 @@ export function applyRightPassFrame(world, base, trip, elapsedMs) {
 
   const t = Math.min(1, Math.max(0, (seconds - catchAt) / followDuration));
   world.roadGuidePath = {...trip.laneChange, kind: 'hud-right-pass', travelled: laneTravel, preview: t * t * (3 - 2 * t)};
-  world.hudRightPass = {leadX: trip.laneChange.startX, leadZ: base.carPosition.z - leadStartGap - leadSpeed * seconds};
+  const lead = sampleLanePath(trip.leadMerge, leadSpeed * (seconds - leadMergeAt));
+  world.hudRightPass = {leadX: lead.x, leadZ: base.carPosition.z - leadStartGap - leadSpeed * seconds, leadYaw: lead.yaw};
   world.roadGuidance.time = seconds;
   world.applyCamera({...base, position: shifted(base.position), aim: shifted(base.aim), carPosition: shifted(base.carPosition)});
   world.car.quaternion.copy(base.carQuaternion);
