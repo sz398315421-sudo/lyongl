@@ -210,6 +210,27 @@ html:not([data-hud-environment]) #preview .parking-hmi {
 #hud-guide-far { width: 34px; height: 30px; padding: 2px; margin-inline-start: auto; cursor: pointer; }
 #hud-guide-reset { margin: 7px 0 0; }
 #hud-preset-camera { margin: 0 0 8px; }
+.hud-animation-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.hud-animation-choices button {
+  min-height: 36px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--ui-radius);
+  background: var(--control-surface);
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.hud-animation-choices button[aria-pressed="true"] {
+  border-color: #2477d3;
+  color: var(--text);
+}
 .vehicle-custom-paint .hud-hex { width: 82px; }
 .hud-settings select, .hud-settings button {
   min-height: 32px;

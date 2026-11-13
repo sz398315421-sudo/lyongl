@@ -1,23 +1,23 @@
 import {laneWidth, sampleLanePath} from '../adas/road-assist.js';
 
-const laneChangeDuration = 9200;
+export const laneChangeDuration = 9200;
 const speed = 7.5;
 const turnAt = 4.3;
 const turnDuration = 3.6;
 const guidePreviewDuration = .65;
-const brakeAt = 9.35;
-const junctionAt = 10.65;
+const brakeAt = 2.1;
+const junctionAt = 3.4;
 const cornerSpeed = 4.2;
 const cornerRadius = 6;
 const cornerLength = cornerRadius * Math.PI / 2;
 const cornerEnd = junctionAt + cornerLength / cornerSpeed;
-const junctionDuration = Math.round((cornerEnd + 2.2) * 1000);
+export const junctionDuration = Math.round((cornerEnd + 2.2) * 1000);
 const approachDistance = speed * brakeAt + (speed + cornerSpeed) / 2 * (junctionAt - brakeAt);
 const junctionDistance = approachDistance + cornerLength + cornerSpeed * (junctionDuration / 1000 - cornerEnd);
 
-function canTurnAtJunction(world) {
-  return world.state?.id === '02' && !world.state.waterfront &&
-    world.car.position.z - approachDistance >= -222;
+export function canTurnAtJunction(world) {
+  return world.hudSettings?.preset === 'blueRoad' && world.state?.id === '02' &&
+    !world.state.roadworks && !world.state.waterfront;
 }
 
 export function isBlueRoad(world) {
@@ -26,34 +26,26 @@ export function isBlueRoad(world) {
 
 export function presetLaneDirection(world, lanes) {
   const preset = world.hudSettings?.preset;
-  if (preset === 'blueRoad' && lanes.right && canTurnAtJunction(world)) return 'right';
   if (world.car.position.z - speed * laneChangeDuration / 1000 < -185) return null;
   if (preset === 'carpet' && lanes.left) return 'left';
   if (preset === 'blueRoad' && lanes.right) return 'right';
   return null;
 }
 
-export function hasPresetRightTurn(world, direction) {
-  return direction === 'right' && canTurnAtJunction(world);
-}
-
-export function presetLaneDuration(world, direction) {
-  return hasPresetRightTurn(world, direction) ? junctionDuration : laneChangeDuration;
-}
-
-export function createPresetLaneChange(world, base, lanes, direction) {
-  const turnsAtJunction = hasPresetRightTurn(world, direction);
-  const target = turnsAtJunction ? lanes.count - 1 : lanes.index + (direction === 'left' ? -1 : 1);
-  const changeSeconds = turnDuration + .65 * Math.max(0, target - lanes.index - 1);
+export function createPresetLaneChange(base, lanes, direction) {
+  const target = lanes.index + (direction === 'left' ? -1 : 1);
   const laneChange = {
     startX: base.carPosition.x, targetX: lanes.centers[target], startZ: base.carPosition.z - speed * turnAt,
-    distance: speed * changeSeconds, direction, fromLane: lanes.index + 1, toLane: target + 1
+    distance: speed * turnDuration, direction, fromLane: lanes.index + 1, toLane: target + 1
   };
+  return {hudRightPass: true, durationMs: laneChangeDuration, distance: speed * laneChangeDuration / 1000, laneChange};
+}
+
+export function createPresetRightTurn(world, base, lanes) {
   const width = world.state.laneCount * laneWidth;
   const turnZ = base.carPosition.z - approachDistance;
-  const rightTurn = turnsAtJunction ? {width, turnZ, centerZ: turnZ - cornerRadius - (width - laneWidth) / 2} : null;
-  const durationMs = presetLaneDuration(world, direction);
-  return {hudRightPass: true, durationMs, distance: rightTurn ? junctionDistance : speed * durationMs / 1000, laneChange, rightTurn};
+  const rightTurn = {width, turnZ, centerZ: turnZ - cornerRadius - (width - laneWidth) / 2, laneX: lanes.centers.at(-1)};
+  return {hudRightPass: true, durationMs: junctionDuration, distance: junctionDistance, rightTurn};
 }
 
 function sampleRightTurn(turn, x, distance) {
@@ -76,7 +68,9 @@ function traveledDistance(seconds, rightTurn) {
 export function sampleRightPassGuidance(plan, distance) {
   if (plan.rightTurn) {
     const turnDistance = plan.startZ - plan.rightTurn.turnZ;
-    if (distance > turnDistance) return sampleRightTurn(plan.rightTurn, plan.targetX, distance - turnDistance);
+    return distance > turnDistance
+      ? sampleRightTurn(plan.rightTurn, plan.rightTurn.laneX, distance - turnDistance)
+      : {x: plan.rightTurn.laneX, z: plan.startZ - distance, yaw: 0};
   }
   const point = sampleLanePath(plan, distance);
   point.x = plan.startX + (point.x - plan.startX) * plan.preview;
@@ -91,14 +85,19 @@ export function applyRightPassFrame(world, base, trip, elapsedMs) {
   const traveled = traveledDistance(seconds, rightTurn);
   const laneTravel = traveled - speed * turnAt;
   const corner = rightTurn && traveled > approachDistance;
-  const point = corner ? sampleRightTurn(rightTurn, trip.laneChange.targetX, traveled - approachDistance) : sampleLanePath(trip.laneChange, laneTravel);
-  const carPosition = base.carPosition.clone().setX(point.x).setZ(corner ? point.z : base.carPosition.z - traveled);
+  const startZ = base.carPosition.z;
+  const point = rightTurn
+    ? sampleRightPassGuidance({rightTurn, startZ}, traveled)
+    : sampleLanePath(trip.laneChange, laneTravel);
+  const carPosition = base.carPosition.clone().setX(point.x).setZ(rightTurn ? point.z : startZ - traveled);
   const cameraYaw = corner ? point.yaw : 0;
   const axis = base.carPosition.clone().set(0, 1, 0);
   const shifted = position => position.clone().sub(base.carPosition).applyAxisAngle(axis, cameraYaw).add(carPosition);
 
   const t = Math.min(1, Math.max(0, 1 + (seconds - turnAt) / guidePreviewDuration));
-  world.roadGuidePath = {...trip.laneChange, kind: 'hud-right-pass', travelled: laneTravel, preview: t * t * (3 - 2 * t), rightTurn};
+  world.roadGuidePath = rightTurn
+    ? {kind: 'hud-right-pass', startZ, rightTurn, travelled: traveled}
+    : {...trip.laneChange, kind: 'hud-right-pass', travelled: laneTravel, preview: t * t * (3 - 2 * t)};
   world.roadGuidance.time = seconds;
   const quaternion = base.quaternion.clone().premultiply(base.quaternion.clone().setFromAxisAngle(axis, cameraYaw));
   world.applyCamera({...base, position: shifted(base.position), aim: shifted(base.aim), carPosition, quaternion});

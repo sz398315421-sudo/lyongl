@@ -92,7 +92,7 @@ world.hudRefreshStart=()=>{
 const sceneMotionControls=initScenePlaybackControls`);
         contents = replace(contents, 'function syncScenePlayback(snapshot=scenePlayback.snapshot()){', `world.hudCaptureGuidance=()=>({enabled:roadGuidanceEnabled,color:roadGuidanceColor});
 world.hudSetPresetGuidance=({enabled=true,color=defaultGuidanceColor}={})=>{
- if(scenePlayback.active&&scenePlayback.snapshot().presetDirection)scenePlayback.reset({render:false});
+ if(scenePlayback.active&&(scenePlayback.snapshot().presetDirection||scenePlayback.snapshot().presetRightTurn))scenePlayback.reset({render:false});
  roadGuidanceEnabled=enabled;world.roadGuidance.enabled=enabled;
  roadGuidanceColor=world.roadGuidance.setColor(color);
  roadAssistControls.setGuideAppearance(roadGuidanceEnabled,roadGuidanceColor);
@@ -100,9 +100,15 @@ world.hudSetPresetGuidance=({enabled=true,color=defaultGuidanceColor}={})=>{
  world.renderFrame();syncScenePlayback();updateURL();rememberPreview();
 };
 function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
+        contents = replace(contents, 'const sceneMotionControls=initScenePlaybackControls({onToggle:()=>{', `const sceneMotionControls=initScenePlaybackControls({onAnimationChange:animation=>{
+ if(!scenePlayback.setPresetAnimation(animation))return;
+ if(!world.suspended)world.renderFrame();syncScenePlayback();
+},onToggle:()=>{`);
         contents = replace(contents, ' sceneMotionControls.sync(selected,ready,snapshot);', ' world.hudSyncLaneDemo(selected,snapshot);sceneMotionControls.sync(selected,ready,snapshot);');
         contents = replace(contents, "if(['parking','outdoor'].includes(selected)&&pose)", "if(!transparent&&document.documentElement.hasAttribute('data-hud-environment')&&['parking','outdoor'].includes(selected)&&pose)");
         contents = replace(contents, 'async function exportAnimation(){', 'async function exportAnimation(transparent, sequence){');
+        contents = replace(contents, ' const name=frameName();', ` const animation=original.presetRightTurn?'right-turn':original.presetDirection==='right'?'lane-change':'';
+ const name=frameName()+(animation?'-'+animation:'');`);
         contents = replace(contents, 'if(!videoFormat())throw', 'if(!transparent&&!videoFormat())throw');
         contents = replace(contents, "const context=canvas.getContext('2d',{alpha:false});", "const context=canvas.getContext('2d',{alpha:transparent});");
         contents = replace(contents, /  world\.setResolution\(exportSize\.width,exportSize\.height\);\r?\n  let durationMs,sample;/g, '  const recordingFormat=transparent&&!sequence?await transparentVideoFormat(controller.signal):undefined;\n  world.setResolution(exportSize.width,exportSize.height);\n  let durationMs,sample;');
@@ -203,19 +209,45 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, 'renderFrame(0);recorder.start();started=true;capture(0);', 'recorder.start();started=true;capture(0);');
       }
       if (args.path === path.join(adas, 'scene-playback.js')) {
-        contents = `import {applyRightPassFrame, createPresetLaneChange, hasPresetRightTurn, presetLaneDirection, presetLaneDuration} from '../hud/hud-right-pass.mjs';\n${contents}`;
-        contents = replace(contents, 'const snapshot=()=>({scene,status,', `const presetDirection=()=>world.hudSettings?.preset&&!world.state?.roadworks?presetLaneDirection(world,roadLaneState(world)):null;
- const snapshot=()=>{const direction=trip?.hudRightPass?trip.laneChange.direction:!trip?presetDirection():null;return {scene,status,presetDirection:direction,presetRightTurn:trip?!!trip.rightTurn:hasPresetRightTurn(world,direction),`);
-        contents = replace(contents, 'durationMs:trip?.durationMs||sceneTripDurationMs', 'durationMs:trip?.durationMs||(direction?presetLaneDuration(world,direction):sceneTripDurationMs)');
+        contents = `import {applyRightPassFrame, canTurnAtJunction, createPresetLaneChange, createPresetRightTurn, junctionDuration, laneChangeDuration, presetLaneDirection} from '../hud/hud-right-pass.mjs';\n${contents}`;
+        contents = replace(contents, 'const snapshot=()=>({scene,status,', `let presetAnimation='lane-change';
+ const turnAvailable=()=>canTurnAtJunction(world);
+ const wantsRightTurn=()=>presetAnimation==='right-turn'&&turnAvailable();
+ const presetDirection=()=>world.hudSettings?.preset&&!world.state?.roadworks?presetLaneDirection(world,roadLaneState(world)):null;
+ const snapshot=()=>{const rightTurn=trip?!!trip.rightTurn:wantsRightTurn();
+  const direction=trip?.hudRightPass?trip.laneChange?.direction:!trip&&!rightTurn?presetDirection():null;
+  return {scene,status,presetDirection:direction,presetRightTurn:rightTurn,turnAvailable:turnAvailable(),presetAnimation,`);
+        contents = replace(contents, 'durationMs:trip?.durationMs||sceneTripDurationMs', 'durationMs:trip?.durationMs||(rightTurn?junctionDuration:direction?laneChangeDuration:sceneTripDurationMs)');
         contents = replace(contents, 'toLane:trip.laneChange.toLane}:null});', 'toLane:trip.laneChange.toLane}:null};};');
         contents = replace(contents, 'function apply(){', 'function apply(){\n  if(trip.hudRightPass){applyRightPassFrame(world,base,trip,elapsedMs);return;}');
+        contents = replace(contents, '(trip.laneChange||trip.rampExit)', '(trip.laneChange||trip.rampExit||trip.rightTurn)');
         contents = replace(contents, /origin=base;\r?\n   \/\//g, `origin=base;
-   const direction=presetDirection();
-   if(direction)trip=createPresetLaneChange(world,base,roadLaneState(world),direction);
+   if(key==='road'&&wantsRightTurn())trip=createPresetRightTurn(world,base,roadLaneState(world));
+   else {
+    const direction=presetDirection();
+    if(direction)trip=createPresetLaneChange(base,roadLaneState(world),direction);
+   }
    //`);
         contents = replace(contents, 'if(trip.parking)apply();notify();frame=', 'if(trip.parking||trip.hudRightPass)apply();notify();frame=');
-        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", "heading.textContent=parking?'自动泊车动画':state.presetRightTurn?'右变道 · 路口右转':state.presetDirection==='left'?'左变道演示':state.presetDirection==='right'?'右变道演示':'场景动画';");
-        contents = replace(contents, 'seek,snapshot,get active()', 'seek,snapshot,get status(){return status;},get basePose(){return base;},get active()');
+        contents = replace(contents, 'initScenePlaybackControls({onToggle,onReset})', 'initScenePlaybackControls({onToggle,onReset,onAnimationChange})');
+        contents = replace(contents, " document.querySelector('.vehicle-entry').before(block);", ` const animationChoices=document.createElement('div');
+ animationChoices.className='hud-animation-choices';
+ animationChoices.setAttribute('role','group');animationChoices.setAttribute('aria-label','蓝色光轨动画');
+ animationChoices.innerHTML='<button type="button" data-hud-animation="lane-change" aria-pressed="true">向右变道</button><button type="button" data-hud-animation="right-turn" aria-pressed="false">路口右转</button>';
+ animationChoices.hidden=true;block.prepend(animationChoices);
+ const animationButtons=[...animationChoices.querySelectorAll('button')];
+ for(const button of animationButtons)button.addEventListener('click',()=>onAnimationChange(button.dataset.hudAnimation));
+ document.querySelector('.vehicle-entry').before(block);`);
+        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", `heading.textContent=parking?'自动泊车动画':state.presetRightTurn?'路口右转演示':state.presetDirection==='left'?'左变道演示':state.presetDirection==='right'?'右变道演示':'场景动画';
+  animationChoices.hidden=scene!=='road'||!state.turnAvailable;
+  for(const button of animationButtons){
+   button.disabled=!ready;
+   button.setAttribute('aria-pressed',String(button.dataset.hudAnimation===state.presetAnimation));
+  }`);
+        contents = replace(contents, 'seek,snapshot,get active()', `seek,snapshot,setPresetAnimation(animation){
+  if(!turnAvailable()||presetAnimation===animation||!['lane-change','right-turn'].includes(animation))return false;
+  presetAnimation=animation;reset({render:false});return true;
+ },get status(){return status;},get basePose(){return base;},get active()`);
       }
       if (args.path === path.join(adas, 'vehicle-selector.js')) {
         contents = replace(contents, "'vehicle-previews/", "'../adas/vehicle-previews/");

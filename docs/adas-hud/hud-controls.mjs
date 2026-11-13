@@ -109,9 +109,9 @@ export function createHudControls(onChange) {
     byId('hud-beam-only').closest('label').hidden = settings.preset !== 'carpet' || !supportsGuidance;
     byId('hud-preset-camera').hidden = !settings.preset || !supportsGuidance;
   }
-  function syncLaneDemo({scene, presetDirection, status}, roadworks) {
+  function syncLaneDemo({scene, presetDirection, presetRightTurn, status}, roadworks) {
     const note = byId('hud-lane-demo-note');
-    const show = settings.preset && ['road', 'elevated', 'ramp'].includes(scene) && status === 'idle' && !presetDirection;
+    const show = settings.preset && ['road', 'elevated', 'ramp'].includes(scene) && status === 'idle' && !presetDirection && !presetRightTurn;
     note.hidden = !show;
     if (show) {
       const side = settings.preset === 'carpet' ? '左' : '右';
