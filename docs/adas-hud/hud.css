@@ -6,6 +6,103 @@ html:not([data-hud-environment]) #preview .parking-hmi {
   display: none;
 }
 
+.hud-workspace {
+  --shell-width: 1920px;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.hud-workspace #main-content {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.hud-workspace .workspace {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  min-height: 0;
+  gap: 14px;
+}
+
+.hud-workspace .preview-shell {
+  justify-self: center;
+  width: min(100%, calc(clamp(76px, 100dvh - var(--header-height) - 220px, 44dvh) * var(--screen-aspect, 1.7777777778)));
+  padding: 0;
+}
+
+.hud-workspace .workspace .preview-settings {
+  display: block;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0 8px 18px 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-padding-block: 8px;
+}
+
+.hud-workspace .workspace .preview-settings :is(button, input, select) {
+  scroll-margin-block: 8px;
+}
+
+.hud-workspace .preview-settings:focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: -2px;
+}
+
+.hud-workspace #credits-view {
+  min-height: 0;
+  overflow: auto;
+}
+
+@media (min-width: 761px) {
+  .hud-workspace #main-content > aside {
+    max-height: 100%;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hud-workspace .workspace {
+    grid-template-columns: minmax(0, 1fr) clamp(288px, 24vw, 360px);
+    grid-template-rows: minmax(0, 1fr);
+    gap: clamp(18px, 2vw, 32px);
+  }
+
+  .hud-workspace .preview-shell {
+    align-self: start;
+    width: min(100%, calc(max(120px, 100dvh - var(--header-height) - 142px) * var(--screen-aspect, 1.7777777778)));
+  }
+
+  .hud-workspace .workspace .scene-options #road-controls,
+  .hud-workspace .workspace #camera-control {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .hud-workspace .workspace { flex: 1 1 0; }
+
+  .hud-workspace #mobile-scene-menu {
+    position: fixed;
+    z-index: 19;
+    inset: var(--header-height) var(--mobile-gutter) auto;
+    background: var(--page);
+    border-radius: var(--ui-radius);
+  }
+
+  .hud-workspace #mobile-scene-menu.is-open .mobile-menu-content {
+    max-height: calc(100dvh - var(--header-height) - 12px);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+}
+
 .appearance-control { display: flex; align-items: center; gap: 12px; }
 .studio-tool-link { color: var(--text-secondary); font-size: 12px; white-space: nowrap; text-decoration: none; }
 .studio-tool-link:hover { color: var(--text); }
@@ -112,6 +209,7 @@ html:not([data-hud-environment]) #preview .parking-hmi {
 .hud-setting-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 #hud-guide-far { width: 34px; height: 30px; padding: 2px; margin-inline-start: auto; cursor: pointer; }
 #hud-guide-reset { margin: 7px 0 0; }
+#hud-preset-camera { margin: 0 0 8px; }
 .vehicle-custom-paint .hud-hex { width: 82px; }
 .hud-settings select, .hud-settings button {
   min-height: 32px;

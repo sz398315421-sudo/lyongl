@@ -10,17 +10,21 @@ export function isBlueRoad(world) {
   return world.state?.id === '02' && world.state.laneCount === 3;
 }
 
+export function presetLaneDirection(world, lanes) {
+  if (world.car.position.z - speed * rightPassDuration / 1000 < -185) return null;
+  const preset = world.hudSettings?.preset;
+  if (preset === 'carpet' && lanes.left) return 'left';
+  if (preset === 'blueRoad' && lanes.right) return 'right';
+  return null;
+}
+
 export function createPresetLaneChange(base, lanes, direction) {
-  const startX = lanes[1];
-  const offset = startX - base.carPosition.x;
-  const center = point => point.clone().setX(point.x + offset);
-  const pose = {...base, position: center(base.position), aim: center(base.aim), carPosition: center(base.carPosition)};
-  const target = direction === 'left' ? 0 : 2;
+  const target = lanes.index + (direction === 'left' ? -1 : 1);
   const laneChange = {
-    startX, targetX: lanes[target], startZ: base.carPosition.z - speed * turnAt,
-    distance: speed * turnDuration, direction, fromLane: 2, toLane: target + 1
+    startX: base.carPosition.x, targetX: lanes.centers[target], startZ: base.carPosition.z - speed * turnAt,
+    distance: speed * turnDuration, direction, fromLane: lanes.index + 1, toLane: target + 1
   };
-  return {pose, trip: {hudRightPass: true, durationMs: rightPassDuration, distance: speed * rightPassDuration / 1000, laneChange}};
+  return {hudRightPass: true, durationMs: rightPassDuration, distance: speed * rightPassDuration / 1000, laneChange};
 }
 
 export function sampleRightPassGuidance(plan, distance) {
@@ -41,7 +45,6 @@ export function applyRightPassFrame(world, base, trip, elapsedMs) {
 
   const t = Math.min(1, Math.max(0, 1 + (seconds - turnAt) / guidePreviewDuration));
   world.roadGuidePath = {...trip.laneChange, kind: 'hud-right-pass', travelled: laneTravel, preview: t * t * (3 - 2 * t)};
-  world.hudRightPass = true;
   world.roadGuidance.time = seconds;
   world.applyCamera({...base, position: shifted(base.position), aim: shifted(base.aim), carPosition: shifted(base.carPosition)});
   world.car.quaternion.copy(base.carQuaternion);

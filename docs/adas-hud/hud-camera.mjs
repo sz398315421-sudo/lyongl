@@ -1,5 +1,4 @@
 import {Matrix4, Quaternion, Vector3, MathUtils} from 'three';
-import {isBlueRoad} from './hud-right-pass.mjs';
 
 export function createHudCamera(world, settings) {
   const {camera} = world;
@@ -32,7 +31,7 @@ export function createHudCamera(world, settings) {
   function customView() {
     const {yaw, pitch, distance, fov, ahead} = settings.view;
     const h = degToRad(pitch), a = degToRad(yaw), radius = distance * Math.cos(h);
-    const heading = anchor?.heading ?? (settings.carpet && isBlueRoad(world) ? world.hudPlayback?.basePose?.carQuaternion : null) ?? world.car.quaternion;
+    const heading = anchor?.heading ?? (settings.preset === 'carpet' && world.roadGuidePath?.kind === 'hud-right-pass' ? world.hudPlayback?.basePose?.carQuaternion : null) ?? world.car.quaternion;
     const car = anchor?.car ?? world.car.position;
     renderedAim.set(0, .85, -ahead).applyQuaternion(heading).add(car);
     renderedPosition.set(radius * Math.sin(a), distance * Math.sin(h) + .85, radius * Math.cos(a)).applyQuaternion(heading).add(car);
@@ -53,7 +52,7 @@ export function createHudCamera(world, settings) {
       if (anchor) {
         const car = world.car;
         inverse.copy(car.quaternion).invert();
-        if (settings.carpet && isBlueRoad(world)) rotation.identity();
+        if (settings.preset === 'carpet' && world.roadGuidePath?.kind === 'hud-right-pass') rotation.identity();
         else rotation.copy(anchor.heading).multiply(inverse);
         translation.copy(car.position).applyQuaternion(rotation).negate().add(anchor.car);
         transform.makeRotationFromQuaternion(rotation).setPosition(translation);

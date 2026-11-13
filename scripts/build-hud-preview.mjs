@@ -20,6 +20,7 @@ function replace(source, original, replacement) {
 // Keep resource URLs relative to the HUD page so history links stay on /hud/.
 let html = (await readFile(path.join(adas, 'index.html'), 'utf8')).replaceAll('\r\n', '\n');
 html = replace(html, '<title>自动驾驶道路场景</title>', '<title>HUD</title>');
+html = replace(html, '<body>', '<body class="hud-workspace">');
 html = replace(html, 'href="./">自动驾驶道路场景</a>', 'href="./">HUD</a>');
 html = html.replace(/<span class="site-version"[^>]*>[^<]+<\/span>/, '');
 const editorLink = hasEditor ? '<a class="studio-tool-link" href="./studio.html">HUD 编辑器</a>' : '';
@@ -48,6 +49,9 @@ html = replace(html, '</button></div></div><div class="preview-settings">', `</b
     <button type="button" id="hud-immersive" aria-haspopup="dialog" aria-controls="hud-immersive-dialog" disabled>沉浸预览</button>
   </div>
 </div><div class="preview-settings">`);
+html = replace(html, '<div class="preview-settings">', '<div class="preview-settings" role="region" aria-label="HUD 场景设置" tabindex="0">');
+html = replace(html, '<p id="status" role="status"></p>', '');
+html = replace(html, '</div><div class="preview-settings" role=', '<p id="status" role="status"></p></div><div class="preview-settings" role=');
 html = replace(html, /<script src="startup\.js[^"]*"><\/script>(?:<script type="module">[^<]*<\/script>)?<\/body>/g, `<dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
 <script type="module" src="./hud.mjs"></script><script src="./hud-startup.js"></script></body>`);
 
@@ -86,24 +90,17 @@ world.hudRefreshStart=()=>{
  render(false);rememberPreview();
 };
 const sceneMotionControls=initScenePlaybackControls`);
-        contents = replace(contents, 'function syncScenePlayback(snapshot=scenePlayback.snapshot()){', `world.hudCapturePresetState=()=>({selected,mode,road:structuredClone(preferences.get('road')),scene:structuredClone(preferences.get(selected)),guidance:roadGuidanceEnabled,color:roadGuidanceColor,traffic:trafficFlow.settings.enabled});
-function applyHudRoadPreset(target){
- scenePlayback.reset({render:false});
- world.finishLayoutTransition();world.finishCameraMotion();
- world.roadCameraCache.clear();world.vehicleNeedsFraming=true;
- selected=target.selected;mode=requestedTheme=target.mode;
- Object.assign(preferences.get('road'),target.road);
- if(target.scene&&selected!=='road')Object.assign(preferences.get(selected),target.scene);
- roadGuidanceEnabled=target.guidance;world.roadGuidance.enabled=target.guidance;
- roadGuidanceColor=world.roadGuidance.setColor(target.color);
+        contents = replace(contents, 'function syncScenePlayback(snapshot=scenePlayback.snapshot()){', `world.hudCaptureGuidance=()=>({enabled:roadGuidanceEnabled,color:roadGuidanceColor});
+world.hudSetPresetGuidance=({enabled=true,color=defaultGuidanceColor}={})=>{
+ if(scenePlayback.active&&scenePlayback.snapshot().presetDirection)scenePlayback.reset({render:false});
+ roadGuidanceEnabled=enabled;world.roadGuidance.enabled=enabled;
+ roadGuidanceColor=world.roadGuidance.setColor(color);
  roadAssistControls.setGuideAppearance(roadGuidanceEnabled,roadGuidanceColor);
- trafficFlow.setHudTrafficEnabled(target.traffic);
  try{localStorage.setItem('sr-guidance-color',roadGuidanceColor);}catch{}
- render(false);rememberPreview();
-}
-world.hudApplyBlueRoad=color=>applyHudRoadPreset({selected:'road',mode:'dark',road:{id:'02',laneCount:3,cameraView:'low',roadworks:false},guidance:true,color,traffic:false});
-world.hudRestorePresetState=applyHudRoadPreset;
+ world.renderFrame();syncScenePlayback();updateURL();rememberPreview();
+};
 function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
+        contents = replace(contents, ' sceneMotionControls.sync(selected,ready,snapshot);', ' world.hudSyncLaneDemo(selected,snapshot);sceneMotionControls.sync(selected,ready,snapshot);');
         contents = replace(contents, "if(['parking','outdoor'].includes(selected)&&pose)", "if(!transparent&&document.documentElement.hasAttribute('data-hud-environment')&&['parking','outdoor'].includes(selected)&&pose)");
         contents = replace(contents, 'async function exportAnimation(){', 'async function exportAnimation(transparent, sequence){');
         contents = replace(contents, 'if(!videoFormat())throw', 'if(!transparent&&!videoFormat())throw');
@@ -164,7 +161,7 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, 'custom.disabled=!ready;', "document.getElementById('hud-guide-near-hex').disabled=custom.disabled=!ready;");
         contents = replace(contents, 'return {sync(scene,ready,snapshot,world){', 'return {setGuideAppearance(enabled,color){input.checked=enabled;selectedColor=color;syncColor();},sync(scene,ready,snapshot,world){');
         contents = replace(contents, "const scene=drivingSceneKey(world.state?.id),centered=['elevated','ramp'].includes(scene);", "const scene=drivingSceneKey(world.state?.id),blueRoad=scene==='road'&&world.state?.laneCount===3,centered=blueRoad||['elevated','ramp'].includes(scene);");
-        contents = replace(contents, "if(effect?.gradient&&material.userData.far!==effect.far)", "material.uniforms.displayOpacity.value=world.state.id==='02'&&world.state.laneCount===3?(world.hudSettings?.carpet?2:1.13):1;\n  if(effect?.gradient&&material.userData.far!==effect.far)");
+        contents = replace(contents, "if(effect?.gradient&&material.userData.far!==effect.far)", "const preset=world.hudSettings?.preset;material.uniforms.displayOpacity.value=preset==='carpet'?2:preset==='blueRoad'?1.13:1;\n  if(effect?.gradient&&material.userData.far!==effect.far)");
       }
       if (args.path === path.join(adas, 'export-controls.js')) {
         contents = `import {supportsHudWebm} from '../hud/hud-video.mjs';\nimport {createSequenceFields} from '../hud/hud-png-sequence.mjs';\n${contents}`;
@@ -190,25 +187,19 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, / signal\?\.throwIfAborted\(\);\r?\n const stream=/g, ' signal?.throwIfAborted();\n renderFrame(0);\n const stream=');
         contents = replace(contents, 'renderFrame(0);recorder.start();started=true;capture(0);', 'recorder.start();started=true;capture(0);');
       }
-      if (args.path === path.join(adas, 'traffic-flow.js')) {
-        contents = replace(contents, 'const api={group:fleet.group,externalAnimation:false,syncWorld,snapshot,', `const api={group:fleet.group,externalAnimation:false,syncWorld,snapshot,
-  setHudTrafficEnabled(enabled){if(typeof enabled==='boolean'){simulation.configure({enabled});controls.values(simulation.settings);}},`);
-      }
       if (args.path === path.join(adas, 'scene-playback.js')) {
-        contents = `import {applyRightPassFrame, createPresetLaneChange, isBlueRoad, rightPassDuration} from '../hud/hud-right-pass.mjs';\n${contents}`;
-        contents = replace(contents, 'durationMs:trip?.durationMs||sceneTripDurationMs', 'durationMs:trip?.durationMs||(isBlueRoad(world)?rightPassDuration:sceneTripDurationMs)');
+        contents = `import {applyRightPassFrame, createPresetLaneChange, presetLaneDirection, rightPassDuration} from '../hud/hud-right-pass.mjs';\n${contents}`;
+        contents = replace(contents, 'const snapshot=()=>({scene,status,', `const presetDirection=()=>world.hudSettings?.preset&&!world.state?.roadworks?presetLaneDirection(world,roadLaneState(world)):null;
+ const snapshot=()=>{const direction=trip?.hudRightPass?trip.laneChange.direction:!trip?presetDirection():null;return {scene,status,presetDirection:direction,`);
+        contents = replace(contents, 'durationMs:trip?.durationMs||sceneTripDurationMs', 'durationMs:trip?.durationMs||(direction?rightPassDuration:sceneTripDurationMs)');
+        contents = replace(contents, 'toLane:trip.laneChange.toLane}:null});', 'toLane:trip.laneChange.toLane}:null};};');
         contents = replace(contents, 'function apply(){', 'function apply(){\n  if(trip.hudRightPass){applyRightPassFrame(world,base,trip,elapsedMs);return;}');
-        contents = replace(contents, '  world.roadGuidePath=null;', '  world.hudRightPass=null;world.roadGuidePath=null;');
-        contents = replace(contents, '  const target=info.index+direction;', '  world.hudRightPass=null;\n  const target=info.index+direction;');
         contents = replace(contents, /origin=base;\r?\n   \/\//g, `origin=base;
-   if(key==='road'&&isBlueRoad(world)){
-    const direction=world.hudSettings?.carpet?'left':'right';
-    const pass=createPresetLaneChange(base,roadLaneState(world).centers,direction);base=pass.pose;trip=pass.trip;
-   }
+   const direction=presetDirection();
+   if(direction)trip=createPresetLaneChange(base,roadLaneState(world),direction);
    //`);
-        contents = replace(contents, "if(key==='road'&&world.state?.roadworks", "if(key==='road'&&!trip.hudRightPass&&world.state?.roadworks");
         contents = replace(contents, 'if(trip.parking)apply();notify();frame=', 'if(trip.parking||trip.hudRightPass)apply();notify();frame=');
-        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", "const preset=document.querySelector('[data-hud-preset][aria-pressed=true]')?.id;\n  heading.textContent=parking?'自动泊车动画':preset==='hud-carpet'?'左变道演示':preset==='hud-blue-road'?'右变道演示':'场景动画';");
+        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", "heading.textContent=parking?'自动泊车动画':state.presetDirection==='left'?'左变道演示':state.presetDirection==='right'?'右变道演示':'场景动画';");
         contents = replace(contents, 'seek,snapshot,get active()', 'seek,snapshot,get status(){return status;},get basePose(){return base;},get active()');
       }
       if (args.path === path.join(adas, 'vehicle-selector.js')) {
@@ -229,6 +220,8 @@ const bundle = (await readFile(bundlePath, 'utf8')).replace(/[\t ]+$/gm, '');
 const version = createHash('sha256').update(bundle).digest('hex').slice(0, 12);
 const startupVersion = replace(startup, /\.\/app\.bundle\.js[^']*/g, `./hud-scene.bundle.mjs?v=${version}`);
 html = replace(html, 'src="./hud-startup.js"', `src="./hud-startup.js?v=${version}"`);
+const cssVersion = createHash('sha256').update(await readFile(path.join(hud, 'hud.css'))).digest('hex').slice(0, 12);
+html = replace(html, 'href="./hud.css"', `href="./hud.css?v=${cssVersion}"`);
 await Promise.all([
   writeFile(bundlePath, bundle),
   writeFile(path.join(hud, 'index.html'), html.replace('<!doctype html>', '<!doctype html>\n<!-- Generated from the ADAS page by scripts/build-hud-preview.mjs. -->')),

@@ -41,7 +41,8 @@ function readSettings() {
       starts[key] = {distance: Math.round(start.distance), lane: Number.isInteger(start.lane) && start.lane >= 0 ? start.lane : null};
     }
   }
-  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true, carpet: saved?.carpet === true, colors, view, guide, starts};
+  const preset = ['blueRoad', 'carpet'].includes(saved?.preset) ? saved.preset : saved?.carpet === true ? 'carpet' : null;
+  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true, preset, beamOnly: saved?.beamOnly === true, colors, view, guide, starts};
 }
 
 function slider([key, name, min, max, , unit, step = 1], values, prefix, change) {
@@ -99,13 +100,24 @@ export function createHudControls(onChange) {
     try { hudPreferences.setItem('preview-controls', JSON.stringify(settings)); } catch {}
   };
 
-  function syncPreset(active, canRestore) {
-    presetButton.setAttribute('aria-pressed', String(active && !settings.carpet));
-    carpetButton.setAttribute('aria-pressed', String(active && settings.carpet));
-    const carpetActive = active && settings.carpet;
-    byId('hud-ego').disabled = carpetActive;
-    byId('hud-ego').checked = !carpetActive && settings.ego;
-    restoreButton.hidden = !canRestore;
+  function syncPreset(supportsGuidance) {
+    presetButton.setAttribute('aria-pressed', String(settings.preset === 'blueRoad'));
+    carpetButton.setAttribute('aria-pressed', String(settings.preset === 'carpet'));
+    byId('hud-ego').checked = settings.ego;
+    restoreButton.hidden = !settings.preset;
+    byId('hud-preset-note').hidden = !settings.preset || supportsGuidance;
+    byId('hud-beam-only').closest('label').hidden = settings.preset !== 'carpet' || !supportsGuidance;
+    byId('hud-preset-camera').hidden = !settings.preset || !supportsGuidance;
+  }
+  function syncLaneDemo({scene, presetDirection, status}, roadworks) {
+    const note = byId('hud-lane-demo-note');
+    const show = settings.preset && ['road', 'elevated', 'ramp'].includes(scene) && status === 'idle' && !presetDirection;
+    note.hidden = !show;
+    if (show) {
+      const side = settings.preset === 'carpet' ? '左' : '右';
+      const message = roadworks ? '当前道路施工，播放原场景动画。' : `变道演示需要起始车道的${side}侧有可用车道。`;
+      if (note.textContent !== message) note.textContent = message;
+    }
   }
 
   presetButton.addEventListener('click', () => change('blueRoad'));
@@ -114,7 +126,7 @@ export function createHudControls(onChange) {
   window.addEventListener('studio:ready', () => { presetButton.disabled = carpetButton.disabled = false; });
   window.addEventListener('studio:error', () => { presetButton.disabled = carpetButton.disabled = true; });
 
-  const controls = [['hud-ego', 'ego'], ['hud-follow', 'follow'], ['hud-camera', 'customCamera']];
+  const controls = [['hud-ego', 'ego'], ['hud-follow', 'follow'], ['hud-camera', 'customCamera'], ['hud-beam-only', 'beamOnly']];
   for (const [id, key] of controls) {
     const input = byId(id);
     input.checked = settings[key];
@@ -128,6 +140,7 @@ export function createHudControls(onChange) {
 
   const cameraSliders = cameraFields.map(field => slider(field, settings.view, 'hud-camera', () => change('view')));
   cameraReset.before(...cameraSliders.map(control => control.label));
+  byId('hud-preset-camera').addEventListener('click', () => change('presetCamera'));
 
   cameraReset.addEventListener('click', () => {
     Object.assign(settings.view, defaultView);
@@ -206,33 +219,33 @@ export function createHudControls(onChange) {
     change('start');
   });
 
-  function syncAppearance() {
-    for (const [id, key] of controls) byId(id).checked = settings[key];
-    panel.hidden = !settings.customCamera;
+  return {settings, syncPreset, syncLaneDemo,
+  showSceneLayers() {
+    if (!settings.beamOnly || settings.preset !== 'carpet') return;
+    byId('hud-beam-only').checked = settings.beamOnly = false;
+    try { hudPreferences.setItem('preview-controls', JSON.stringify(settings)); } catch {}
+  },
+  usePresetCamera(view) {
+    Object.assign(settings.view, view);
     cameraSliders.forEach(control => control.sync());
+    byId('hud-camera').checked = settings.customCamera = true;
+    panel.hidden = false;
+  }, useSceneCamera() {
+    const input = byId('hud-camera');
+    if (!input.checked) return;
+    input.checked = false;
+    settings.customCamera = false;
+    panel.hidden = true;
+    try { hudPreferences.setItem('preview-controls', JSON.stringify(settings)); } catch {}
+  },
+  applyRoadPreset(key, guide) {
+    settings.preset = key;
+    Object.assign(settings.guide, guide);
     syncGuide();
-    syncColor();
-    if (startLayout) syncStart();
-  }
-
-  return {settings, syncPreset, syncAppearance,
-  applyRoadPreset(preset, carpet) {
-    Object.assign(settings.view, preset.view);
-    Object.assign(settings.guide, preset.guide);
-    settings.starts.road = {distance: 0, lane: 1};
-    settings.customCamera = true;
-    if (!carpet) settings.ego = true;
-    settings.carpet = carpet;
-    syncAppearance();
   }, restoreAppearance(previous) {
-    Object.assign(settings.view, previous.view);
-    Object.assign(settings.guide, previous.guide);
-    settings.ego = previous.ego;
-    settings.carpet = previous.carpet === true;
-    settings.customCamera = previous.customCamera;
-    if (previous.starts.road) settings.starts.road = previous.starts.road;
-    else delete settings.starts.road;
-    syncAppearance();
+    settings.preset = null;
+    Object.assign(settings.guide, previous?.guide ?? defaultGuide);
+    syncGuide();
   }, syncGuide(supported) { guidePanel.hidden = !supported; }, syncStart(layout) {
     if (layout?.key === startLayout?.key && layout?.count === startLayout?.count && layout?.max === startLayout?.max) return;
     startLayout = layout;

@@ -1,4 +1,4 @@
-import {isBlueRoad} from './hud-right-pass.mjs';
+import {guidanceSceneIds} from '../adas/road-assist.js';
 
 function isMarking(object, world) {
   if (!object.isMesh || object.userData.construction || object.userData.reflectiveSurface) return false;
@@ -11,8 +11,9 @@ function isMarking(object, world) {
 export function withHudLayers(world, draw, background) {
   if (!world.root) return draw();
   const transparent = world.hudTransparency?.value;
-  const carpet = world.hudSettings?.carpet && isBlueRoad(world);
-  const minimal = carpet || transparent || !document.documentElement.hasAttribute('data-hud-environment');
+  const settings = world.hudSettings;
+  const beamOnly = settings?.preset === 'carpet' && settings.beamOnly && guidanceSceneIds.includes(world.state?.id);
+  const minimal = beamOnly || transparent || !document.documentElement.hasAttribute('data-hud-environment');
 
   const {scene, root} = world;
   const sceneObjects = [world.car, root, world.roadGuidance.mesh, world.traffic?.group, world.hudPresetTraffic];
@@ -34,13 +35,12 @@ export function withHudLayers(world, draw, background) {
   }
 
   try {
-    if (carpet) {
+    if (beamOnly) {
       for (const object of scene.children) {
         if (object !== world.roadGuidance.mesh) hide(object);
       }
       return draw();
     }
-    if (world.hudRightPass && world.traffic?.group) hide(world.traffic.group);
     if (world.hudSettings?.ego === false) {
       for (const object of [world.car, world.egoContact, world.tailReflection]) hide(object);
     }

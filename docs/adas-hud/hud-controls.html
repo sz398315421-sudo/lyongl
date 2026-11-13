@@ -4,8 +4,11 @@
     <div class="hud-preset-actions">
       <button type="button" id="hud-blue-road" data-hud-preset aria-pressed="false" disabled><span class="hud-preset-swatch" aria-hidden="true"></span>蓝色光轨</button>
       <button type="button" id="hud-carpet" data-hud-preset aria-pressed="false" disabled><span class="hud-preset-swatch" aria-hidden="true"></span>HUD 光毯</button>
-      <button type="button" id="hud-restore-preset" hidden>恢复应用前设置</button>
+      <button type="button" id="hud-restore-preset" hidden>清除预设</button>
     </div>
+    <p class="hud-control-note" id="hud-preset-note" hidden>当前场景使用自身的引导效果。切回道路场景即可看到 HUD 预设。</p>
+    <p class="hud-control-note" id="hud-lane-demo-note" hidden></p>
+    <label class="hud-switch" hidden><span>仅显示光毯</span><input id="hud-beam-only" type="checkbox" role="switch"></label>
     <label class="hud-switch"><span>显示本车</span><input id="hud-ego" type="checkbox" role="switch" checked></label>
     <label class="hud-switch"><span>固定跟随本车</span><input id="hud-follow" type="checkbox" role="switch"></label>
     <fieldset class="hud-section" id="hud-start-controls" hidden>
@@ -37,6 +40,7 @@
       <button type="button" id="hud-guide-reset">重置引导线效果</button>
     </details>
     <label class="hud-switch"><span>自定义相机</span><input id="hud-camera" type="checkbox" role="switch"></label>
+    <button type="button" id="hud-preset-camera" hidden>应用预设视角</button>
     <div id="hud-camera-controls" class="hud-camera-controls" hidden>
       <button type="button" id="hud-camera-reset">重置相机参数</button>
     </div>
