@@ -130,6 +130,20 @@ html:not([data-hud-environment]) #preview .parking-hmi {
 .hud-camera-controls input { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: #007aff; }
 .hud-camera-controls button { justify-self: start; }
 
+.export-dialog .hud-sequence-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.hud-sequence-fields legend { padding: 0 4px; }
+.hud-sequence-fields label { display: grid; gap: 4px; }
+.hud-sequence-fields input { width: 100%; min-height: 36px; padding: 5px 8px; background: var(--soft); color: var(--text); border: 1px solid var(--line); border-radius: 4px; }
+.hud-sequence-fields p { grid-column: 1 / -1; color: var(--text-secondary); margin: 2px 0 0; }
+
 #hud-immersive-dialog {
   position: fixed;
   inset: 0;

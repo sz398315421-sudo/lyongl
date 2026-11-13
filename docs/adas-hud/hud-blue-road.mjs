@@ -11,8 +11,6 @@ export const blueRoadPreset = {
 };
 
 export function createBlueRoadTraffic() {
-  const group = new Group();
-  group.name = 'HUD preset traffic';
   const material = color => new MeshStandardMaterial({color, roughness: .68});
   const cargo = material('#a0a9b8');
   const cab = material('#717f93');
@@ -25,6 +23,7 @@ export function createBlueRoadTraffic() {
     return mesh;
   };
   const truck = new Group();
+  truck.name = 'HUD stationary left-lane vehicle';
   truck.add(
     box([2.32, 2.02, 4.03], cargo, 0, 1.88, .52),
     box([2.15, 1.47, 1.53], cab, 0, 1.19, -2.15),
@@ -39,9 +38,6 @@ export function createBlueRoadTraffic() {
     mesh.position.set(x, .39, z);
     truck.add(mesh);
   }
-  truck.position.set(-laneWidth, .02, -11.5);
-  const right = truck.clone();
-  right.position.set(laneWidth, .02, -6.5);
-  group.add(truck, right);
-  return group;
+  truck.position.set(-laneWidth, .02, -27);
+  return truck;
 }

@@ -6,7 +6,7 @@ import {createHudControls} from './hud-controls.mjs';
 import {createHudCamera} from './hud-camera.mjs';
 import {createLaneColors, hudLaneLayout} from './hud-lane-colors.mjs';
 import {vehicleFrame} from '../adas/framing.js';
-import {guidanceSceneIds, laneWidth} from '../adas/road-assist.js';
+import {guidanceSceneIds} from '../adas/road-assist.js';
 import {startLayout} from './hud-start.mjs';
 import {prepareTransparentOutput} from './hud-export.mjs';
 import {blueRoadPreset, createBlueRoadTraffic} from './hud-blue-road.mjs';
@@ -80,12 +80,6 @@ export const World = {
         if (!traffic.children.length) traffic.add(createBlueRoadTraffic());
         const origin = world.hudPlayback?.basePose?.carPosition ?? world.car.position;
         traffic.position.set(0, 0, origin.z);
-        const [left, right] = traffic.children[0].children;
-        const pass = world.hudRightPass;
-        left.position.x = pass ? pass.leadX : -laneWidth;
-        left.position.z = pass ? pass.leadZ - origin.z : -11.5;
-        left.rotation.y = pass?.leadYaw ?? 0;
-        right.visible = !world.hudRightPass;
       }
       const layout = hudLaneLayout(world);
       controls.syncLanes(layout);
