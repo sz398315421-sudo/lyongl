@@ -195,19 +195,20 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
   setHudTrafficEnabled(enabled){if(typeof enabled==='boolean'){simulation.configure({enabled});controls.values(simulation.settings);}},`);
       }
       if (args.path === path.join(adas, 'scene-playback.js')) {
-        contents = `import {applyRightPassFrame, createRightPass, isBlueRoad, rightPassDuration} from '../hud/hud-right-pass.mjs';\n${contents}`;
+        contents = `import {applyRightPassFrame, createPresetLaneChange, isBlueRoad, rightPassDuration} from '../hud/hud-right-pass.mjs';\n${contents}`;
         contents = replace(contents, 'durationMs:trip?.durationMs||sceneTripDurationMs', 'durationMs:trip?.durationMs||(isBlueRoad(world)?rightPassDuration:sceneTripDurationMs)');
         contents = replace(contents, 'function apply(){', 'function apply(){\n  if(trip.hudRightPass){applyRightPassFrame(world,base,trip,elapsedMs);return;}');
         contents = replace(contents, '  world.roadGuidePath=null;', '  world.hudRightPass=null;world.roadGuidePath=null;');
         contents = replace(contents, '  const target=info.index+direction;', '  world.hudRightPass=null;\n  const target=info.index+direction;');
         contents = replace(contents, /origin=base;\r?\n   \/\//g, `origin=base;
    if(key==='road'&&isBlueRoad(world)){
-    const pass=createRightPass(base,roadLaneState(world).centers);base=pass.pose;trip=pass.trip;
+    const direction=world.hudSettings?.carpet?'left':'right';
+    const pass=createPresetLaneChange(base,roadLaneState(world).centers,direction);base=pass.pose;trip=pass.trip;
    }
    //`);
         contents = replace(contents, "if(key==='road'&&world.state?.roadworks", "if(key==='road'&&!trip.hudRightPass&&world.state?.roadworks");
         contents = replace(contents, 'if(trip.parking)apply();notify();frame=', 'if(trip.parking||trip.hudRightPass)apply();notify();frame=');
-        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", "heading.textContent=parking?'自动泊车动画':document.querySelector('[data-hud-preset][aria-pressed=true]')?'右变道演示':'场景动画';");
+        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", "const preset=document.querySelector('[data-hud-preset][aria-pressed=true]')?.id;\n  heading.textContent=parking?'自动泊车动画':preset==='hud-carpet'?'左变道演示':preset==='hud-blue-road'?'右变道演示':'场景动画';");
         contents = replace(contents, 'seek,snapshot,get active()', 'seek,snapshot,get status(){return status;},get basePose(){return base;},get active()');
       }
       if (args.path === path.join(adas, 'vehicle-selector.js')) {

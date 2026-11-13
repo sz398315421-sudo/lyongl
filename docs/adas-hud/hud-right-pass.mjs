@@ -10,14 +10,15 @@ export function isBlueRoad(world) {
   return world.state?.id === '02' && world.state.laneCount === 3;
 }
 
-export function createRightPass(base, lanes) {
+export function createPresetLaneChange(base, lanes, direction) {
   const startX = lanes[1];
   const offset = startX - base.carPosition.x;
   const center = point => point.clone().setX(point.x + offset);
   const pose = {...base, position: center(base.position), aim: center(base.aim), carPosition: center(base.carPosition)};
+  const target = direction === 'left' ? 0 : 2;
   const laneChange = {
-    startX, targetX: lanes[2], startZ: base.carPosition.z - speed * turnAt,
-    distance: speed * turnDuration, direction: 'right', fromLane: 2, toLane: 3
+    startX, targetX: lanes[target], startZ: base.carPosition.z - speed * turnAt,
+    distance: speed * turnDuration, direction, fromLane: 2, toLane: target + 1
   };
   return {pose, trip: {hudRightPass: true, durationMs: rightPassDuration, distance: speed * rightPassDuration / 1000, laneChange}};
 }
