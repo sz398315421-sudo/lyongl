@@ -72,8 +72,8 @@ await build({
       let contents = await readFile(args.path, 'utf8');
       contents = contents.replaceAll('import.meta.url', `new URL(${JSON.stringify(relative)},import.meta.url).href`);
       if (args.path === path.join(adas, 'app.js')) {
-        contents = `import {hudPreferences as localStorage, hudSnapshots as sessionStorage} from '../hud/hud-storage.mjs';\n${contents}`;
-        contents = replace(contents, 'cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadmeForSize', 'cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadmeForSize,captureTransparent');
+        contents = `import {hudPreferences as localStorage, hudSnapshots as sessionStorage} from '../hud/hud-storage.mjs';\nimport {transparentVideoFormat} from '../hud/hud-video.mjs';\n${contents}`;
+        contents = replace(contents, 'cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadmeForSize', 'cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadmeForSize,captureTransparent,withTransparentOutput');
         contents = replace(contents, `||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')`, `||'dark'`);
         contents = replace(contents, '`assets/', '`../adas/assets/');
         contents = replace(contents, "['2','4','6'].includes(query.get('lanes'))", "['2','3','4','6'].includes(query.get('lanes'))");
@@ -104,7 +104,20 @@ function applyHudRoadPreset(target){
 world.hudApplyBlueRoad=color=>applyHudRoadPreset({selected:'road',mode:'dark',road:{id:'02',laneCount:3,cameraView:'low',roadworks:false},guidance:true,color,traffic:false});
 world.hudRestorePresetState=applyHudRoadPreset;
 function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
-        contents = replace(contents, "if(['parking','outdoor'].includes(selected)&&pose)", "if(document.documentElement.hasAttribute('data-hud-environment')&&['parking','outdoor'].includes(selected)&&pose)");
+        contents = replace(contents, "if(['parking','outdoor'].includes(selected)&&pose)", "if(!transparent&&document.documentElement.hasAttribute('data-hud-environment')&&['parking','outdoor'].includes(selected)&&pose)");
+        contents = replace(contents, 'async function exportAnimation(){', 'async function exportAnimation(transparent){');
+        contents = replace(contents, 'if(!videoFormat())throw', 'if(!transparent&&!videoFormat())throw');
+        contents = replace(contents, "const context=canvas.getContext('2d',{alpha:false});", "const context=canvas.getContext('2d',{alpha:transparent});");
+        contents = replace(contents, /  world\.setResolution\(exportSize\.width,exportSize\.height\);\r?\n  let durationMs,sample;/g, '  const recordingFormat=transparent?await transparentVideoFormat(controller.signal):undefined;\n  world.setResolution(exportSize.width,exportSize.height);\n  let durationMs,sample;');
+        contents = replace(contents, 'recordCanvasVideo({canvas,durationMs,signal:', 'recordCanvasVideo({canvas,durationMs,format:recordingFormat,signal:');
+        contents = replace(contents, 'sample(elapsed);context.drawImage(currentFrame(),0,0,canvas.width,canvas.height);', `if(transparent){
+    withTransparentOutput(world,()=>{
+     sample(elapsed);context.clearRect(0,0,canvas.width,canvas.height);context.drawImage(currentFrame(),0,0);
+    });
+   }else{sample(elapsed);context.drawImage(currentFrame(),0,0,canvas.width,canvas.height);}`);
+        contents = replace(contents, "name+'-demo.'+result.extension);exportControls.announce('演示动画已下载。');", "name+(transparent?'-transparent.':'-demo.')+result.extension);exportControls.announce(transparent?'透明 WebM 已下载。':'演示动画已下载。');");
+        contents = replace(contents, "if(format==='video'){await exportAnimation();return;}", "if(format==='video'||format==='transparent-video'){await exportAnimation(format==='transparent-video');return;}");
+        contents = replace(contents, "format==='video'?error.message:", "['video','transparent-video'].includes(format)?error.message:");
         contents = replace(contents, "if(format==='image'||format==='kit')canvas.getContext('2d').drawImage(currentFrame(),0,0);", "if(format==='transparent')captureTransparent(world,canvas);\n   else if(format==='image'||format==='kit')canvas.getContext('2d').drawImage(currentFrame(),0,0);");
         contents = replace(contents, "filename=captured.name+'.png';", "filename=captured.name+(format==='transparent'?'-transparent':'')+'.png';");
         contents = replace(contents, "'PNG 图片已下载。');", "format==='transparent'?'透明 PNG 已下载。':'PNG 图片已下载。');");
@@ -147,8 +160,17 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, "if(effect?.gradient&&material.userData.far!==effect.far)", "material.uniforms.displayOpacity.value=world.state.id==='02'&&world.state.laneCount===3?1.13:1;\n  if(effect?.gradient&&material.userData.far!==effect.far)");
       }
       if (args.path === path.join(adas, 'export-controls.js')) {
+        contents = `import {supportsHudWebm} from '../hud/hud-video.mjs';\n${contents}`;
         contents = replace(contents, "['image','PNG 图片','场景图像','PNG'],", "['image','PNG 图片','场景图像','PNG'],['transparent','透明 PNG','车辆、道路标线和引导线','PNG'],");
-        contents = replace(contents, "const sized=format==='image'||format==='video'", "const sized=['image','transparent','video'].includes(format)");
+        contents = replace(contents, "['kit','透视套件'", "['transparent-video','透明视频（WebM）',supportsHudWebm()?'保留透明背景和引导线渐变':'此浏览器暂不支持透明 WebM','WebM'],['kit','透视套件'");
+        contents = replace(contents, "if(format==='video'&&!video)input.disabled=true;", "if(format==='video'&&!video||format==='transparent-video'&&!supportsHudWebm())input.disabled=true;");
+        contents = replace(contents, "const sized=format==='image'||format==='video'", "const sized=['image','transparent','video','transparent-video'].includes(format)");
+      }
+      if (args.path === path.join(adas, 'video-export.js')) {
+        contents = replace(contents, 'onProgress=()=>{},signal}){', 'onProgress=()=>{},signal,format=videoFormat()}){');
+        contents = replace(contents, ' const format=videoFormat();if(!format)', ' if(!format)');
+        contents = replace(contents, / signal\?\.throwIfAborted\(\);\r?\n const stream=/g, ' signal?.throwIfAborted();\n renderFrame(0);\n const stream=');
+        contents = replace(contents, 'renderFrame(0);recorder.start();started=true;capture(0);', 'recorder.start();started=true;capture(0);');
       }
       if (args.path === path.join(adas, 'traffic-flow.js')) {
         contents = replace(contents, 'const api={group:fleet.group,externalAnimation:false,syncWorld,snapshot,', `const api={group:fleet.group,externalAnimation:false,syncWorld,snapshot,

@@ -33,17 +33,23 @@ export function prepareTransparentOutput(world) {
   return transparency;
 }
 
-export function captureTransparent(world, canvas) {
+export function withTransparentOutput(world, draw) {
   const {renderer} = world;
   const clearColor = renderer.getClearColor(new Color());
   const clearAlpha = renderer.getClearAlpha();
   world.hudTransparency.value = true;
   renderer.setClearColor(0, 0);
   try {
-    world.renderFrame();
-    canvas.getContext('2d').drawImage(renderer.domElement, 0, 0);
+    return draw();
   } finally {
     world.hudTransparency.value = false;
     renderer.setClearColor(clearColor, clearAlpha);
   }
+}
+
+export function captureTransparent(world, canvas) {
+  withTransparentOutput(world, () => {
+    world.renderFrame();
+    canvas.getContext('2d').drawImage(world.renderer.domElement, 0, 0);
+  });
 }
