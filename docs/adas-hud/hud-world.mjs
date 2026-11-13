@@ -11,6 +11,7 @@ import {startLayout} from './hud-start.mjs';
 import {prepareTransparentOutput} from './hud-export.mjs';
 import {blueRoadPreset, carpetPreset, createBlueRoadTraffic} from './hud-blue-road.mjs';
 import {createBlueRoadMarkings} from './hud-blue-markings.mjs';
+import {createHudPresetJunction} from './hud-preset-junction.mjs';
 import {isBlueRoad} from './hud-right-pass.mjs';
 
 const background = new Color(0x000000);
@@ -86,6 +87,9 @@ export const World = {
     world.hudCamera = camera;
     const drawLanes = createLaneColors(world);
     const drawBlueMarkings = createBlueRoadMarkings(world);
+    const drawJunction = createHudPresetJunction(world);
+    const renderFrame = world.renderFrame.bind(world);
+    world.renderFrame = (...frame) => drawJunction(() => renderFrame(...frame));
     const render = world.composer.render.bind(world.composer);
     let junctionLock;
     const traffic = new Group();

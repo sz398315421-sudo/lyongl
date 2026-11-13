@@ -133,6 +133,21 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, "id==='02'||id==='04'||id==='09',id!=='03'", "options.laneCount!==3&&(id==='02'||id==='04'||id==='09'),id!=='03'");
         contents = replace(contents, "if(edges)for(const side of [-1,1]){this.line(side*(w/2-.25),z0,z1,y);", "const blueRoad=this.hudSettings&&this.current==='02'&&Math.round(w/lane)===3;\n  if(edges)for(const side of [-1,1]){this.line(side*(w/2-.25),z0,z1,y,'white',blueRoad?.17:.13);");
         contents = replace(contents, "this.line(x,z,end,y);this.root.children.at(-1).userData.laneDash", "this.line(x,z,end,y,'white',this.hudSettings&&this.current==='02'&&this.options.laneCount===3?.24:.13);this.root.children.at(-1).userData.laneDash");
+        contents = replace(contents, / junction\(id,w\)\{[\s\S]*?(?=\n dividedCarriageway)/g, (source) => {
+          return source
+            .replace('junction(id,w){', 'junction(id,w,{centerZ=-40,oneWay=false}={}){')
+            .replaceAll('-40', 'centerZ').replace('centerZ=centerZ', 'centerZ=-40')
+            .replace('70,-22.55,0,true,false', '70,near+6.35,0,!oneWay,false')
+            .replace('-57.45,-260,0,true,false', 'far-6.35,-260,0,!oneWay,false')
+            .replace('if(crossroad)this.line(side*(half-.25),far-r,-260);', "this.root.children.at(-1).userData.roadEdge=true;if(crossroad){this.line(side*(half-.25),far-r,-260);this.root.children.at(-1).userData.roadEdge=true;}")
+            .replace('Math.abs(x)<19', 'Math.abs(x)<half+8')
+            .replace('[-7.4,-3.7,3.7,7.4]', 'Array.from({length:Math.round(w/3.7)-1},(_,i)=>-half+(i+1)*3.7).filter(offset=>Math.abs(offset)>.01)')
+            .replace("for(const off of [-.105,.105])this.plane(5,.10,x,centerZ+off,.031,'yellow');", "if(oneWay)this.plane(3.8,.13,x,centerZ,.030,'white');else for(const off of [-.105,.105])this.plane(5,.10,x,centerZ+off,.031,'yellow');")
+            .replace('crosswalkCount=14', 'crosswalkCount=Math.floor(w/1.5)')
+            .replace('crossroad?[-27,-53]:[-27]', 'crossroad?[near+1.9,far-1.9]:[near+1.9]')
+            .replace('[-12.8,12.8]', '[-half-1.7,half+1.7]')
+            .replace('nearCrosswalk:-27,markingEnd:-22.55', 'nearCrosswalk:near+1.9,markingEnd:near+6.35');
+        });
       }
       if (args.path === path.join(adas, 'road-assist.js')) {
         contents = `import {bindHexColor} from '../hud/hud-hex.mjs';\nimport {sampleRightPassGuidance} from '../hud/hud-right-pass.mjs';\n${contents}`;
@@ -188,18 +203,18 @@ function syncScenePlayback(snapshot=scenePlayback.snapshot()){`);
         contents = replace(contents, 'renderFrame(0);recorder.start();started=true;capture(0);', 'recorder.start();started=true;capture(0);');
       }
       if (args.path === path.join(adas, 'scene-playback.js')) {
-        contents = `import {applyRightPassFrame, createPresetLaneChange, presetLaneDirection, rightPassDuration} from '../hud/hud-right-pass.mjs';\n${contents}`;
+        contents = `import {applyRightPassFrame, createPresetLaneChange, hasPresetRightTurn, presetLaneDirection, presetLaneDuration} from '../hud/hud-right-pass.mjs';\n${contents}`;
         contents = replace(contents, 'const snapshot=()=>({scene,status,', `const presetDirection=()=>world.hudSettings?.preset&&!world.state?.roadworks?presetLaneDirection(world,roadLaneState(world)):null;
- const snapshot=()=>{const direction=trip?.hudRightPass?trip.laneChange.direction:!trip?presetDirection():null;return {scene,status,presetDirection:direction,`);
-        contents = replace(contents, 'durationMs:trip?.durationMs||sceneTripDurationMs', 'durationMs:trip?.durationMs||(direction?rightPassDuration:sceneTripDurationMs)');
+ const snapshot=()=>{const direction=trip?.hudRightPass?trip.laneChange.direction:!trip?presetDirection():null;return {scene,status,presetDirection:direction,presetRightTurn:trip?!!trip.rightTurn:hasPresetRightTurn(world,direction),`);
+        contents = replace(contents, 'durationMs:trip?.durationMs||sceneTripDurationMs', 'durationMs:trip?.durationMs||(direction?presetLaneDuration(world,direction):sceneTripDurationMs)');
         contents = replace(contents, 'toLane:trip.laneChange.toLane}:null});', 'toLane:trip.laneChange.toLane}:null};};');
         contents = replace(contents, 'function apply(){', 'function apply(){\n  if(trip.hudRightPass){applyRightPassFrame(world,base,trip,elapsedMs);return;}');
         contents = replace(contents, /origin=base;\r?\n   \/\//g, `origin=base;
    const direction=presetDirection();
-   if(direction)trip=createPresetLaneChange(base,roadLaneState(world),direction);
+   if(direction)trip=createPresetLaneChange(world,base,roadLaneState(world),direction);
    //`);
         contents = replace(contents, 'if(trip.parking)apply();notify();frame=', 'if(trip.parking||trip.hudRightPass)apply();notify();frame=');
-        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", "heading.textContent=parking?'自动泊车动画':state.presetDirection==='left'?'左变道演示':state.presetDirection==='right'?'右变道演示':'场景动画';");
+        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", "heading.textContent=parking?'自动泊车动画':state.presetRightTurn?'右变道 · 路口右转':state.presetDirection==='left'?'左变道演示':state.presetDirection==='right'?'右变道演示':'场景动画';");
         contents = replace(contents, 'seek,snapshot,get active()', 'seek,snapshot,get status(){return status;},get basePose(){return base;},get active()');
       }
       if (args.path === path.join(adas, 'vehicle-selector.js')) {

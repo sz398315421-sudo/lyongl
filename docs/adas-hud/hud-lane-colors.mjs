@@ -5,15 +5,16 @@ export function hudLaneLayout(world) {
   const {id, laneCount} = world.state ?? {};
   if (id === '02' || id === '09') {
     const count = laneCount || (id === '09' ? 2 : 6);
-    return {key: `${id}:${count}`, count, firstX: -count * laneWidth / 2, gap: 0, junction: false};
+    const turn = world.roadGuidePath?.rightTurn;
+    return {key: `${id}:${count}`, count, firstX: -count * laneWidth / 2, gap: 0, crossingZ: turn?.centerZ, crossingWidth: turn?.width};
   }
   if (id === '05' || id === '08') {
-    return {key: `${id}:6`, count: 6, firstX: -3 * laneWidth, gap: 0, junction: true};
+    return {key: `${id}:6`, count: 6, firstX: -3 * laneWidth, gap: 0, crossingZ: -40, crossingWidth: 6 * laneWidth};
   }
   if (world.dividedRoad && ['03', '06', '07'].includes(id)) {
     const {oppositeCenter, lanesPerDirection, medianWidth} = world.dividedRoad;
     const count = lanesPerDirection * 2;
-    return {key: `${id}:${count}`, count, firstX: oppositeCenter - lanesPerDirection * laneWidth / 2, gap: medianWidth, junction: false};
+    return {key: `${id}:${count}`, count, firstX: oppositeCenter - lanesPerDirection * laneWidth / 2, gap: medianWidth};
   }
   return null;
 }
@@ -31,7 +32,7 @@ export function createLaneColors(world) {
     uniforms: {
       colors: {value: colors}, enabled: {value: enabled}, laneCount: {value: 0},
       firstX: {value: 0}, median: {value: 0}, laneWidth: {value: laneWidth},
-      junction: {value: false}, layoutBlend: world.layoutBlend, roadMatrix: {value: null}
+      crossingZ: {value: 0}, crossingWidth: {value: 0}, layoutBlend: world.layoutBlend, roadMatrix: {value: null}
     },
     vertexShader: `
       attribute vec3 layoutOffset;
@@ -50,11 +51,11 @@ export function createLaneColors(world) {
       uniform vec3 colors[6];
       uniform float enabled[6];
       uniform float laneCount, firstX, median, laneWidth;
-      uniform bool junction;
+      uniform float crossingZ, crossingWidth;
       varying vec2 roadPoint;
       varying float viewDistance;
       void main() {
-        if (junction && abs(roadPoint.y + 40.0) < 3.0 * laneWidth) discard;
+        if (abs(roadPoint.y - crossingZ) < crossingWidth * 0.5) discard;
         float x = roadPoint.x - firstX;
         float halfWidth = laneCount * laneWidth * 0.5;
         if (x >= halfWidth && x < halfWidth + median) discard;
@@ -83,7 +84,8 @@ export function createLaneColors(world) {
     material.uniforms.laneCount.value = layout.count;
     material.uniforms.firstX.value = layout.firstX;
     material.uniforms.median.value = layout.gap;
-    material.uniforms.junction.value = layout.junction;
+    material.uniforms.crossingZ.value = layout.crossingZ ?? 0;
+    material.uniforms.crossingWidth.value = layout.crossingWidth ?? 0;
     const {root} = world;
     const surfaces = root.children.filter(object => object.isMesh && object.visible && object.material === world.mat.road);
     const activeMeshes = surfaces.map(surface => {
