@@ -86,7 +86,7 @@ export const World = {
     const camera = createHudCamera(world, controls.settings);
     world.hudCamera = camera;
     const drawLanes = createLaneColors(world);
-    const drawBlueMarkings = createBlueRoadMarkings(world);
+    const blueMarkings = createBlueRoadMarkings(world);
     const drawJunction = createHudPresetJunction(world);
     const renderFrame = world.renderFrame.bind(world);
     world.renderFrame = (...frame) => drawJunction(() => renderFrame(...frame));
@@ -124,15 +124,15 @@ export const World = {
         junctionLock = null;
       }
       camera.sync(['playing', 'paused', 'finished'].includes(status) || !!junctionLock, junctionLock ? null : playback?.basePose);
+      const highlightLane = blueRoad && supportsGuidance && blueMarkings.prepare(layout);
       const draw = () => camera.withView(() => withHudLayers(world, () => {
         if (world.vehicleDetail.enabled) {
           const frame = controls.settings.customCamera || controls.settings.follow ? vehicleFrame(world.car, world.camera) : world.framing.vehicleFrame;
           world.vehicleDetail.setVehicleFrame(frame, world.car.visible);
         }
-        return render(...frame);
+        return highlightLane ? blueMarkings.draw(() => render(...frame)) : render(...frame);
       }, background));
-      const drawRoad = () => drawLanes(layout, controls.settings.colors, draw);
-      return blueRoad && supportsGuidance ? drawBlueMarkings(drawRoad) : drawRoad();
+      return drawLanes(layout, controls.settings.colors, draw);
     };
 
     const shadowRender = world.renderer.shadowMap.render.bind(world.renderer.shadowMap);
