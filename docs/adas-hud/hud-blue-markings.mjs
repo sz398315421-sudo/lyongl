@@ -1,4 +1,4 @@
-import {Color, Matrix4, Vector2, MathUtils} from 'three';
+import {Color, Matrix4, Vector2, Vector4, MathUtils} from 'three';
 import {laneWidth, roadLaneState} from '../adas/road-assist.js';
 import {blueRoadColor} from './hud-blue-road.mjs';
 
@@ -11,14 +11,14 @@ export function createBlueRoadMarkings(world) {
     hudMarkingsLanes: {value: new Vector2()},
     hudMarkingsLaneBlend: {value: 0},
     hudMarkingsCrossing: {value: new Vector2()},
-    hudMarkingsTurnBlend: {value: 0}
+    hudMarkingsTurn: {value: new Vector4()}
   };
-  const shaderMaterials = new WeakSet();
+  const shaderCompilers = new WeakSet();
 
   function installHighlight(material) {
-    if (shaderMaterials.has(material)) return;
-    shaderMaterials.add(material);
     const compile = material.onBeforeCompile;
+    // New lane materials inherit the lane paint's compiler when the lane count changes.
+    if (shaderCompilers.has(compile)) return;
     const cacheKey = material.customProgramCacheKey();
     material.onBeforeCompile = shader => {
       compile.call(material, shader);
@@ -27,9 +27,10 @@ export function createBlueRoadMarkings(world) {
         shader.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
           vHudMarkingsPoint = (hudMarkingsRoadSpace * modelMatrix * vec4(transformed, 1.0)).xz;`);
       shader.fragmentShader = `
-        uniform float hudMarkingsEnabled, hudMarkingsLaneBlend, hudMarkingsTurnBlend;
+        uniform float hudMarkingsEnabled, hudMarkingsLaneBlend;
         uniform vec3 hudMarkingsColor;
         uniform vec2 hudMarkingsLanes, hudMarkingsCrossing;
+        uniform vec4 hudMarkingsTurn;
         varying vec2 vHudMarkingsPoint;
         float hudLaneEdge(float coord, float center) {
           return 1.0 - smoothstep(.32, .56, abs(abs(coord - center) - ${laneWidth / 2}));
@@ -39,14 +40,24 @@ export function createBlueRoadMarkings(world) {
         float halfWidth = hudMarkingsCrossing.y;
         float crossingZ = hudMarkingsCrossing.x;
         float approach = mix(hudLaneEdge(roadPoint.x, hudMarkingsLanes.x), hudLaneEdge(roadPoint.x, hudMarkingsLanes.y), hudMarkingsLaneBlend);
-        float exitLane = 0.0;
-        if (halfWidth > 0.0) {
+        if (hudMarkingsTurn.w > 0.0) {
+          float turnX = hudMarkingsTurn.x;
+          float turnZ = hudMarkingsTurn.y;
+          float radius = hudMarkingsTurn.z;
+          if (roadPoint.y >= turnZ) {
+            approach = hudLaneEdge(roadPoint.x, turnX - radius);
+          } else if (roadPoint.x >= turnX) {
+            approach = hudLaneEdge(roadPoint.y, turnZ - radius);
+          } else {
+            // Highlight the inner edge of the turn. The junction geometry
+            // leaves the dashed divider absent through this section.
+            float innerEdge = radius - ${laneWidth / 2};
+            approach = 1.0 - smoothstep(.32, .56, abs(length(roadPoint - vec2(turnX, turnZ)) - innerEdge));
+          }
+        } else if (halfWidth > 0.0) {
           approach *= step(halfWidth, abs(roadPoint.y - crossingZ));
         }
-        if (hudMarkingsTurnBlend > 0.0) {
-          exitLane = step(halfWidth, roadPoint.x) * hudLaneEdge(roadPoint.y, crossingZ + halfWidth - ${laneWidth / 2});
-        }
-        float hudTint = hudMarkingsEnabled * mix(approach, exitLane, hudMarkingsTurnBlend);
+        float hudTint = hudMarkingsEnabled * approach;
         diffuseColor.rgb = mix(diffuseColor.rgb, hudMarkingsColor, hudTint);
         #ifdef USE_FOG
           float hudRoadFade = smoothstep(10.5, 17.0, vFogDepth) * (1.0 - smoothstep(36.0, 90.0, vFogDepth));
@@ -56,6 +67,7 @@ export function createBlueRoadMarkings(world) {
       `).replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
         totalEmissiveRadiance = mix(totalEmissiveRadiance, hudMarkingsColor * .45, hudTint);`);
     };
+    shaderCompilers.add(material.onBeforeCompile);
     material.customProgramCacheKey = () => `${cacheKey}-hud-lane-highlight`;
     material.needsUpdate = true;
   }
@@ -72,9 +84,7 @@ export function createBlueRoadMarkings(world) {
     uniforms.hudMarkingsLanes.value.set(center, neighbor);
     uniforms.hudMarkingsLaneBlend.value = neighbor === center ? 0 : blend;
     uniforms.hudMarkingsCrossing.value.set(layout?.crossingZ ?? 0, (layout?.crossingWidth ?? 0) / 2);
-    uniforms.hudMarkingsTurnBlend.value = turn ? MathUtils.smoothstep(
-      turn.turnZ - world.car.position.z, 0, turn.turnZ - (turn.centerZ + (turn.width - laneWidth) / 2)
-    ) : 0;
+    uniforms.hudMarkingsTurn.value.set(turn ? turn.laneX + turn.radius : 0, turn?.turnZ ?? 0, turn?.radius ?? 0, turn ? 1 : 0);
     installHighlight(world.mat.whitePaint);
     installHighlight(world.mat.lanePaint);
     for (const material of world.laneMaterials.values()) installHighlight(material);

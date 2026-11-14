@@ -6,7 +6,8 @@ export function hudLaneLayout(world) {
   if (id === '02' || id === '09') {
     const count = laneCount || (id === '09' ? 2 : 6);
     const turn = world.roadGuidePath?.rightTurn;
-    return {key: `${id}:${count}`, count, firstX: -count * laneWidth / 2, gap: 0, crossingZ: turn?.centerZ, crossingWidth: turn?.width};
+    const firstX = turn && count === 3 ? 0 : -count * laneWidth / 2;
+    return {key: `${id}:${count}`, count, firstX, gap: 0, crossingZ: turn?.centerZ, crossingWidth: turn?.width};
   }
   if (id === '05' || id === '08') {
     return {key: `${id}:6`, count: 6, firstX: -3 * laneWidth, gap: 0, crossingZ: -40, crossingWidth: 6 * laneWidth};

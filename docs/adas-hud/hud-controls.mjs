@@ -50,6 +50,7 @@ function slider([key, name, min, max, , unit, step = 1], values, prefix, change)
   const title = document.createElement('span');
   const input = document.createElement('input');
   const value = document.createElement('output');
+  label.className = 'traffic-field';
   title.textContent = name;
   input.type = 'range';
   input.id = `${prefix}-${key}`;
@@ -60,6 +61,7 @@ function slider([key, name, min, max, , unit, step = 1], values, prefix, change)
   value.htmlFor = input.id;
   const sync = () => {
     input.value = values[key];
+    input.style.setProperty('--range-fill', `${(input.valueAsNumber - min) / (max - min) * 100}%`);
     value.value = `${values[key]}${unit}`;
     input.setAttribute('aria-valuetext', value.value);
   };
@@ -76,9 +78,6 @@ function slider([key, name, min, max, , unit, step = 1], values, prefix, change)
 export function createHudControls(onChange) {
   const byId = id => document.getElementById(id);
   const settings = readSettings();
-  const presetButton = byId('hud-blue-road');
-  const carpetButton = byId('hud-carpet');
-  const restoreButton = byId('hud-restore-preset');
   const panel = byId('hud-camera-controls');
   const lanePanel = byId('hud-lane-controls');
   const laneSelect = byId('hud-lane');
@@ -95,19 +94,17 @@ export function createHudControls(onChange) {
   let laneGroup;
   let startLayout;
 
+  function saveSettings() {
+    try { hudPreferences.setItem('preview-controls', JSON.stringify(settings)); } catch {}
+  }
   const change = key => {
     onChange(key);
-    try { hudPreferences.setItem('preview-controls', JSON.stringify(settings)); } catch {}
+    saveSettings();
   };
 
-  function syncPreset(supportsGuidance) {
-    presetButton.setAttribute('aria-pressed', String(settings.preset === 'blueRoad'));
-    carpetButton.setAttribute('aria-pressed', String(settings.preset === 'carpet'));
+  function syncPreset() {
     byId('hud-ego').checked = settings.ego;
-    restoreButton.hidden = !settings.preset;
-    byId('hud-preset-note').hidden = !settings.preset || supportsGuidance;
-    byId('hud-beam-only').closest('label').hidden = settings.preset !== 'carpet' || !supportsGuidance;
-    byId('hud-preset-camera').hidden = !settings.preset || !supportsGuidance;
+    byId('hud-beam-only').closest('label').hidden = settings.preset !== 'carpet';
   }
   function syncLaneDemo({scene, presetDirection, presetRightTurn, status}, roadworks) {
     const note = byId('hud-lane-demo-note');
@@ -119,12 +116,6 @@ export function createHudControls(onChange) {
       if (note.textContent !== message) note.textContent = message;
     }
   }
-
-  presetButton.addEventListener('click', () => change('blueRoad'));
-  carpetButton.addEventListener('click', () => change('carpet'));
-  restoreButton.addEventListener('click', () => change('restorePreset'));
-  window.addEventListener('studio:ready', () => { presetButton.disabled = carpetButton.disabled = false; });
-  window.addEventListener('studio:error', () => { presetButton.disabled = carpetButton.disabled = true; });
 
   const controls = [['hud-ego', 'ego'], ['hud-follow', 'follow'], ['hud-camera', 'customCamera'], ['hud-beam-only', 'beamOnly']];
   for (const [id, key] of controls) {
@@ -219,7 +210,8 @@ export function createHudControls(onChange) {
     change('start');
   });
 
-  return {settings, syncPreset, syncLaneDemo,
+  syncPreset();
+  return {settings, syncLaneDemo,
   showSceneLayers() {
     if (!settings.beamOnly || settings.preset !== 'carpet') return;
     byId('hud-beam-only').checked = settings.beamOnly = false;
@@ -242,10 +234,8 @@ export function createHudControls(onChange) {
     settings.preset = key;
     Object.assign(settings.guide, guide);
     syncGuide();
-  }, restoreAppearance(previous) {
-    settings.preset = null;
-    Object.assign(settings.guide, previous?.guide ?? defaultGuide);
-    syncGuide();
+    syncPreset();
+    saveSettings();
   }, syncGuide(supported) { guidePanel.hidden = !supported; }, syncStart(layout) {
     if (layout?.key === startLayout?.key && layout?.count === startLayout?.count && layout?.max === startLayout?.max) return;
     startLayout = layout;

@@ -1,4 +1,6 @@
 import {Box3, Group} from 'three';
+import {laneWidth} from '../adas/road-assist.js';
+import {sampleRightTurnArc} from './hud-right-pass.mjs';
 
 // Reuse the ADAS intersection geometry on the preset route, keeping the live
 // scene root and its controls intact for playback, seeking and export.
@@ -22,7 +24,14 @@ export function createHudPresetJunction(world) {
     );
     world.root = group;
     try {
-      world.junction('05', turn.width, {centerZ: turn.centerZ, oneWay: world.state.laneCount === 3});
+      world.junction('05', turn.width, {centerZ: turn.centerZ, curbRadius: turn.radius, rightTurnLane: true});
+      // Only the physical road edge continues through the corner.
+      const curb = Array.from({length: 48}, (_, i) =>
+        sampleRightTurnArc(turn, i / 47 * Math.PI / 2, laneWidth / 2 - .25));
+      const [startX, startZ] = curb[0], [endX, endZ] = curb.at(-1);
+      curb.unshift([startX, startZ + laneWidth / 2]);
+      curb.push([endX + laneWidth / 2, endZ]);
+      world.pathRibbon(curb, .13, .038, 'white').castShadow = false;
       group.updateMatrixWorld(true);
       world.batchRoadMarkings();
       crossing = {turn, group, root, objects: [...group.children], replaced};

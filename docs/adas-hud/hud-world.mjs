@@ -1,6 +1,5 @@
 import {Color, Group} from 'three';
 import {World as AdasWorld} from '../adas/world.js';
-import {hudPreferences, hudSnapshots} from './hud-storage.mjs';
 import {withHudLayers} from './hud-layers.mjs';
 import {createHudControls} from './hud-controls.mjs';
 import {createHudCamera} from './hud-camera.mjs';
@@ -20,51 +19,11 @@ export const World = {
   async create(canvas, car, options) {
     const world = await AdasWorld.create(canvas, car, {...options, alpha: true});
     world.hudTransparency = prepareTransparentOutput(world);
-    let beforePreset;
-    try {
-      beforePreset = JSON.parse(hudPreferences.getItem('before-preset'));
-      if (!beforePreset) {
-        const legacy = JSON.parse(hudSnapshots.getItem('before-blue-road'));
-        if (legacy) beforePreset = {guide: legacy.appearance.guide, ...legacy.state};
-      }
-    } catch {}
-    const environment = document.getElementById('hud-environment');
-    function revealEnvironment() {
-      setEnvironment(true);
-      controls.showSceneLayers();
-    }
-    function setEnvironment(enabled) {
-      document.documentElement.toggleAttribute('data-hud-environment', enabled);
-      environment.setAttribute('aria-pressed', String(enabled));
-      try { hudSnapshots.setItem('environment', enabled ? '1' : '0'); } catch {}
-    }
     const controls = createHudControls(key => {
       if (!world.state || world.suspended) return;
       if (key === 'presetCamera') {
         const preset = controls.settings.preset === 'carpet' ? carpetPreset : blueRoadPreset;
         controls.usePresetCamera(preset.view);
-      }
-      if (key === 'blueRoad' || key === 'carpet') {
-        if (key === controls.settings.preset) return;
-        if (!controls.settings.preset) {
-          beforePreset = {guide: {...controls.settings.guide}, ...world.hudCaptureGuidance()};
-          try { hudPreferences.setItem('before-preset', JSON.stringify(beforePreset)); } catch {}
-        }
-        const preset = key === 'carpet' ? carpetPreset : blueRoadPreset;
-        controls.applyRoadPreset(key, preset.guide);
-        world.hudSetPresetGuidance({enabled: true, color: preset.color});
-        return;
-      }
-      if (key === 'restorePreset') {
-        const saved = beforePreset;
-        beforePreset = null;
-        try {
-          hudPreferences.setItem('before-preset', 'null');
-          hudSnapshots.setItem('before-blue-road', 'null');
-        } catch {}
-        controls.restoreAppearance(saved);
-        world.hudSetPresetGuidance(saved ? {enabled: saved.enabled ?? saved.guidance, color: saved.color} : undefined);
-        return;
       }
       if (key === 'start') {
         world.hudPlayback.reset({render: false});
@@ -82,6 +41,13 @@ export const World = {
       world.renderFrame();
     });
     world.hudSettings = controls.settings;
+    world.hudApplyPreset = key => {
+      if (key === controls.settings.preset) return null;
+      const preset = key === 'carpet' ? carpetPreset : blueRoadPreset;
+      controls.applyRoadPreset(key, preset.guide);
+      camera.reset();
+      return preset.color;
+    };
     world.hudSyncLaneDemo = (scene, snapshot) => controls.syncLaneDemo({...snapshot, scene}, world.state?.roadworks);
     const camera = createHudCamera(world, controls.settings);
     world.hudCamera = camera;
@@ -98,10 +64,8 @@ export const World = {
     world.scene.add(traffic);
     world.composer.render = (...frame) => {
       const supportsGuidance = guidanceSceneIds.includes(world.state.id);
-      if (!controls.settings.preset && beforePreset?.selected && isBlueRoad(world)) controls.settings.preset = 'blueRoad';
       const blueRoad = controls.settings.preset === 'blueRoad';
-      controls.syncPreset(supportsGuidance);
-      traffic.visible = blueRoad && isBlueRoad(world) && !world.traffic?.settings.enabled;
+      traffic.visible = blueRoad && isBlueRoad(world) && !world.roadGuidePath?.rightTurn && !world.traffic?.settings.enabled;
       if (traffic.visible) {
         if (!traffic.children.length) traffic.add(createBlueRoadTraffic());
         const origin = world.hudPlayback?.basePose?.carPosition ?? world.car.position;
@@ -143,17 +107,8 @@ export const World = {
       finally { world.car.visible = visible; }
     };
 
-    environment.setAttribute('aria-pressed', String(document.documentElement.hasAttribute('data-hud-environment')));
-    environment.addEventListener('click', () => {
-      if (environment.getAttribute('aria-pressed') === 'false' || controls.settings.preset === 'carpet' && controls.settings.beamOnly) revealEnvironment();
-      else setEnvironment(false);
-      world.renderFrame();
-    });
-    for (const id of ['buildings', 'waterfront', 'trees', 'roadworks']) {
-      document.getElementById(id).addEventListener('change', revealEnvironment);
-    }
     document.querySelector('.preview-settings').addEventListener('change', event => {
-      if (event.target.matches('#traffic-enabled:checked, #parkedCars:checked')) controls.showSceneLayers();
+      if (event.target.matches('#traffic-enabled:checked')) controls.showSceneLayers();
     }, {capture: true});
     document.querySelector('.preview-settings').addEventListener('click', event => {
       const button = event.target.closest('[data-road="cameraView"], [data-ramp-view], [data-junction-view], [data-view]');

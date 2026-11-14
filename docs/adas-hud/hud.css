@@ -1,9 +1,5 @@
-html:not([data-hud-environment]) .workspace #preview {
+.hud-workspace .workspace #preview {
   background: #000;
-}
-
-html:not([data-hud-environment]) #preview .parking-hmi {
-  display: none;
 }
 
 .hud-workspace {
@@ -108,145 +104,59 @@ html:not([data-hud-environment]) #preview .parking-hmi {
 .studio-tool-link:hover { color: var(--text); }
 
 .hud-preview-actions {
-  display: flex;
   justify-content: flex-end;
-  gap: 8px;
   margin-top: 10px;
 }
 
-.hud-preview-actions button {
-  min-height: 36px;
-  padding: 6px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--ui-radius);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 12px;
+.hud-settings { margin-top: 24px; font-size: var(--type-control); }
+.hud-animation-choices { margin-bottom: 12px; }
+.workspace :is(.hud-animation-choices, .hud-setting-actions) button { flex: 1 1 0; min-width: 0; }
+.workspace .hud-animation-choices button[aria-pressed="true"] {
+  background: var(--selected);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-weight: var(--weight-emphasis);
 }
-
-.hud-preview-actions button:enabled:hover,
-.hud-preview-actions button[aria-pressed="true"] {
-  background: var(--control-surface);
-  color: var(--text);
+.workspace :is(.hud-preview-actions, .hud-animation-choices, .hud-setting-actions) button {
+  font-size: var(--type-control);
 }
-
-.hud-preview-actions button:disabled { opacity: .5; }
-
-.hud-settings {
-  margin-bottom: 22px;
-  border: 1px solid var(--line);
-  border-radius: var(--ui-radius);
-  font-size: 13px;
-}
-
-.hud-settings summary {
-  padding: 10px 12px;
-  color: var(--text);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.hud-settings-body { padding: 0 12px 10px; }
-.hud-preset-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 0 0 9px; }
-.hud-settings [data-hud-preset] { display: inline-flex; align-items: center; gap: 8px; }
-.hud-settings [data-hud-preset][aria-pressed="true"] { border-color: #2477d3; }
-.hud-preset-swatch { width: 16px; height: 9px; border-radius: 2px; background: linear-gradient(90deg, #01cff3, transparent); }
-.hud-switch, .hud-lane-controls {
-  min-height: 42px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 0;
-  border-top: 1px solid var(--line);
-}
-
-.hud-switch { cursor: pointer; }
-.hud-switch input {
-  appearance: none;
-  width: 34px;
-  height: 20px;
-  margin: 0;
-  border-radius: 20px;
-  background: #69717a;
-  cursor: pointer;
-}
-
-.hud-switch input::after {
-  content: '';
-  display: block;
-  width: 14px;
-  height: 14px;
-  margin: 3px;
-  border-radius: 50%;
-  background: #fff;
-}
-
-.hud-switch input:checked { background: #007aff; }
-.hud-switch input:checked::after { transform: translateX(14px); }
-.hud-lane-color { display: flex; align-items: center; gap: 8px; width: 100%; }
-.hud-lane-color input { width: 36px; height: 32px; padding: 2px; cursor: pointer; }
-.hud-section, .hud-effect { margin: 4px 0 8px; border: 0; border-top: 1px solid var(--line); padding: 4px 0; min-width: 0; }
-.hud-section legend { padding: 0 6px 0 0; color: var(--text); font-weight: 600; }
-.hud-effect summary { padding: 6px 0; }
-.hud-value-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; }
-.hud-value-row input[type="number"], .hud-hex {
-  width: 82px;
+.hud-workspace .workspace .hud-switches { display: flex; flex-direction: column; }
+.hud-workspace .workspace .hud-switches > .toggle:not([hidden]) { max-width: none; }
+.hud-lane-color { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.hud-section { margin: 16px 0 0; padding: 0; border: 0; min-width: 0; }
+.hud-section legend { padding: 0; }
+.hud-effect summary { width: fit-content; padding: 4px 0; cursor: pointer; }
+.hud-value-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--control-height); }
+:is(.hud-settings :is(select, input[type="number"], .hud-hex), .hud-sequence-fields input) {
   min-width: 0;
-  min-height: 32px;
-  padding: 4px 7px;
+  min-height: var(--control-height);
+  padding: 8px 10px;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--ui-radius);
   background: var(--control-surface);
   color: var(--text);
-  font-size: 12px;
+  font-size: var(--type-control);
 }
-.hud-lane-color .hud-hex { width: 78px; padding: 4px 6px; cursor: text; }
-.hud-hex { font-variant-numeric: tabular-nums; }
+.hud-settings select { max-width: 66%; }
+.hud-settings :is(input[type="number"], .hud-hex) { width: 92px; font-variant-numeric: tabular-nums; }
+.vehicle-custom-paint input.hud-hex { width: 92px; padding-inline: 8px; cursor: text; font-variant-numeric: tabular-nums; }
 .hud-hex[aria-invalid="true"] { border-color: #e97373; }
-.hud-control-note { margin: 2px 0 8px; color: var(--text-secondary); font-size: 12px; }
-.hud-setting-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-#hud-guide-far { width: 34px; height: 30px; padding: 2px; margin-inline-start: auto; cursor: pointer; }
+.hud-control-note { margin: 6px 0 8px; color: var(--text-secondary); font-size: 12px; }
+#hud-guide-far { margin-inline-start: auto; }
 #hud-guide-reset { margin: 7px 0 0; }
 #hud-preset-camera { margin: 0 0 8px; }
-.hud-animation-choices {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.hud-animation-choices button {
-  min-height: 36px;
-  padding: 6px;
-  border: 1px solid var(--line);
+.workspace .hud-settings button:not(.scene-motion-buttons button) {
+  min-height: var(--control-height);
+  padding: 10px 14px;
   border-radius: var(--ui-radius);
   background: var(--control-surface);
-  color: var(--text-secondary);
-  font-size: 12px;
-}
-
-.hud-animation-choices button[aria-pressed="true"] {
-  border-color: #2477d3;
   color: var(--text);
 }
-.vehicle-custom-paint .hud-hex { width: 82px; }
-.hud-settings select, .hud-settings button {
-  min-height: 32px;
-  padding: 4px 8px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: var(--control-surface);
-  color: var(--text);
-  font-size: 12px;
-}
-
-.hud-settings button:disabled { opacity: .5; }
-.hud-camera-controls { display: grid; gap: 10px; padding: 4px 0; }
-.hud-camera-controls label { display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; }
-.hud-camera-controls output { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
-.hud-camera-controls input { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: #007aff; }
+.workspace .hud-settings button:not(.scene-motion-buttons button):enabled:hover { background: var(--control-hover); }
+.hud-settings button:disabled { opacity: .4; }
+.hud-camera-controls { display: grid; gap: 16px; padding: 4px 0; }
+.hud-camera-controls label { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 5px 8px; }
+.hud-camera-controls output { color: var(--text-secondary); font-size: var(--type-caption); font-variant-numeric: tabular-nums; }
+.hud-camera-controls input { grid-column: 1 / -1; }
 .hud-camera-controls button { justify-self: start; }
 
 .export-dialog .hud-sequence-fields {
@@ -260,7 +170,7 @@ html:not([data-hud-environment]) #preview .parking-hmi {
 }
 .hud-sequence-fields legend { padding: 0 4px; }
 .hud-sequence-fields label { display: grid; gap: 4px; }
-.hud-sequence-fields input { width: 100%; min-height: 36px; padding: 5px 8px; background: var(--soft); color: var(--text); border: 1px solid var(--line); border-radius: 4px; }
+.hud-sequence-fields input { width: 100%; }
 .hud-sequence-fields p { grid-column: 1 / -1; color: var(--text-secondary); margin: 2px 0 0; }
 
 #hud-immersive-dialog {

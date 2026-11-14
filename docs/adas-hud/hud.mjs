@@ -1,6 +1,5 @@
 const canvas = document.getElementById('scene-canvas');
 const immersive = document.getElementById('hud-immersive');
-const environment = document.getElementById('hud-environment');
 const dialog = document.getElementById('hud-immersive-dialog');
 const scenePicker = document.getElementById('scene-picker');
 const sceneMenu = document.getElementById('mobile-scene-menu');
@@ -30,7 +29,7 @@ dialog.addEventListener('close', () => {
 });
 
 function enablePreviewActions() {
-  immersive.disabled = environment.disabled = false;
+  immersive.disabled = false;
 }
 
 window.addEventListener('studio:ready', enablePreviewActions);
@@ -38,5 +37,5 @@ if (document.getElementById('preview').dataset.vehicleReady === 'true') enablePr
 
 window.addEventListener('studio:error', () => {
   if (dialog.open) dialog.close();
-  immersive.disabled = environment.disabled = true;
+  immersive.disabled = true;
 });
