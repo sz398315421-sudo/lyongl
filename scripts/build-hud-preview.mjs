@@ -82,6 +82,7 @@ await build({
       if (args.path === path.join(adas, 'app.js')) {
         contents = `import {hudPreferences as localStorage, hudSnapshots as sessionStorage} from '../hud/hud-storage.mjs';\nimport {transparentVideoFormat} from '../hud/hud-video.mjs';\nimport {renderPngSequence} from '../hud/hud-png-sequence.mjs';\n${contents}`;
         contents = replace(contents, 'cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadmeForSize', 'cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadmeForSize,captureTransparent,withTransparentOutput');
+        contents = replace(contents, "['paint','material','lighting','intensity'].some", "['paint','paintOpacity','material','lighting','intensity'].some");
         contents = replace(contents, `||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')`, `||'dark'`);
         contents = replace(contents, '`assets/', '`../adas/assets/');
         contents = replace(contents, "['2','4','6'].includes(query.get('lanes'))", "['2','3','4','6'].includes(query.get('lanes'))");
@@ -203,10 +204,12 @@ world.onLayoutFrame=moving=>`);
         contents = `import {bindHexColor} from '../hud/hud-hex.mjs';\nimport {sampleRightPassGuidance} from '../hud/hud-right-pass.mjs';\n${contents}`;
         contents = replace(contents, 'export function createRoadGuidance(){', 'export function createRoadGuidance(getEffect){');
         contents = replace(contents, "if(plan.kind==='ramp-exit')return sampleRampExit(plan,distance);", "if(plan.kind==='hud-right-pass')return sampleRightPassGuidance(plan,distance);\n  if(plan.kind==='ramp-exit')return sampleRampExit(plan,distance);");
-        contents = replace(contents, 'displayOpacity:{value:1}', 'displayOpacity:{value:1},guideFar:{value:new THREE.Vector3()},guideGradient:{value:0}');
-        contents = replace(contents, 'uniform vec3 guideColor;uniform float displayOpacity;', 'uniform vec3 guideColor;uniform vec3 guideFar;uniform float guideGradient;uniform float displayOpacity;');
+        contents = replace(contents, 'displayOpacity:{value:1}', 'displayOpacity:{value:1},guideFar:{value:new THREE.Vector3()},guideGradient:{value:0},guideOpacity:{value:new THREE.Vector2(1,1)}');
+        contents = replace(contents, 'uniform vec3 guideColor;uniform float displayOpacity;', 'uniform vec3 guideColor;uniform vec3 guideFar;uniform float guideGradient;uniform float displayOpacity;uniform vec2 guideOpacity;');
         contents = replace(contents, 'vec3 color=mix(guideColor,mix(guideColor,vec3(1.),.12),.28*(1.-side));', 'vec3 hue=mix(guideColor,guideFar,smoothstep(0.,.80,vUv.y)*guideGradient);\n    vec3 color=mix(hue,mix(hue,vec3(1.),.12),.28*(1.-side));');
-        contents = replace(contents, 'gl_FragColor=vec4(color,alpha*displayOpacity);', `if(displayOpacity>1.0){
+        contents = replace(contents, 'gl_FragColor=vec4(color,alpha*displayOpacity);', `float gradientPosition=smoothstep(0.,.80,vUv.y);
+    if(displayOpacity>1.0){
+     gradientPosition=smoothstep(.06,1.,vUv.y);
      vec3 tint=mix(guideColor,guideFar,smoothstep(.06,1.,vUv.y)*guideGradient);
      color=mix(tint/12.92,pow((tint+.055)/1.055,vec3(2.4)),step(vec3(.04045),tint));
      if(displayOpacity>1.5){
@@ -216,12 +219,16 @@ world.onLayoutFrame=moving=>`);
       color=mix(color,mix(color,vec3(.56,.96,1.0),.53),outline);
       alpha=smoothstep(0.,.032,vUv.y)*(1.-smoothstep(.30,1.,vUv.y));
      }else alpha=(1.-smoothstep(.90,.99,side))*smoothstep(0.,.014,vUv.y)*(1.-smoothstep(.74,1.,vUv.y));
-     gl_FragColor=vec4(color,alpha);
-    }else gl_FragColor=vec4(color,alpha*displayOpacity);`);
+    }
+    gl_FragColor=vec4(color,alpha*mix(guideOpacity.x,guideOpacity.y,gradientPosition*guideGradient));`);
         contents = replace(contents, 'const near=(car.userData.vehicleSpec.length||4.85)*.40;let far=34;', `const effect=getEffect?.(),near=(car.userData.vehicleSpec.length||4.85)*.40;let far=effect?near+effect.length:34;
   material.uniforms.guideGradient.value=effect?.gradient?1:0;
+  material.uniforms.guideOpacity.value.set((effect?.nearOpacity??100)/100,(effect?.farOpacity??100)/100);
   if(effect?.gradient&&material.userData.far!==effect.far){material.uniforms.guideFar.value.copy(guidanceColorVector(effect.far));material.userData.far=effect.far;}`);
         contents = replace(contents, 'dz=-Math.sin(point.yaw),width=.70;', 'dz=-Math.sin(point.yaw),width=(effect?.width??1.4)*.5;');
+        contents = replace(contents, / const colorRow=document\.createElement\('div'\);[^\n]+\r?\n colorRow\.innerHTML=[^\n]+\r?\n const colors=colorRow\.querySelector\('\.guidance-color-options'\);/g, ` const colors=document.getElementById('hud-guide-swatches');
+ colors.classList.add('guidance-color-options');colors.setAttribute('role','group');colors.setAttribute('aria-label','引导线预设颜色');`);
+        contents = replace(contents, 'colors.append(custom);block.append(colorRow);', "document.getElementById('hud-guide-near-hex').before(custom);");
         contents = replace(contents, 'function syncColor(){custom.value=selectedColor;', 'const syncHex=bindHexColor(document.getElementById(\'hud-guide-near-hex\'),chooseColor);\n function syncColor(){syncHex(selectedColor);custom.value=selectedColor;');
         contents = replace(contents, 'custom.disabled=!ready;', "document.getElementById('hud-guide-near-hex').disabled=custom.disabled=!ready;");
         contents = replace(contents, 'return {sync(scene,ready,snapshot,world){', 'return {setGuideAppearance(enabled,color){input.checked=enabled;selectedColor=color;syncColor();},sync(scene,ready,snapshot,world){');
@@ -309,9 +316,41 @@ world.onLayoutFrame=moving=>`);
       if (args.path === path.join(adas, 'vehicle-selector.js')) {
         contents = replace(contents, "'vehicle-previews/", "'../adas/vehicle-previews/");
         contents = `import {bindHexColor} from '../hud/hud-hex.mjs';\n${contents}`;
+        contents = replace(contents, "const customRow=element('label','vehicle-custom-paint'),customLabel=element('span','','自定义颜色')", "const colorSetting=element('div','hud-color-setting'),customRow=element('div','hud-color-field'),customLabel=element('label','','自定义颜色')");
         contents = replace(contents, "colorValue=element('span','vehicle-color-value');", "colorValue=element('input','vehicle-color-value hud-hex');colorValue.type='text';colorValue.maxLength=7;colorValue.spellcheck=false;colorValue.placeholder='#FFFFFF';colorValue.setAttribute('aria-label','车漆颜色 HEX');const syncPaintHex=bindHexColor(colorValue,value=>changeSetting('paint',value));");
+        contents = replace(contents, 'customRow.append(customLabel,colorValue,color);paint.append(customRow);', `colorValue.id='vehicle-paint-hex';customLabel.htmlFor=colorValue.id;
+ const paintInputs=element('div','hud-color-inputs');color.classList.add('guidance-custom-color');
+ paintInputs.append(color,colorValue);customRow.append(customLabel,paintInputs);colorSetting.append(customRow);paint.append(colorSetting);`);
         contents = replace(contents, 'colorInputs.push(color);', 'colorInputs.push(color,colorValue);');
+        contents = replace(contents, ' const paintHint=', ` const opacityRow=element('label','traffic-field'),opacityLabel=element('span','','不透明度'),opacity=element('input',''),opacityValue=element('output','');
+ opacity.type='range';opacity.id='vehicle-paint-opacity';opacity.min='0';opacity.max='100';
+ opacity.setAttribute('aria-label','车漆不透明度');opacityValue.htmlFor=opacity.id;
+ opacity.addEventListener('input',()=>changeSetting('paintOpacity',opacity.valueAsNumber));
+ opacityRow.append(opacityLabel,opacityValue,opacity);colorSetting.append(opacityRow);
+ const paintHint=`);
+        contents = replace(contents, 'const supported=canCustomize();paintHint.hidden=supported;', `const supported=canCustomize();paintHint.hidden=supported;
+  opacity.disabled=switching||!ready||!supported;
+  opacity.value=appearance.paintOpacity;opacityValue.value=appearance.paintOpacity+'%';opacity.setAttribute('aria-valuetext',opacityValue.value);
+  opacity.style.setProperty('--range-fill',opacityValue.value);`);
         contents = replace(contents, "colorValue.textContent=appearance.paint==='original'?'原厂':appearance.paint.toUpperCase();", "syncPaintHex(appearance.paint==='original'?'#edf0f4':appearance.paint);");
+      }
+      if (args.path === path.join(adas, 'vehicle-settings.js')) {
+        contents = `import {normalizeOpacity} from '../hud/hud-hex.mjs';\n${contents}`;
+        contents = replace(contents, "{paint:'original',material:", "{paint:'original',paintOpacity:100,material:");
+        contents = replace(contents, 'return {paint:/', 'return {paintOpacity:normalizeOpacity(value.paintOpacity),paint:/');
+        contents = replace(contents, "paint:query.get('paint'),", "paint:query.get('paint'),paintOpacity:query.get('paintOpacity'),");
+        contents = replace(contents, "['paint','paint'],", "['paint','paint'],['paintOpacity','paintOpacity'],");
+      }
+      if (args.path === path.join(adas, 'vehicle-appearance.js')) {
+        contents = replace(contents, "settings.paint==='original'&&settings.material==='original'", "settings.paint==='original'&&settings.material==='original'&&settings.paintOpacity===100");
+        contents = replace(contents, '  const hadClearcoat=', `  const alpha=settings.paintOpacity/100;
+  const transparent=original.transparent||alpha<1;
+  if(material.transparent!==transparent)material.needsUpdate=true;
+  material.transparent=transparent;
+  material.depthWrite=original.depthWrite&&alpha===1;
+  material.opacity=original.opacity*alpha;
+  material.visible=original.visible&&alpha>0;
+  const hadClearcoat=`);
       }
       contents = contents.replaceAll("'../hud/", `'../${path.basename(hud)}/`);
       return {contents, loader: 'js', resolveDir: path.dirname(args.path)};

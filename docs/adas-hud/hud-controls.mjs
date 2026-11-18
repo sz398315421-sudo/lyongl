@@ -1,5 +1,6 @@
 import {hudPreferences} from './hud-storage.mjs';
-import {bindHexColor} from './hud-hex.mjs';
+import {bindHexColor, normalizeOpacity} from './hud-hex.mjs';
+import {blueRoadColor} from './hud-blue-road.mjs';
 
 const cameraFields = [
   ['yaw', '水平角', -180, 180, 0, '°'],
@@ -13,8 +14,12 @@ const guideFields = [
   ['width', '宽度', .2, 3.6, 1.4, ' m', .1],
   ['length', '长度', 4, 110, 32, ' m', 1]
 ];
-const defaultGuide = {width: 1.4, length: 32, gradient: false, far: '#72eaff'};
+const opacityField = (key, name) => [key, name, 0, 100, 100, '%', 1, '不透明度'];
+const defaultGuide = {width: 1.4, length: 32, gradient: false, far: '#72eaff', nearOpacity: 100, farOpacity: 100};
 const defaultLaneColor = '#48a9ff';
+const defaultLaneOpacity = 38;
+const defaultMarking = {base: null, highlight: blueRoadColor, width: 100, baseOpacity: 100, highlightOpacity: 100};
+const isHex = value => typeof value === 'string' && /^#[\da-f]{6}$/i.test(value);
 
 function readSettings() {
   let saved;
@@ -25,10 +30,21 @@ function readSettings() {
     if (Number.isFinite(value)) view[key] = Math.min(max, Math.max(min, value));
   }
   const colors = {};
+  const laneOpacity = {};
   for (const [key, value] of Object.entries(saved?.colors ?? {})) {
-    if (/^\d{2}:\d:[0-5]$/.test(key) && typeof value === 'string' && /^#[\da-f]{6}$/i.test(value)) colors[key] = value;
+    if (!/^\d{2}:\d:[0-5]$/.test(key) || !isHex(value)) continue;
+    colors[key] = value;
+    laneOpacity[key] = normalizeOpacity(saved?.laneOpacity?.[key], defaultLaneOpacity);
   }
-  const guide = {...defaultGuide, gradient: saved?.guide?.gradient === true};
+  const marking = {
+    base: isHex(saved?.marking?.base) ? saved.marking.base : null,
+    highlight: isHex(saved?.marking?.highlight) ? saved.marking.highlight : blueRoadColor,
+    width: Number.isFinite(saved?.marking?.width) ? Math.min(300, Math.max(25, saved.marking.width)) : defaultMarking.width,
+    baseOpacity: normalizeOpacity(saved?.marking?.baseOpacity),
+    highlightOpacity: normalizeOpacity(saved?.marking?.highlightOpacity)
+  };
+  const guide = {...defaultGuide, gradient: saved?.guide?.gradient === true,
+    nearOpacity: normalizeOpacity(saved?.guide?.nearOpacity), farOpacity: normalizeOpacity(saved?.guide?.farOpacity)};
   for (const [key, , min, max] of guideFields) {
     const value = saved?.guide?.[key];
     if (Number.isFinite(value)) guide[key] = Math.min(max, Math.max(min, value));
@@ -42,16 +58,16 @@ function readSettings() {
     }
   }
   const preset = ['blueRoad', 'carpet'].includes(saved?.preset) ? saved.preset : saved?.carpet === true ? 'carpet' : null;
-  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true, preset, beamOnly: saved?.beamOnly === true, colors, view, guide, starts};
+  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true, preset, beamOnly: saved?.beamOnly === true, colors, laneOpacity, marking, view, guide, starts};
 }
 
-function slider([key, name, min, max, , unit, step = 1], values, prefix, change) {
+function slider([key, name, min, max, , unit, step = 1, labelText = name], values, prefix, change) {
   const label = document.createElement('label');
   const title = document.createElement('span');
   const input = document.createElement('input');
   const value = document.createElement('output');
   label.className = 'traffic-field';
-  title.textContent = name;
+  title.textContent = labelText;
   input.type = 'range';
   input.id = `${prefix}-${key}`;
   input.setAttribute('aria-label', name);
@@ -105,6 +121,7 @@ export function createHudControls(onChange) {
   function syncPreset() {
     byId('hud-ego').checked = settings.ego;
     byId('hud-beam-only').closest('label').hidden = settings.preset !== 'carpet';
+    byId('hud-marking-highlight-row').hidden = settings.preset !== 'blueRoad';
   }
   function syncLaneDemo({scene, presetDirection, presetRightTurn, status}, roadworks) {
     const note = byId('hud-lane-demo-note');
@@ -140,6 +157,15 @@ export function createHudControls(onChange) {
   });
 
   const selectedLane = () => `${laneGroup}:${laneSelect.value}`;
+  const laneValues = {opacity: defaultLaneOpacity};
+  const laneOpacity = slider(opacityField('opacity', '车道填色不透明度'), laneValues, 'hud-lane', () => {
+    const key = selectedLane();
+    settings.colors[key] ??= defaultLaneColor;
+    settings.laneOpacity[key] = laneValues.opacity;
+    syncColor();
+    change('colors');
+  });
+  byId('hud-lane-color-setting').append(laneOpacity.label);
   const updateLaneColor = color => {
     settings.colors[selectedLane()] = color;
     syncColor();
@@ -151,17 +177,50 @@ export function createHudControls(onChange) {
     laneColor.value = color ?? defaultLaneColor;
     syncLaneHex(laneColor.value);
     laneReset.disabled = !color;
+    laneValues.opacity = settings.laneOpacity[selectedLane()] ?? defaultLaneOpacity;
+    laneOpacity.sync();
   };
   laneSelect.addEventListener('change', syncColor);
   laneColor.addEventListener('input', () => updateLaneColor(laneColor.value));
   laneReset.addEventListener('click', () => {
     delete settings.colors[selectedLane()];
+    delete settings.laneOpacity[selectedLane()];
     syncColor();
     change('colors');
   });
 
+  const marking = settings.marking;
+  const markingColors = ['base', 'highlight'].map(key => {
+    const picker = byId(`hud-marking-${key}-color`);
+    const update = color => { marking[key] = color; picker.value = color; syncHex(color); change('marking'); };
+    const syncHex = bindHexColor(byId(`hud-marking-${key}-hex`), update);
+    picker.addEventListener('input', () => update(picker.value));
+    return () => { picker.value = marking[key] ?? '#fafcff'; syncHex(picker.value); };
+  });
+  const markingWidth = slider(['width', '标线粗细', 25, 300, 100, '%', 5], marking, 'hud-marking', () => change('marking'));
+  byId('hud-marking-values').append(markingWidth.label);
+  const markingOpacity = [['base', '普通标线'], ['highlight', '高亮标线']].map(([key, title]) => {
+    const control = slider(opacityField(`${key}Opacity`, `${title}不透明度`), marking, 'hud-marking', () => change('marking'));
+    byId(`hud-marking-${key}-row`).append(control.label);
+    return control;
+  });
+  markingColors.forEach(sync => sync());
+  byId('hud-marking-reset').addEventListener('click', () => {
+    Object.assign(marking, defaultMarking);
+    markingColors.forEach(sync => sync());
+    markingWidth.sync();
+    markingOpacity.forEach(control => control.sync());
+    change('marking');
+  });
+
   const guideSliders = guideFields.map(field => slider(field, settings.guide, 'hud-guide', () => change('guide')));
   byId('hud-guide-values').append(...guideSliders.map(control => control.label));
+  for (const [end, title] of [['near', '近端'], ['far', '远端']]) {
+    const control = slider(opacityField(`${end}Opacity`, `${title}不透明度`), settings.guide, 'hud-guide', () => change('guide'));
+    const row = byId(`hud-guide-${end}-row`);
+    row.querySelector('.hud-color-field').after(control.label);
+    guideSliders.push(control);
+  }
   const updateFarColor = color => {
     settings.guide.far = color;
     farColor.value = color;
@@ -169,9 +228,14 @@ export function createHudControls(onChange) {
     change('guide');
   };
   const syncFarHex = bindHexColor(byId('hud-guide-far-hex'), updateFarColor);
+  const syncGradient = () => {
+    farRow.hidden = !settings.guide.gradient;
+    byId('hud-guide-near-label').textContent = settings.guide.gradient ? '近端颜色' : '引导线颜色';
+    byId('hud-guide-nearOpacity').setAttribute('aria-label', settings.guide.gradient ? '近端不透明度' : '引导线不透明度');
+  };
   const syncGuide = () => {
     gradient.checked = settings.guide.gradient;
-    farRow.hidden = !gradient.checked;
+    syncGradient();
     farColor.value = settings.guide.far;
     syncFarHex(settings.guide.far);
     guideSliders.forEach(control => control.sync());
@@ -179,7 +243,7 @@ export function createHudControls(onChange) {
   syncGuide();
   gradient.addEventListener('change', () => {
     settings.guide.gradient = gradient.checked;
-    farRow.hidden = !gradient.checked;
+    syncGradient();
     change('guide');
   });
   farColor.addEventListener('input', () => updateFarColor(farColor.value));

@@ -25,30 +25,71 @@
 
   <div id="hud-lane-controls" class="hud-section" hidden>
     <div class="hud-value-row">
-      <label class="choice-label" for="hud-lane">车道颜色</label>
+      <label class="choice-label" for="hud-lane">车道填色</label>
       <select id="hud-lane" aria-label="选择车道"></select>
     </div>
-    <div class="hud-lane-color">
-      <input id="hud-lane-color" class="guidance-custom-color" type="color" aria-label="指定车道颜色">
-      <input id="hud-lane-hex" type="text" class="hud-hex" aria-label="车道颜色 HEX" maxlength="7" spellcheck="false" placeholder="#FFFFFF">
-      <button type="button" id="hud-lane-reset">恢复车道颜色</button>
+    <div id="hud-lane-color-setting" class="hud-color-setting" role="group" aria-labelledby="hud-lane-color-label">
+      <div class="hud-color-field">
+        <label id="hud-lane-color-label" for="hud-lane-hex">填色</label>
+        <div class="hud-color-inputs">
+          <input id="hud-lane-color" class="guidance-custom-color" type="color" aria-label="指定车道颜色">
+          <input id="hud-lane-hex" type="text" class="hud-hex" maxlength="7" spellcheck="false" placeholder="#FFFFFF">
+        </div>
+      </div>
     </div>
+    <button type="button" id="hud-lane-reset">恢复车道填色</button>
   </div>
+
+  <details class="hud-section hud-effect" id="hud-marking-controls">
+    <summary class="choice-label">车道标线</summary>
+    <div id="hud-marking-values" class="hud-camera-controls"></div>
+    <div id="hud-marking-base-row" class="hud-color-setting" role="group" aria-labelledby="hud-marking-base-label">
+      <div class="hud-color-field">
+        <label id="hud-marking-base-label" for="hud-marking-base-hex">普通标线颜色</label>
+        <div class="hud-color-inputs">
+          <input id="hud-marking-base-color" class="guidance-custom-color" type="color" aria-label="选择普通标线颜色">
+          <input id="hud-marking-base-hex" class="hud-hex" type="text" maxlength="7" spellcheck="false">
+        </div>
+      </div>
+    </div>
+    <div id="hud-marking-highlight-row" class="hud-color-setting" role="group" aria-labelledby="hud-marking-highlight-label">
+      <div class="hud-color-field">
+        <label id="hud-marking-highlight-label" for="hud-marking-highlight-hex">高亮标线颜色</label>
+        <div class="hud-color-inputs">
+          <input id="hud-marking-highlight-color" class="guidance-custom-color" type="color" aria-label="选择高亮标线颜色">
+          <input id="hud-marking-highlight-hex" class="hud-hex" type="text" maxlength="7" spellcheck="false">
+        </div>
+      </div>
+    </div>
+    <button type="button" id="hud-marking-reset">恢复默认标线</button>
+  </details>
 
   <details class="hud-section hud-effect" id="hud-guide-controls" hidden>
     <summary class="choice-label">引导线效果</summary>
     <div id="hud-guide-values" class="hud-camera-controls"></div>
-    <label class="hud-value-row" for="hud-guide-near-hex">近端颜色<input id="hud-guide-near-hex" type="text" class="hud-hex" maxlength="7" spellcheck="false" placeholder="#FFFFFF"></label>
     <div class="switches hud-switches">
       <label class="toggle">
         <span class="setting-title">启用渐变</span>
         <input id="hud-guide-gradient" type="checkbox" role="switch"><span class="track" aria-hidden="true"></span>
       </label>
     </div>
-    <div id="hud-guide-far-row" class="hud-value-row" hidden>
-      <label for="hud-guide-far-hex">远端颜色</label>
-      <input id="hud-guide-far" class="guidance-custom-color" type="color" aria-label="选择远端颜色">
-      <input id="hud-guide-far-hex" type="text" class="hud-hex" maxlength="7" spellcheck="false" placeholder="#FFFFFF">
+    <div id="hud-guide-near-row" class="hud-color-setting" role="group" aria-labelledby="hud-guide-near-label">
+      <div class="hud-color-field">
+        <label id="hud-guide-near-label" for="hud-guide-near-hex">引导线颜色</label>
+        <div class="hud-color-inputs">
+          <input id="hud-guide-near-hex" type="text" class="hud-hex" maxlength="7" spellcheck="false" placeholder="#FFFFFF">
+        </div>
+      </div>
+      <div id="hud-guide-swatches" class="hud-color-swatches"></div>
+    </div>
+    <div id="hud-guide-far-row" class="hud-color-setting" role="group" aria-labelledby="hud-guide-far-label" hidden>
+      <div class="hud-color-field">
+        <label id="hud-guide-far-label" for="hud-guide-far-hex">远端颜色</label>
+        <div class="hud-color-inputs">
+          <input id="hud-guide-far" class="guidance-custom-color" type="color" aria-label="选择远端颜色">
+          <input id="hud-guide-far-hex" type="text" class="hud-hex" maxlength="7" spellcheck="false" placeholder="#FFFFFF">
+        </div>
+      </div>
     </div>
     <button type="button" id="hud-guide-reset">重置引导线效果</button>
   </details>

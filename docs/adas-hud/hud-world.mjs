@@ -88,15 +88,15 @@ export const World = {
         junctionLock = null;
       }
       camera.sync(['playing', 'paused', 'finished'].includes(status) || !!junctionLock, junctionLock ? null : playback?.basePose);
-      const highlightLane = blueRoad && supportsGuidance && blueMarkings.prepare(layout);
+      const styleMarkings = supportsGuidance && blueMarkings.prepare(layout, controls.settings.marking);
       const draw = () => camera.withView(() => withHudLayers(world, () => {
         if (world.vehicleDetail.enabled) {
           const frame = controls.settings.customCamera || controls.settings.follow ? vehicleFrame(world.car, world.camera) : world.framing.vehicleFrame;
           world.vehicleDetail.setVehicleFrame(frame, world.car.visible);
         }
-        return highlightLane ? blueMarkings.draw(() => render(...frame)) : render(...frame);
+        return styleMarkings ? blueMarkings.draw(() => render(...frame), blueRoad) : render(...frame);
       }, background));
-      return drawLanes(layout, controls.settings.colors, draw);
+      return drawLanes(layout, controls.settings.colors, controls.settings.laneOpacity, draw);
     };
 
     const shadowRender = world.renderer.shadowMap.render.bind(world.renderer.shadowMap);

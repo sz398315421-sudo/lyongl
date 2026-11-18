@@ -1,3 +1,8 @@
+export function normalizeOpacity(value, fallback = 100) {
+  if (value == null || value === '' || !Number.isFinite(Number(value))) return fallback;
+  return Math.max(0, Math.min(100, Math.round(Number(value))));
+}
+
 export function bindHexColor(input, apply) {
   const commit = () => {
     const value = input.value.trim();

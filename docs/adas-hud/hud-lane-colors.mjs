@@ -66,18 +66,19 @@ export function createLaneColors(world) {
         int i = int(floor(lane));
         float edge = smoothstep(0.0, 0.045, min(fract(lane), 1.0 - fract(lane)));
         float fade = 1.0 - smoothstep(52.0, 138.0, viewDistance);
-        gl_FragColor = vec4(colors[i], enabled[i] * edge * fade * 0.38);
+        gl_FragColor = vec4(colors[i], enabled[i] * edge * fade);
       }`
   });
   material.defaultAttributeValues.layoutOffset = [0, 0, 0];
   const overlays = new WeakMap();
 
-  return function drawLanes(layout, selections, draw) {
+  return function drawLanes(layout, selections, opacity, draw) {
     if (!layout) return draw();
     let anyColor = false;
     for (let i = 0; i < enabled.length; i++) {
-      const color = i < layout.count && selections[`${layout.key}:${i}`];
-      enabled[i] = color ? 1 : 0;
+      const key = `${layout.key}:${i}`;
+      const color = i < layout.count && selections[key];
+      enabled[i] = color ? (opacity[key] ?? 38) / 100 : 0;
       if (color) { colors[i].set(color); anyColor = true; }
     }
     if (!anyColor) return draw();
