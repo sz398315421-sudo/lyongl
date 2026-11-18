@@ -1,0 +1,372 @@
+{
+  "version": "1.2.0",
+  "date": "2026-11-07",
+  "ranking": {
+    "period": "2026年1—7月",
+    "published": "2026-09-10",
+    "metric": "中国市场乘用车前装AR-HUD供应商装机量",
+    "ref": "RK01",
+    "note": "沿用本项目AR-HUD范围选取前十；不是所有HUD总榜、售后品牌榜或企业营收榜。怡利按中国市场供应商榜保留，不把它写成大陆总部企业。统计值不用于技术水平排名。"
+  },
+  "coverage": "10 AR-HUD + 2 HUD总榜新增 + 2技术补充；14家",
+  "method": "逐家企业名与HUD/AR-HUD、参数/规格书/白皮书/设计规范组合查询，再核对官方域名和标准登记。下列为检索范围归纳，不是完整浏览器历史。",
+  "suppliers": [
+    {
+      "name": "怡利电子",
+      "officialDomains": [
+        "e-lead.com.tw",
+        "taiwanexcellence.org"
+      ],
+      "queries": [
+        "怡利电子 HUD 参数 规格书",
+        "怡利电子 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV01",
+        "PV02",
+        "PV03",
+        "CN02"
+      ],
+      "result": "3D ARHUD官网、法说会PDF、EL-321D送审资料",
+      "gap": "本次未找到完整公开UI字号／图标Token表。",
+      "boundary": "1—200m表述不直接当光学焦面；历史产品与当前量产分开。"
+    },
+    {
+      "name": "华阳多媒体",
+      "officialDomains": [
+        "adayome.com",
+        "foryougroup.com"
+      ],
+      "queries": [
+        "华阳多媒体 HUD 参数 规格书",
+        "华阳多媒体 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV04",
+        "PV05",
+        "PV06",
+        "CN01",
+        "CN02"
+      ],
+      "result": "HUD产品中心、2026景深式AR-HUD技术说明、下载中心",
+      "gap": "有多场景／自适应亮度方向说明；未发现完整公开像素规范。",
+      "boundary": "不能把旧C-HUD或第三方转引参数作为2026 AR产品规格。"
+    },
+    {
+      "name": "泽景电子",
+      "officialDomains": [
+        "zjautomotive.com"
+      ],
+      "queries": [
+        "泽景电子 HUD 参数 规格书",
+        "泽景电子 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV07",
+        "CN01"
+      ],
+      "result": "AR-HUD官网规格参数表",
+      "gap": "公开数字化开发和主题定制说明；未找到通用字号表。",
+      "boundary": "DLP130万像素不等于固定输出1920×1080。"
+    },
+    {
+      "name": "华为技术",
+      "officialDomains": [
+        "huawei.com",
+        "hima.auto"
+      ],
+      "queries": [
+        "华为技术 HUD 参数 规格书",
+        "华为技术 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "H02",
+        "H03",
+        "M01",
+        "CN01",
+        "CN02"
+      ],
+      "result": "R7官方量产参数、技术愿景、相关车型手册",
+      "gap": "有公开产品参数与共同参与的标准；不能再概括为“没有规范资料”。",
+      "boundary": "这些数值只对应2022 R7发布，不代表新代际所有华为／引望产品。"
+    },
+    {
+      "name": "未来黑科技",
+      "officialDomains": [
+        "futurus.co"
+      ],
+      "queries": [
+        "未来黑科技 HUD 参数 规格书",
+        "未来黑科技 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV08",
+        "PV09",
+        "CN01",
+        "CN02"
+      ],
+      "result": "光学显示产品页、AR Kernel介绍、标准参与说明",
+      "gap": "有AR引擎技术介绍；未取得公开完整SDK或通用UI规范。",
+      "boundary": "官网解析中AR表重复W-HUD数值，暂不作为独立AR参数。"
+    },
+    {
+      "name": "水晶光电",
+      "officialDomains": [
+        "crystal-optech.com"
+      ],
+      "queries": [
+        "水晶光电 HUD 参数 规格书",
+        "水晶光电 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV10",
+        "CN02"
+      ],
+      "result": "官网W-HUD／AR-HUD分类、联合标准登记",
+      "gap": "未找到独立完整UI设计规范；共同标准可作为进一步依据。",
+      "boundary": "不以券商旧表替代当前厂商规格；详情页访问不稳定。"
+    },
+    {
+      "name": "零跑汽车",
+      "officialDomains": [
+        "hkexnews.hk"
+      ],
+      "queries": [
+        "零跑汽车 HUD 参数 规格书",
+        "零跑汽车 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV11"
+      ],
+      "result": "港交所公司披露文件／自研AR-HUD段落",
+      "gap": "有产品与模式说明，未找到开放的供应商级UI规范。",
+      "boundary": "公司自研产品的等效英寸不转换为画布分辨率。"
+    },
+    {
+      "name": "弗迪精工",
+      "officialDomains": [
+        "byd.com"
+      ],
+      "queries": [
+        "弗迪精工 HUD 参数 规格书",
+        "弗迪精工 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "RK01",
+        "CN01"
+      ],
+      "result": "排名确认供应商身份；未检索到可核验官方HUD规格书",
+      "gap": "未找到公开完整HUD界面规范。",
+      "boundary": "检索覆盖“弗迪精工 HUD 参数／规格书”及比亚迪官方域名；未找到不等于不存在。"
+    },
+    {
+      "name": "浦创智能",
+      "officialDomains": [],
+      "queries": [
+        "浦创智能 HUD 参数 规格书",
+        "浦创智能 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "RK01"
+      ],
+      "result": "排名确认覆盖对象；未找到可核验独立官网规格书",
+      "gap": "媒体有功能介绍，但本表不把其数值升级为厂商正式规格。",
+      "boundary": "检索覆盖公司名＋官网／AR-HUD／规格书／白皮书，排除同名IC烧录企业。"
+    },
+    {
+      "name": "疆程技术",
+      "officialDomains": [
+        "jiangchengtech.com"
+      ],
+      "queries": [
+        "疆程技术 HUD 参数 规格书",
+        "疆程技术 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV12",
+        "PV13",
+        "CN02"
+      ],
+      "result": "官网AR-HUD产品页、TFT方案技术发布",
+      "gap": "有UI个性化与ADAS应用说明，未找到完整字号／颜色Token表。",
+      "boundary": "不同年份TFT发布和当前通用产品页不拼成同一个量产SKU。"
+    },
+    {
+      "name": "电装",
+      "officialDomains": [
+        "denso-am.eu"
+      ],
+      "queries": [
+        "电装 HUD 参数 规格书",
+        "电装 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV17"
+      ],
+      "result": "官方历史产品技术发布",
+      "gap": "说明位置、色彩、行人和车道提示；未找到公开完整1920字号表。",
+      "boundary": "历史产品说明，不将2017年的最大宣传表述延用至2026。"
+    },
+    {
+      "name": "欧摩威",
+      "officialDomains": [
+        "aumovio.com"
+      ],
+      "queries": [
+        "欧摩威 HUD 参数 规格书",
+        "欧摩威 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV18"
+      ],
+      "result": "AUMOVIO／Epitone官方技术发布",
+      "gap": "有光学技术方向，未找到开放完整UI Token规范。",
+      "boundary": "保留榜单企业名称；技术展示不等同量产或统一规格。"
+    },
+    {
+      "name": "经纬恒润",
+      "officialDomains": [
+        "hirain.com"
+      ],
+      "queries": [
+        "经纬恒润 HUD 参数 规格书",
+        "经纬恒润 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV14",
+        "PV15"
+      ],
+      "result": "官网AR-HUD产品页＋技术交流资料",
+      "gap": "有清楚的光学／算法及检测介绍；没有公开完整字号表。",
+      "boundary": "2K未给像素行列；13×5只对应另外方案说明。"
+    },
+    {
+      "name": "德赛西威",
+      "officialDomains": [
+        "desaysv.com"
+      ],
+      "queries": [
+        "德赛西威 HUD 参数 规格书",
+        "德赛西威 AR-HUD 设计规范 白皮书"
+      ],
+      "sourceIds": [
+        "PV16",
+        "CN01"
+      ],
+      "result": "官网智能显示系统性能规格",
+      "gap": "有性能参数，未找到完整HUD界面Token规范。",
+      "boundary": "W-HUD栏的≤1.5mrad、≥100PPD不迁移成AR-HUD规格。"
+    }
+  ],
+  "standards": [
+    {
+      "id": "CN01",
+      "name": "GB/T 46926—2025",
+      "title": "轻型汽车视野辅助系统技术要求及试验方法",
+      "status": "现行推荐性国家标准",
+      "date": "2026-07-01实施",
+      "verified": "正式登记、状态与起草单位",
+      "use": "作为国内系统技术要求与试验依据优先入口；未核验正式全文数值。"
+    },
+    {
+      "id": "CN06",
+      "name": "SJ/T 11834—2022",
+      "title": "车用平视显示器光学性能测试方法",
+      "status": "现行推荐性电子行业标准",
+      "date": "2023-01-01实施",
+      "verified": "官方状态、发布与实施日期；企业说明交叉核对",
+      "use": "光学测试方法依据；不等同字号、图标、颜色的UI设计系统。"
+    },
+    {
+      "id": "CN02",
+      "name": "T/CAAMTB 301—2025",
+      "title": "汽车座舱电子信息抬头显示系统",
+      "status": "现行团体标准",
+      "date": "2025-09-01实施",
+      "verified": "正式登记、适用范围与完整起草名单",
+      "use": "最直接连接华为、华阳、小米、未来黑科技、怡利、水晶、疆程的共同文件。"
+    },
+    {
+      "id": "CN03",
+      "name": "T/ZQB 007—2025",
+      "title": "增强现实型抬头显示系统人机交互设计指南",
+      "status": "现行团体标准",
+      "date": "2025-10-01实施",
+      "verified": "正式目录；全文未取得",
+      "use": "本项目最应优先取得的界面设计正式规范。"
+    },
+    {
+      "id": "CN04",
+      "name": "人机交互指南公开草案",
+      "title": "视觉设计、字号、图标、颜色、动态设计",
+      "status": "征求意见稿；不等同于正式版",
+      "date": "2025-02官网文件",
+      "verified": "全文读取，PDF第13—14页视觉核对",
+      "use": "可研究具体建议及计算方法，不能写成正式版已经确认的硬性门槛。"
+    },
+    {
+      "id": "CN05",
+      "name": "HUD标准需求研究报告",
+      "title": "供应商共同参与的系统规格与标准化研究",
+      "status": "2021历史研究报告",
+      "date": "2021-07-27正文日期",
+      "verified": "全文与参与单位、规格表",
+      "use": "提供历史参数口径与测试项目，不当作2026行业最优值。"
+    }
+  ],
+  "conversions": [
+    {
+      "label": "文本参考",
+      "minutes": 20,
+      "visiblePx": 53.13838538607031,
+      "physicalMm": 58.17780582558039,
+      "source": "CN04",
+      "status": "draft-only"
+    },
+    {
+      "label": "时效性文本最小参考",
+      "minutes": 16,
+      "visiblePx": 42.510665143730805,
+      "physicalMm": 46.54219740174035,
+      "source": "CN04",
+      "status": "draft-only"
+    },
+    {
+      "label": "非时效文本最小参考",
+      "minutes": 12,
+      "visiblePx": 31.88297367819614,
+      "physicalMm": 34.90662048377601,
+      "source": "CN04",
+      "status": "draft-only"
+    },
+    {
+      "label": "图标主图形参考",
+      "minutes": 86,
+      "visiblePx": 228.50632978416795,
+      "physicalMm": 250.17690672220252,
+      "source": "CN04",
+      "status": "draft-only"
+    },
+    {
+      "label": "时效性图标最小参考",
+      "minutes": 41,
+      "visiblePx": 108.93467402707343,
+      "physicalMm": 119.26557924511772,
+      "source": "CN04",
+      "status": "draft-only"
+    },
+    {
+      "label": "非时效图标最小参考",
+      "minutes": 34,
+      "visiblePx": 90.33573672091762,
+      "physicalMm": 98.90279713764099,
+      "source": "CN04",
+      "status": "draft-only"
+    }
+  ],
+  "limitations": [
+    "没有取得四份正式国内标准全文。",
+    "部分官网为动态页面，检索结果不代表未公开资料不存在。",
+    "未把付费全文、媒体二次转引或图片推算当官方数值。"
+  ]
+}
