@@ -1,10 +1,15 @@
 # 素材来源
 
-- `cockpit-glass.png` 是本版的座舱，由内置 ImageGen 生成。`cockpit.png` 是上一版的座舱。
+- `nebula-route.jpg` 由内置 ImageGen 参照用户提供的效果图生成，用于巡航航线的星云背景。
+- `cockpit-glass.png` 和 `cockpit.png` 是早期座舱版使用的素材，由内置 ImageGen 生成。
 - 地球贴图使用 [NASA Earth Observatory 的 Blue Marble 影像](https://science.nasa.gov/earth/earth-observatory/the-blue-marble-true-color-global-imagery-at-1km-resolution/)，文件来自 [Three.js 示例素材](https://github.com/mrdoob/three.js/blob/r124/examples/textures/land_ocean_ice_cloud_2048.jpg)。
 - 近景贝努使用 OSIRIS-REx 激光测距所得的 OLA v20 PTM 地形和 NASA SVS 的反照率图。原始数据由 NASA、亚利桑那大学、加拿大航天局、约克大学和 MDA 提供。项目采用 SpaceMiningData 按 CC BY 4.0 发布的减面网格，并调整了比例，计算了法线和凹部遮蔽。[NASA SVS](https://svs.gsfc.nasa.gov/5069) · [SpaceMiningData](https://spaceminingdata.com/bennu/index.html) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - 爱神星和远景贝努使用 NASA Visualization Technology Applications and Development 的模型及贴图，调整了比例并细分网格。[爱神星](https://science.nasa.gov/resource/eros-3d-model/) · [贝努](https://science.nasa.gov/resource/bennu-3d-model/)
 - 岩石微纹理和远景碎石使用 [Poly Haven 的 Rock Boulder Cracked](https://polyhaven.com/a/rock_boulder_cracked)，采用 CC0。
+
+## 巡航星云生成提示词
+
+Use the attached concept image as the visual and color reference. Make the sky and the star clouds in the concept into a standalone photorealistic deep-space sky backdrop. Remove all foreground objects. There must be no road, no golden streak, no asteroid, no terrain, no planet, no cockpit, no ships and no text. Wide cinematic panorama at the widest landscape ratio available. Near-black and indigo space with a highly textured illuminated deep blue-violet interstellar cloud diagonally crossing the upper right and curling above the midline. Icy blue wisps, a few violet edges, dark dust pillars and fine pin stars. The brightest knot is around 70 percent across and 24 percent down. The left third descends into nearly black navy and the bottom third is subdued deep charcoal blue, preserving negative space for the road graphics that I will render separately. Sharp tiny stars at believable brightnesses, NASA-like long-exposure photography, highly detailed luminous structure, calibrated highlights, rich spatial depth, no speed streaks and no ground plane. Full bleed.
 
 ## 玻璃座舱生成提示词
 

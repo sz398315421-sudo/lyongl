@@ -1,9 +1,9 @@
 :root {
   color-scheme: dark;
-  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
-  color: #eef1f3;
-  background: #030407;
-  --inset: clamp(22px, 4.1vw, 66px);
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  color: #f5f1e9;
+  background: #060a12;
+  --inset: clamp(16px, 3.5vw, 64px);
 }
 
 * { box-sizing: border-box; }
@@ -17,11 +17,10 @@ body { margin: 0; }
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  touch-action: none;
-  background: #030407;
+  background: #060a12;
 }
 
-#sky, #space, #flight-reference, #avionics, .vignette, .cockpit, .cockpit-image {
+#sky, #nebula, #route, #space, .vignette {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -29,141 +28,96 @@ body { margin: 0; }
   pointer-events: none;
 }
 
+#nebula {
+  object-fit: cover;
+  object-position: 60% 52%;
+  transform: translateX(var(--sky-pan, 0%)) scale(1.17);
+  filter: brightness(.79) saturate(.86);
+}
+
 .vignette {
-  background: radial-gradient(ellipse at 57% 42%, transparent 38%, #01020462 100%);
-}
-
-.cockpit-image { display: block; object-fit: fill; }
-#avionics { mix-blend-mode: screen; }
-.cockpit:has(.cockpit-image:not([hidden])) > div { display: none; }
-.cockpit > div { position: absolute; }
-
-.strut {
-  top: 0;
-  bottom: 0;
-  width: clamp(54px, 11vw, 180px);
-  background: linear-gradient(90deg, #030405 52%, #151b21 73%, #383e41 81%, #0b1017 92%);
-  clip-path: polygon(0 0, 60% 0, 32% 17%, 14% 40%, 19% 68%, 100% 100%, 0 100%);
-}
-
-.strut-left { left: 0; }
-.strut-right { right: 0; transform: scaleX(-1); }
-
-.console {
-  inset: auto 0 0;
-  height: 21%;
-  background: linear-gradient(180deg, #464b4d, #121619 23%, #07090b 85%);
-  clip-path: polygon(0 13%, 12% 24%, 25% 61%, 38% 49%, 62% 49%, 75% 61%, 88% 24%, 100% 13%, 100% 100%, 0 100%);
-}
-
-.console::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateY(3px);
-  background: linear-gradient(180deg, #131719, #050709 85%);
-  clip-path: inherit;
-}
-
-.console-lights {
-  inset: auto 44% 6%;
-  height: 2px;
-  background: repeating-linear-gradient(90deg, #78a29b70 0 4px, transparent 4px 10px);
-  mask-image: linear-gradient(90deg, transparent, #000 14% 86%, transparent);
+  background:
+    linear-gradient(180deg, #04071190, transparent 24%),
+    radial-gradient(ellipse at 54% 54%, transparent 64%, #02040975 100%);
 }
 
 .flight-header {
   position: absolute;
-  inset: clamp(23px, 5.2vh, 62px) var(--inset) auto;
+  inset: clamp(14px, 5.5vh, 54px) var(--inset) auto;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 18px;
+  align-items: center;
+  gap: 16px;
   pointer-events: none;
 }
 
-.heading {
-  text-shadow: 0 2px 14px #000;
-  transition: opacity .3s;
-}
-
-.heading p {
-  margin: 0 0 9px;
-  color: #b1c5cd;
-  font-size: 11px;
-  letter-spacing: .34em;
-}
-
-.heading h1 {
+.flight-header h1 {
   margin: 0;
-  font-size: clamp(29px, 4.3vw, 65px);
+  font-size: clamp(19px, 2.06vw, 33px);
   font-weight: 600;
-  line-height: 1.07;
-  letter-spacing: .055em;
+  line-height: 1.18;
+  letter-spacing: .09em;
+  text-shadow: 0 2px 18px #03040a, 0 1px 4px #03040a;
+  transition: opacity .25s;
 }
 
 #immersive {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 13px;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   flex-shrink: 0;
-  border: 1px solid #9eacb24d;
-  border-radius: 3px;
-  background: #090d12b8;
-  color: #e3e9eb;
+  border: 1px solid #eddfc63b;
+  border-radius: 4px;
+  background: #090b1294;
+  color: #f5ede3;
   font: inherit;
   font-size: 12px;
-  letter-spacing: .05em;
+  letter-spacing: .045em;
   cursor: pointer;
   pointer-events: auto;
-  transition: background .2s, opacity .3s;
+  transition: background .2s, opacity .25s;
 }
 
-#immersive:hover { background: #1b252c; }
-#immersive:focus-visible { outline: 2px solid #f0f5f5; outline-offset: 4px; }
+#immersive:hover { background: #242331; }
+#immersive:focus-visible { outline: 2px solid #ffe3aa; outline-offset: 4px; }
 #immersive i {
   width: 13px;
   height: 13px;
-  border: 1px solid #b8c9d0;
-  mask-image: radial-gradient(circle at center, transparent 55%, #000 57%);
+  border: 1px solid currentColor;
+  mask-image: radial-gradient(circle, transparent 55%, #000 57%);
 }
 
 .controls {
   position: absolute;
-  inset: auto var(--inset) clamp(20px, 4.2vh, 48px);
+  inset: auto auto clamp(15px, 5.5vh, 48px) var(--inset);
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: #d2dde1;
+  gap: 9px;
+  color: #f4e3c9;
   font-size: 12px;
-  letter-spacing: .035em;
-  text-shadow: 0 0 7px #000, 0 1px 6px #000;
-  user-select: none;
+  letter-spacing: .12em;
+  text-shadow: 0 1px 5px #0a090c, 0 2px 12px #150b07;
   pointer-events: none;
-  transition: opacity .3s;
+  transition: opacity .25s;
 }
 
-.controls span:first-child { padding-right: 12px; border-right: 1px solid #b6c5cc66; }
-kbd { font: 500 12px Consolas, "Microsoft YaHei", monospace; }
-.touch-hint { display: none; }
+.indicator {
+  width: 12px;
+  height: 1px;
+  background: #ffc16d;
+  box-shadow: 0 0 8px #ff9e3b;
+}
 
-#game[data-immersive] .heading, #game[data-immersive] .controls { opacity: 0; }
-#game[data-immersive] #immersive:not(:hover):not(:focus-visible) { opacity: .28; }
+#game[data-immersive] h1, #game[data-immersive] .controls { opacity: 0; }
+#game[data-immersive] #immersive:not(:hover):not(:focus-visible) { opacity: .32; }
 .error { position: absolute; left: var(--inset); right: var(--inset); bottom: 15%; }
 
 @media (max-aspect-ratio: 1/1) {
-  .cockpit-image { object-fit: cover; object-position: center bottom; }
-  .heading h1 { letter-spacing: .01em; }
-  .console { height: 14%; }
-}
-
-@media (pointer: coarse) {
-  .keyboard-hint { display: none; }
-  .touch-hint { display: inline; }
+  #nebula { object-position: 64% 52%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .heading, .controls, #immersive { transition: none; }
+  .flight-header h1, .controls, #immersive { transition: none; }
 }

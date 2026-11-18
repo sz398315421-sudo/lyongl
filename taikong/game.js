@@ -4,11 +4,11 @@ const game = document.querySelector("#game");
 const space = document.querySelector("#space");
 const sky = document.querySelector("#sky");
 const immersive = document.querySelector("#immersive");
-const cockpit = document.querySelector(".cockpit-image");
+const nebula = document.querySelector("#nebula");
 const media = window.spaceMedia;
 const measuredRocks = window.asteroidModels;
 
-const focalLength = 1.68;
+const focalLength = 1.47;
 const cruiseSpeed = 3.15;
 const asteroidColors = [
   [0.72, 0.73, 0.76], [0.83, 0.86, 0.90], [0.62, 0.65, 0.68],
@@ -33,11 +33,6 @@ function clamp(value, min, max) {
 
 function cross([ax, ay, az], [bx, by, bz]) {
   return [ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx];
-}
-
-function smoothstep(min, max, value) {
-  const t = clamp((value - min) / (max - min), 0, 1);
-  return t * t * (3 - 2 * t);
 }
 
 function makeSphere(subdivisions, variant = -1) {
@@ -139,7 +134,7 @@ function paintSky(width, height) {
 }
 
 async function createRenderer() {
-  const gl = space.getContext("webgl", { alpha: true, antialias: true, powerPreference: "high-performance" });
+  const gl = space.getContext("webgl", { alpha: true, antialias: false, powerPreference: "high-performance" });
   if (!gl) throw new Error("WebGL is unavailable");
 
   const rotationSource = [
@@ -155,30 +150,30 @@ async function createRenderer() {
     "attribute vec2 aTexcoord;",
     "attribute vec4 aTangent;",
     "uniform vec3 uCenter;",
-    "uniform float uRadius, uAspect, uFocal, uBank;",
+    "uniform float uRadius;",
     "uniform vec2 uRotation;",
     "varying vec3 vObject, vLocalNormal, vWorld;",
     "varying vec2 vTexcoord;",
     "varying vec4 vTangent;",
     ...rotationSource,
+    sceneProjection,
     "void main() {",
     "  vObject = aPosition;",
     "  vLocalNormal = aNormal;",
     "  vTexcoord = aTexcoord;",
     "  vTangent = aTangent;",
     "  vWorld = rotate(aPosition) * uRadius + uCenter;",
-    "  float cs = cos(uBank), sn = sin(uBank);",
-    "  vec2 screen = mat2(cs, sn, -sn, cs) * vWorld.xy;",
-    "  gl_Position = vec4(screen.x * uFocal / uAspect, screen.y * uFocal, vWorld.z * 1.00014 - 0.10001, vWorld.z);",
+    "  gl_Position = projectScene(cameraSpace(vWorld));",
     "}",
   ].join("\n");
 
   const fragmentSource = [
     "precision highp float;",
     "uniform vec3 uColor;",
-    "uniform float uPlanet, uHasPhoto, uPhotoHasNormal;",
+    "uniform float uHasPhoto, uPhotoHasNormal;",
+    "uniform vec3 uGuide;",
     "uniform vec2 uRotation;",
-    "uniform sampler2D uEarthMap, uRockMap, uReliefMap, uPhotoMap, uPhotoNormalMap;",
+    "uniform sampler2D uRockMap, uReliefMap, uPhotoMap, uPhotoNormalMap;",
     "varying vec3 vObject, vLocalNormal, vWorld;",
     "varying vec2 vTexcoord;",
     "varying vec4 vTangent;",
@@ -204,16 +199,8 @@ async function createRenderer() {
     "  vec3 point = vObject;",
     "  vec3 localNormal = normalize(vLocalNormal);",
     "  vec3 normal = rotate(localNormal);",
-    "  vec3 light = normalize(vec3(0.71, 0.47, -0.43));",
+    "  vec3 light = normalize(vec3(.60,.66,.38));",
     "  vec3 view = normalize(-vWorld);",
-    "  if (uPlanet > 0.5) {",
-    "    vec3 surface = texture2D(uEarthMap, sphericalUv(point)).rgb;",
-    "    float daylight = dot(normal, light);",
-    "    float lit = pow(max(0.0,daylight), .55);",
-    "    float limb = pow(1.0 - max(0.0,dot(normal,view)), 5.9);",
-    "    vec3 air = vec3(.22,.44,.69) * limb * smoothstep(-.26,.8,daylight);",
-    "    gl_FragColor = vec4(surface * (.022 + .96 * lit) + air, 1.0);",
-    "  } else {",
     "    vec3 blend = pow(abs(localNormal), vec3(5.0));",
     "    blend /= dot(blend, vec3(1.0));",
     "    vec3 p = point * 1.62;",
@@ -248,25 +235,21 @@ async function createRenderer() {
     "    vec3 rough = normalize(normal + rotate(relief) * smallRelief);",
     "    float diffuse = max(0.0,dot(rough,light));",
     "    vec3 base = vec3(rockTone) * uColor;",
-    "    float reflected = max(0.0, dot(rough, normalize(vec3(-.5,-.18,-.8))));",
-    "    vec3 sunlight = vec3(1.31,1.28,1.23) * pow(diffuse,.88);",
-    "    vec3 earthshine = vec3(.067,.093,.14) * reflected + vec3(.041,.047,.055);",
-    "    gl_FragColor = vec4(base * (sunlight * mix(.70,1.0,cavity) + earthshine * cavity),1.0);",
-    "  }",
+    "    float rim = pow(1.0 - max(0.0,dot(normal,view)),2.7);",
+    "    vec3 cloudLight = vec3(.71,.96,1.31) * pow(diffuse,.73);",
+    "    float proximity = 1.0 - smoothstep(9.0,43.0,length(uGuide));",
+    "    float reflected = max(0.0,dot(rough,normalize(uGuide)));",
+    "    vec3 roadLight = vec3(1.07,.51,.17) * reflected * proximity * .78;",
+    "    vec3 ambient = vec3(.115,.155,.24) + vec3(.105,.16,.27) * rim;",
+    "    vec3 shaded = base * ((cloudLight + roadLight) * mix(.72,1.0,cavity) + ambient*cavity);",
+    "    float haze = smoothstep(41.0,210.0,length(vWorld)) * .54;",
+    "    gl_FragColor = vec4(mix(shaded,vec3(.074,.136,.213),haze),1.0);",
     "}",
   ].join("\n");
 
-  function compile(type, source) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader));
-    return shader;
-  }
-
   const program = gl.createProgram();
-  gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource));
-  gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource));
+  gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vertexSource));
+  gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource));
   gl.linkProgram(program);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
   gl.useProgram(program);
@@ -276,8 +259,8 @@ async function createRenderer() {
   const texcoord = gl.getAttribLocation(program, "aTexcoord");
   const tangent = gl.getAttribLocation(program, "aTangent");
   const uniforms = {};
-  for (const name of ["Center", "Radius", "Aspect", "Focal", "Bank", "Rotation", "Color", "Planet",
-    "EarthMap", "RockMap", "ReliefMap", "HasPhoto", "PhotoHasNormal", "PhotoMap", "PhotoNormalMap"]) {
+  for (const name of ["Center", "Radius", "Aspect", "Focal", "View", "Rotation", "Color", "Guide",
+    "RockMap", "ReliefMap", "HasPhoto", "PhotoHasNormal", "PhotoMap", "PhotoNormalMap"]) {
     uniforms[name] = gl.getUniformLocation(program, "u" + name);
   }
 
@@ -339,11 +322,12 @@ async function createRenderer() {
     return { buffer, indexBuffer, count: indices.length, stride: model.stride ?? 48, photo, relief };
   }
 
-  const planet = bufferMesh(makeSphere(4));
   const rocks = asteroidColors.map((_, index) => bufferMesh(makeSphere(3, index)));
+  const fragments = asteroidColors.map((_, index) => bufferMesh(makeSphere(1, index)));
   rocks[1] = bufferRock(measuredRocks?.bennu, 3) || rocks[1];
   rocks[3] = bufferRock(measuredRocks?.eros, 4, 5) || rocks[3];
   const distantBennu = bufferRock(measuredRocks?.bennuLow, 6) || rocks[1];
+  const route = createRouteRenderer(document.querySelector("#route"));
   gl.enableVertexAttribArray(position);
   gl.enableVertexAttribArray(normal);
   gl.enable(gl.DEPTH_TEST);
@@ -351,12 +335,10 @@ async function createRenderer() {
   gl.frontFace(gl.CW);
   gl.clearColor(0, 0, 0, 0);
   gl.uniform1f(uniforms.Focal, focalLength);
-  gl.uniform1i(uniforms.EarthMap, 0);
   gl.uniform1i(uniforms.RockMap, 1);
   gl.uniform1i(uniforms.ReliefMap, 2);
 
   await Promise.all([
-    loadTexture(0, media?.earth, [52, 79, 110, 255], "longitude"),
     loadTexture(1, media?.rock, [121, 117, 113, 255]),
     loadTexture(2, media?.relief, [128, 128, 255, 255]),
     loadTexture(3, measuredRocks?.bennu?.color, [111, 109, 105, 255], "longitude"),
@@ -365,7 +347,7 @@ async function createRenderer() {
     loadTexture(6, measuredRocks?.bennuLow?.color, [111, 109, 105, 255], "clamp"),
   ]);
 
-  function draw(mesh, x, y, z, radius, pitch, yaw, color, isPlanet) {
+  function draw(mesh, x, y, z, asteroid, time) {
     gl.bindBuffer(gl.ARRAY_BUFFER, mesh.buffer);
     gl.vertexAttribPointer(position, 3, gl.FLOAT, false, mesh.stride, 0);
     gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, mesh.stride, 12);
@@ -382,10 +364,10 @@ async function createRenderer() {
       gl.disableVertexAttribArray(tangent);
     }
     gl.uniform3f(uniforms.Center, x, y, z);
-    gl.uniform1f(uniforms.Radius, radius);
-    gl.uniform2f(uniforms.Rotation, pitch, yaw);
-    gl.uniform3fv(uniforms.Color, color);
-    gl.uniform1f(uniforms.Planet, isPlanet);
+    gl.uniform1f(uniforms.Radius, asteroid.radius);
+    gl.uniform2f(uniforms.Rotation, asteroid.pitch + time * asteroid.spin * .69, asteroid.yaw + time * asteroid.spin);
+    gl.uniform3fv(uniforms.Color, asteroidColors[asteroid.type]);
+    gl.uniform3f(uniforms.Guide, -asteroid.offset, -asteroid.y, .5);
     gl.uniform1f(uniforms.HasPhoto, mesh.stride === 32 ? 2 : Number(Boolean(mesh.photo)));
     gl.uniform1f(uniforms.PhotoHasNormal, Number(Boolean(mesh.relief)));
     gl.uniform1i(uniforms.PhotoMap, mesh.photo ?? 1);
@@ -400,203 +382,89 @@ async function createRenderer() {
 
   return {
     resize(width, height) {
-      const scale = Math.min(window.devicePixelRatio || 1, 1.5, 1820 / width, 1140 / height);
+      const scale = Math.min(window.devicePixelRatio || 1, 1.5, 1820 / width, 1140 / height,
+        Math.sqrt(1_100_000 / (width * height)));
       space.width = Math.round(width * scale);
       space.height = Math.round(height * scale);
       gl.viewport(0, 0, space.width, space.height);
-      gl.uniform1f(uniforms.Aspect, width / height);
+      route.resize(Math.round(width), Math.round(height));
     },
-    frame(asteroids, ship, aspect, bank, time) {
+    frame(asteroids, camera, aspect, time) {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      gl.uniform1f(uniforms.Bank, bank);
-      const planetX = (aspect < 0.9 ? 0.40 : 0.48) * 391 * aspect / focalLength;
-      draw(planet, planetX - ship.x * 0.15, 55 - ship.y * 0.15, 391, 119, -0.15, 0.45 + time * 0.0012, asteroidColors[0], 1);
+      gl.uniform1f(uniforms.Aspect, aspect);
+      gl.uniform2f(uniforms.View, camera.cos, camera.sin);
 
+      let detailedBennu = false;
       for (const asteroid of asteroids) {
-        const x = asteroid.x - ship.x;
-        const y = asteroid.y - ship.y;
-        const { z, radius } = asteroid;
-        const extent = radius * 1.44;
-        if (z < -extent || Math.abs(y) > Math.max(z, 0) / focalLength + extent ||
-            Math.abs(x) > Math.max(z, 0) * aspect / focalLength + extent) continue;
-        const mesh = asteroid.type === 1 && radius / Math.max(z, 1) < .13 ? distantBennu : rocks[asteroid.type];
-        draw(mesh, x, y, z, radius,
-          asteroid.pitch + time * asteroid.spin * 0.69,
-          asteroid.yaw + time * asteroid.spin,
-          asteroidColors[asteroid.type], 0);
+        const x = asteroid.x - camera.x;
+        const y = asteroid.y - camera.y;
+        const z = asteroid.distance - camera.distance;
+        const depth = x * camera.sin + z * camera.cos;
+        const lateral = x * camera.cos - z * camera.sin;
+        const extent = asteroid.radius * 1.48;
+        if (depth < -extent || Math.abs(y) > Math.max(depth, 0) / focalLength + extent + 4 ||
+            Math.abs(lateral) > Math.max(depth, 0) * aspect / focalLength + extent) continue;
+        const apparent = asteroid.radius / Math.max(depth, 1);
+        let mesh = apparent < .029 ? fragments[asteroid.type] : rocks[asteroid.type];
+        if (asteroid.type === 1) {
+          if (detailedBennu || apparent < .16) mesh = distantBennu;
+          else detailedBennu = true;
+        }
+        draw(mesh, x, y, z, asteroid, time);
       }
+      route.draw(camera, focalLength);
     },
   };
 }
 
-function createInstruments() {
-  const reference = document.querySelector("#flight-reference");
-  const dashboard = document.querySelector("#avionics");
-  const hud = reference.getContext("2d");
-  const panel = dashboard.getContext("2d");
-  let width = 1;
-  let height = 1;
-  let scale = 1;
-
-  function line(context, points, ink, weight = 1) {
-    context.strokeStyle = ink;
-    context.lineWidth = weight;
-    context.beginPath();
-    context.moveTo(...points[0]);
-    for (const point of points.slice(1)) context.lineTo(...point);
-    context.stroke();
-  }
-
-  function text(value, x, y, size, ink = "#a6e3e7") {
-    panel.font = size + "px Consolas, monospace";
-    panel.fillStyle = ink;
-    panel.fillText(value, x, y);
-  }
-
-  function resize(nextWidth, nextHeight) {
-    width = nextWidth;
-    height = nextHeight;
-    scale = Math.min(window.devicePixelRatio || 1, 1.5);
-    for (const canvas of [reference, dashboard]) {
-      canvas.width = Math.round(width * scale);
-      canvas.height = Math.round(height * scale);
-    }
-  }
-
-  function frame(ship, camera, asteroids, bank) {
-    const ink = "#74bdbf";
-    const dimInk = "#41656b";
-    hud.setTransform(scale, 0, 0, scale, 0, 0);
-    hud.clearRect(0, 0, width, height);
-    hud.save();
-    hud.translate(width * .5, height * .455);
-    hud.rotate(bank);
-    const span = Math.min(width * .15, 90);
-    line(hud, [[-span, -4], [-span, 0], [-16, 0], [-11, 5]], "#8ed4d650");
-    line(hud, [[span, -4], [span, 0], [16, 0], [11, 5]], "#8ed4d650");
-    line(hud, [[-3, 0], [3, 0]], "#a8f8ed90");
-    hud.restore();
-
-    panel.setTransform(scale, 0, 0, scale, 0, 0);
-    panel.clearRect(0, 0, width, height);
-    if (cockpit.hidden) return;
-    const portrait = width <= height;
-    const panelWidth = portrait ? height * cockpit.naturalWidth / cockpit.naturalHeight : width;
-    panel.translate((width - panelWidth) / 2, 0);
-    panel.scale(panelWidth / 1672, height / 941);
-
-    text("RELATIVE SPEED", 228, 779, 14, ink);
-    text(Math.hypot(cruiseSpeed, ship.vx, ship.vy).toFixed(2), 228, 828, 42, "#c8f1ef");
-    text("M/S", 340, 827, 14, ink);
-    line(panel, [[226, 849], [419, 849]], dimInk);
-    text("CRUISE CONTROL", 228, 873, 13, ink);
-
-    const roll = bank * 180 / Math.PI;
-    const half = clamp(width * 836 / panelWidth - 22, 90, 243);
-    const panelLeft = 837 - half;
-    const panelRight = 837 + half;
-    const rollLeft = panelRight - 74;
-    const horizonSpan = clamp(half - 82, 25, 73);
-    text("FLIGHT COMPUTER", panelLeft, 754, 14, ink);
-    line(panel, [[panelLeft, 765], [panelRight, 765]], dimInk);
-    text("AUTO", panelLeft + 5, 815, 22, "#c8f1ef");
-    const mode = half < 223 ? cruiseSpeed.toFixed(2) + " M/S" : "CRUISE";
-    text(mode, panelLeft + 5, 839, 13, ink);
-    text("ROLL", rollLeft, 798, 13, ink);
-    text((roll >= 0 ? "+" : "") + roll.toFixed(1) + "°", rollLeft, 831, 22, "#c8f1ef");
-    panel.save();
-    panel.translate(836, 824);
-    panel.strokeStyle = dimInk;
-    panel.lineWidth = 1;
-    panel.beginPath();
-    panel.arc(0, 0, 47, Math.PI, 2 * Math.PI);
-    panel.stroke();
-    for (let angle = -60; angle <= 60; angle += 15) {
-      const r = angle * Math.PI / 180;
-      line(panel, [[43 * Math.sin(r), -43 * Math.cos(r)], [49 * Math.sin(r), -49 * Math.cos(r)]], ink);
-    }
-    panel.rotate(bank);
-    line(panel, [[-horizonSpan, 0], [-18, 0], [-11, 6]], ink, 1.5);
-    line(panel, [[horizonSpan, 0], [18, 0], [11, 6]], ink, 1.5);
-    line(panel, [[-6, 0], [6, 0]], "#d1ffff", 1.7);
-    line(panel, [[-12, 19], [12, 19]], dimInk);
-    panel.restore();
-
-    text("PROXIMITY", 1223, 774, 14, ink);
-    const scopeX = 1352;
-    const scopeY = 872;
-    for (const distance of [25, 51, 77]) {
-      panel.strokeStyle = dimInk;
-      panel.beginPath();
-      panel.arc(scopeX, scopeY, distance, Math.PI * 1.15, Math.PI * 1.85);
-      panel.stroke();
-    }
-    line(panel, [[scopeX, scopeY], [scopeX, scopeY - 81]], dimInk);
-    let range = 120;
-    for (const asteroid of asteroids) {
-      const x = asteroid.x - camera.x;
-      const y = asteroid.y - camera.y;
-      if (asteroid.z <= 0 || asteroid.z > 115 || Math.abs(x) > 46 || Math.abs(x) > .9 * asteroid.z) continue;
-      const distance = Math.hypot(x, y, asteroid.z) - asteroid.radius;
-      range = Math.min(range, distance);
-      panel.fillStyle = asteroid.radius >= 10 ? "#89ddd6" : "#578b92";
-      panel.beginPath();
-      panel.arc(scopeX + x * 1.28, scopeY - asteroid.z * .73, clamp(asteroid.radius * .19, 1, 3.3), 0, Math.PI * 2);
-      panel.fill();
-    }
-    text(range >= 120 ? ">120 M" : Math.max(0,range).toFixed(1) + " M", 1223, 871, 14);
-  }
-
-  return { resize, frame };
-}
-
 function startCruise(renderer) {
-  const directions = new Map([
-    ["KeyW", [0, 1]], ["ArrowUp", [0, 1]],
-    ["KeyS", [0, -1]], ["ArrowDown", [0, -1]],
-    ["KeyA", [-1, 0]], ["ArrowLeft", [-1, 0]],
-    ["KeyD", [1, 0]], ["ArrowRight", [1, 0]],
-  ]);
-  const keys = new Set();
-  const instruments = createInstruments();
-  const ship = { x: 0, y: 0, vx: 0, vy: 0 };
   const random = randomSource(341265);
   const asteroids = [];
-  const cameraOffset = { x: 0, y: 0 };
-  let pointer = null;
   let aspect = 1;
+  let eyeHeight = 3.1;
+  let distance = 0;
   let sceneTime = 0;
-  let lastFrame = 0;
+  let lastFrame = null;
+  let skyPan;
 
-  function rock(x, y, z, radius, type, rotation) {
+  function rock(side, station, y, radius, margin, type, rotation) {
+    const center = routeCenter(station);
+    const clearance = radius * 1.17 + routeHalfWidth + margin;
+    let offset = side * clearance;
+    // Keep the entire rock clear of both edges, including on the inside of a bend.
+    for (let relative = -clearance; relative <= clearance; relative += .65) {
+      const reach = Math.sqrt(clearance * clearance - relative * relative);
+      const edge = routeCenter(station + relative) - center + side * reach;
+      offset = side > 0 ? Math.max(offset, edge) : Math.min(offset, edge);
+    }
     const [pitch, yaw] = rotation ?? [random() * Math.PI * 2, random() * Math.PI * 2];
-    const spin = (random() - 0.5) * (radius >= 10 ? 0.043 : 0.145);
-    return { x, y, z, radius, type, pitch, yaw, spin };
+    const spin = (random() - .5) * (radius >= 7 ? .049 : .157);
+    return { x: center + offset, y, distance: station, offset, radius, type, pitch, yaw, spin };
+  }
+
+  function fragment(station) {
+    const side = random() < .5 ? -1 : 1;
+    const radius = .19 + random() ** 2.25 * 3.9;
+    const y = (random() - .40) * (21 + .09 * (station - distance));
+    const margin = 1 + random() ** 1.6 * (20 + .19 * (station - distance));
+    const types = [0, 2, 4, 5];
+    return rock(side, station, y, radius, margin, types[Math.floor(random() * types.length)]);
+  }
+
+  function nextFlyby(asteroid) {
+    const side = asteroid.offset < 0 ? 1 : -1;
+    const radius = 7 + random() * 8;
+    return rock(side, distance + 115 + random() * 55, (random() - .34) * 24,
+      radius, 1.6 + random() * 7, asteroid.type);
   }
 
   function resize() {
     const width = Math.max(game.clientWidth, 1);
     const height = Math.max(game.clientHeight, 1);
     aspect = width / height;
+    eyeHeight = clamp(5.9 / aspect, 3.0, 10.8);
     paintSky(width, height);
     renderer.resize(width, height);
-    instruments.resize(width, height);
-  }
-
-  function distantRock(z) {
-    const x = (random() * 2 - 1) * (z * .21 + 8);
-    const y = (random() * 2 - 1) * (z * .13 + 5);
-    const radius = .38 + random() ** 1.8 * 4.4;
-    const fragments = [0, 2, 4, 5];
-    return rock(x, y, z, radius, fragments[Math.floor(random() * fragments.length)]);
-  }
-
-  function nextFlyby(asteroid) {
-    const radius = 12 + random() * 5;
-    const side = asteroid.x < 0 ? 1 : -1;
-    const x = side * radius * (1.13 + random() * .28);
-    const y = (random() - .48) * radius * 1.2;
-    return rock(x, y, 137 + random() * 32, radius, asteroid.type);
   }
 
   function setImmersive(enabled) {
@@ -612,134 +480,66 @@ function startCruise(renderer) {
       if (enabled && document.fullscreenEnabled) await game.requestFullscreen();
       if (!enabled && document.fullscreenElement === game) await document.exitFullscreen();
     } catch {
-      // Keep the in-page view when the browser cannot enter native fullscreen.
+      // In an embedded browser the in-page immersive view is still available.
     }
-  }
-
-  function updateCruise(delta) {
-    const axes = [0, 0];
-    for (const key of keys) {
-      const [x, y] = directions.get(key);
-      axes[0] += x;
-      axes[1] += y;
-    }
-    if (pointer) {
-      axes[0] += clamp((pointer.x - pointer.originX) / 65, -1, 1);
-      axes[1] += clamp((pointer.originY - pointer.y) / 65, -1, 1);
-    }
-    const length = Math.max(1, Math.hypot(...axes));
-    const easing = 1 - Math.exp(-delta * 2.9);
-    ship.vx += (axes[0] * 2.65 / length - ship.vx) * easing;
-    ship.vy += (axes[1] * 2.3 / length - ship.vy) * easing;
-    const horizontalLimit = clamp(aspect * 7.2, 4.5, 13);
-    ship.x = clamp(ship.x + ship.vx * delta, -horizontalLimit, horizontalLimit);
-    ship.y = clamp(ship.y + ship.vy * delta, -6.2, 6.2);
-
-    for (let index = 0; index < asteroids.length; index++) {
-      const asteroid = asteroids[index];
-      asteroid.z -= delta * cruiseSpeed;
-      if (asteroid.z < -asteroid.radius * 3.35) {
-        asteroids[index] = asteroid.radius >= 10 ? nextFlyby(asteroid) : distantRock(135 + random() * 52);
-      }
-    }
-  }
-
-  function glidePastRocks(camera, delta) {
-    let x = 0;
-    let y = 0;
-    for (const asteroid of asteroids) {
-      const { z, radius } = asteroid;
-      if (z > radius * 4.6 || z < -radius * 3.3) continue;
-      const dx = camera.x - asteroid.x;
-      const dy = camera.y - asteroid.y;
-      const distance = Math.hypot(dx, dy);
-      const clearance = radius * (radius >= 10 ? 1.18 : 1.42);
-
-      // Commit to the same side for the whole flyby.
-      if (!asteroid.pass) {
-        if (distance > clearance) continue;
-        asteroid.pass = distance > .25 ? [dx / distance, dy / distance] : [-.8, .6];
-      }
-
-      const [sx, sy] = asteroid.pass;
-      const projected = dx * sx + dy * sy;
-      const across = Math.abs(dx * sy - dy * sx);
-      const target = Math.sqrt(Math.max(0, clearance ** 2 - across ** 2));
-      const weight = (1 - smoothstep(radius * 1.65, radius * 4.6, z)) * smoothstep(-radius * 3.3, -radius * 1.3, z);
-      const influence = 1 - smoothstep(clearance, clearance * 1.65, distance);
-      const offset = Math.max(0, target - projected) * weight * influence;
-      x += sx * offset;
-      y += sy * offset;
-    }
-    const ease = 1 - Math.exp(-delta * 4);
-    cameraOffset.x += (x - cameraOffset.x) * ease;
-    cameraOffset.y += (y - cameraOffset.y) * ease;
-    camera.x += cameraOffset.x;
-    camera.y += cameraOffset.y;
   }
 
   function frame(now) {
-    const delta = lastFrame ? Math.min((now - lastFrame) / 1000, .08) : 0;
+    const delta = lastFrame === null ? 0 : Math.min((now - lastFrame) / 1000, .08);
     lastFrame = now;
     sceneTime += delta;
-    updateCruise(delta);
+    distance += cruiseSpeed * delta / Math.hypot(1, routeGradient(distance));
 
+    for (let index = 0; index < asteroids.length; index++) {
+      const asteroid = asteroids[index];
+      if (asteroid.distance < distance - asteroid.radius * 2 - 23) {
+        asteroids[index] = asteroid.radius >= 7 ? nextFlyby(asteroid) : fragment(distance + 135 + random() * 96);
+      }
+    }
+
+    const lookAhead = Math.max(9, eyeHeight * focalLength);
+    const lookBack = aspect < 1 ? 0 : 4;
+    const heading = Math.atan2(
+      routeCenter(distance + lookAhead) - routeCenter(distance - lookBack),
+      lookAhead + lookBack,
+    );
     const camera = {
-      x: ship.x + Math.sin(sceneTime * .108) * .75,
-      y: ship.y + Math.sin(sceneTime * .080) * .42,
+      x: routeCenter(distance),
+      y: eyeHeight,
+      distance,
+      cos: Math.cos(heading),
+      sin: Math.sin(heading),
     };
-    glidePastRocks(camera, delta);
-    const bank = ship.vx * .007 + Math.sin(sceneTime * .096) * .007;
-    renderer.frame(asteroids, camera, aspect, bank, sceneTime);
-    instruments.frame(ship, camera, asteroids, bank);
+    const pan = Math.round(-heading * 58) / 10;
+    if (pan !== skyPan) {
+      skyPan = pan;
+      nebula.style.setProperty("--sky-pan", pan + "%");
+    }
+    renderer.frame(asteroids, camera, aspect, sceneTime);
     requestAnimationFrame(frame);
   }
 
   immersive.addEventListener("click", toggleImmersive);
   document.addEventListener("fullscreenchange", () => setImmersive(document.fullscreenElement === game));
   window.addEventListener("keydown", event => {
-    if (directions.has(event.code)) {
-      event.preventDefault();
-      keys.add(event.code);
-    } else if (event.code === "KeyF" && !event.repeat) {
+    if (event.code === "KeyF" && !event.repeat) {
       event.preventDefault();
       toggleImmersive();
     } else if (event.code === "Escape" && !document.fullscreenElement) {
       setImmersive(false);
     }
   });
-  window.addEventListener("keyup", event => keys.delete(event.code));
-  window.addEventListener("blur", () => {
-    keys.clear();
-    pointer = null;
-  });
-
-  game.addEventListener("pointerdown", event => {
-    if (event.pointerType === "mouse" || !event.isPrimary || event.target.closest("button")) return;
-    pointer = { id: event.pointerId, originX: event.clientX, originY: event.clientY, x: event.clientX, y: event.clientY };
-    game.setPointerCapture(event.pointerId);
-  });
-  game.addEventListener("pointermove", event => {
-    if (pointer?.id !== event.pointerId) return;
-    pointer.x = event.clientX;
-    pointer.y = event.clientY;
-  });
-  for (const eventName of ["pointerup", "pointercancel", "lostpointercapture"]) {
-    game.addEventListener(eventName, event => {
-      if (pointer?.id === event.pointerId) pointer = null;
-    });
-  }
 
   asteroids.push(
-    rock(-14.5, -.7, 34, 14.1, 1, [0.25, 1.22]),
-    rock(19.2, 7.3, 62, 15.9, 3, [-.31, .30]),
-    rock(-24.5, 9.4, 103, 12.1, 3, [.8, 2.1]),
-    rock(10.4, -4.8, 28, 2.8, 2),
-    rock(-.8, .1, 60, 1.35, 4),
-    rock(6.1, 6.5, 43, 1.35, 0),
-    rock(20, -10, 73, 4.1, 5),
+    rock(-1, 15, 2.4, 13.8, 5.0, 1, [.32, 1.22]),
+    rock(1, 23, 4.2, 14.3, .3, 1, [1.17, 2.42]),
+    rock(-1, 39, 9.5, 8.9, 12, 3, [-.5, .25]),
+    rock(1, 64, 11.4, 10.1, 4, 3, [.82, -.8]),
+    rock(-1, 86, 1.1, 7.8, 4.2, 1, [-1.17, .23]),
+    rock(1, 125, -4.9, 12.5, 3, 1, [.81, 1.6]),
+    rock(-1, 154, 12.5, 10.5, 6, 3, [1.27, .6]),
   );
-  for (let index = 0; index < 29; index++) asteroids.push(distantRock(54 + random() * 138));
+  for (let index = 0; index < 104; index++) asteroids.push(fragment(28 + random() * 218));
 
   resize();
   window.addEventListener("resize", resize);
@@ -747,12 +547,12 @@ function startCruise(renderer) {
   requestAnimationFrame(frame);
 }
 
-function showCockpit() {
-  if (cockpit.naturalWidth > 0) cockpit.hidden = false;
+function showNebula() {
+  if (nebula.naturalWidth > 0) nebula.hidden = false;
 }
 
-cockpit.addEventListener("load", showCockpit);
-showCockpit();
+nebula.addEventListener("load", showNebula);
+showNebula();
 
 createRenderer().then(startCruise).catch(error => {
   console.error(error);
