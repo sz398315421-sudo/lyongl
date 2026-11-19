@@ -27,7 +27,7 @@ let active = null;
 let original = null;
 let generation = 0;
 let library = null;
-let pending = null;
+
 
 async function loadLibrary() {
   if (!library) library = Promise.all([import('three'), import('./vendor/GLTFLoader.js'), import('./vendor/DRACOLoader.js')])
@@ -213,7 +213,17 @@ function configureControls(model) {
   if (!controls.children.length) controls.textContent = '通用车型 · 外观预览';
 }
 
+function releaseActive() {
+  if (active?.builtIn) {
+    active.playing = false;
+    active.wrapper.removeFromParent();
+  } else {
+    active?.dispose();
+  }
+}
+
 function activate(app, model) {
+  if (model === active) return;
   bindSimulation(app);
   if (app.focused >= 0) app.setFocus(-1);
   app.hoverCallout(-1);
@@ -222,7 +232,7 @@ function activate(app, model) {
   app.stop();
   app.drive.v = app.drive.vw = app.drive.omega = 0;
   app.panels.keys.clear();
-  active?.dispose();
+  releaseActive();
   active = model;
   original.group.visible = false;
   app.rover.body.add(model.wrapper);
@@ -255,7 +265,7 @@ function restore(app) {
   ++generation;
   if (!active) return;
   app.stop();
-  active.dispose();
+  releaseActive();
   active=null;
   original.group.visible=true;
   app.minis.views.forEach((view,i)=>{ view.ext=original.extents[i]; });
@@ -271,13 +281,12 @@ function restore(app) {
   app.resize();
 }
 
-async function change(app, getBuffer, config) {
-  pending?.abort();
-  const controller = new AbortController();
-  pending = controller;
+async function openLocal(app, file) {
+  const config = {id:'自选车型',name:file.name.replace(/\.glb$/i,''),length:3.94};
+
   const token=++generation;
   const show = message => { if (token === generation) status.textContent=message; };
-  show(config.url ? '正在连接车型库…' : '正在读取本地文件…');
+  show('正在读取本地文件…');
   let timer;
   const deadline = ms => {
     clearTimeout(timer);
@@ -285,14 +294,11 @@ async function change(app, getBuffer, config) {
       if (token !== generation) return;
       show('加载超时，请重新选择车型以重试。');
       ++generation;
-      controller.abort();
     },ms);
   };
   deadline(120000);
   try {
-    const [buffer] = await Promise.all([getBuffer(controller.signal,(loaded,total)=>{
-      show('正在下载 '+config.id+' · '+Math.min(100,Math.floor(100*loaded/total))+'%');
-    }),loadLibrary()]);
+    const [buffer] = await Promise.all([file.arrayBuffer(),loadLibrary()]);
     if (token!==generation) return;
     show('正在解析 '+config.id+' 的模型与关节…');
     deadline(45000);
@@ -305,13 +311,70 @@ async function change(app, getBuffer, config) {
   } catch(error) {
     if(token!==generation)return;
     console.error('车型载入失败',error);
-    status.textContent=config.url ? '车型下载或解析失败，请重新选择以重试。' : '无法载入车型，请选择内嵌材质和纹理的标准 GLB 文件。';
+    status.textContent='无法载入车型，请选择内嵌材质和纹理的标准 GLB 文件。';
     if(!dialog.open) dialog.showModal();
   } finally {
     clearTimeout(timer);
-    controller.abort();
-    if (pending === controller) pending=null;
   }
+}
+
+// One preparation job and one reusable scene per catalog entry, including when
+// the user selects a car while its background preparation is still running.
+function catalogEntry(app, config, indicator) {
+  let task;
+  function prepare() {
+    if (task) return task;
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const url = new URL(config.url,import.meta.url);
+    url.searchParams.set('v','compact1');
+    indicator.textContent='准备中';
+    let timer;
+    async function load() {
+      const [buffer] = await Promise.all([downloadModel(url,signal,(loaded,total)=>{
+        indicator.textContent='准备中 '+Math.floor(loaded/total*100)+'%';
+      }),loadLibrary()]);
+      signal.throwIfAborted();
+      indicator.textContent='正在组装';
+      const model = await readVehicle(buffer,config);
+      try {
+        signal.throwIfAborted();
+        await app.renderer.compileAsync(model.wrapper,app.camera,app.scene);
+        signal.throwIfAborted();
+        model.builtIn=true;
+        indicator.textContent='就绪';
+        return model;
+      } catch(error) { model.dispose(); throw error; }
+    }
+    const timeout = new Promise((_,reject)=>{
+      timer=setTimeout(()=>{
+        controller.abort();
+        reject(new Error('车型准备超时'));
+      },120000);
+    });
+    task=Promise.race([load(),timeout]).catch(error=>{
+      controller.abort();
+      task=null;
+      indicator.textContent='点击重试';
+      throw error;
+    }).finally(()=>clearTimeout(timer));
+    return task;
+  }
+  async function select() {
+    const token=++generation;
+    status.textContent='车型就绪后将自动切换。';
+    try {
+      const model=await prepare();
+      if (generation!==token) return;
+      activate(app,model);
+      dialog.close();
+    } catch(error) {
+      if (generation!==token) return;
+      console.error('车型切换失败',error);
+      status.textContent='车型准备失败，请点选车型重试。';
+    }
+  }
+  return {prepare,select};
 }
 
 async function init() {
@@ -327,27 +390,26 @@ async function init() {
     dialog.showModal();
   });
   dialog.addEventListener('keydown',event=>event.stopPropagation());
-  dialog.addEventListener('close',()=>{++generation;pending?.abort();input.value=''});
+  dialog.addEventListener('close',()=>{++generation;input.value=''});
   dialog.querySelector('[data-close]').onclick=()=>dialog.close();
   dialog.querySelector('[data-open]').onclick=()=>input.click();
-  const fetchModel = config => change(app,(signal,report)=>{
-    const url = new URL(config.url,import.meta.url);
-    url.searchParams.set('v','compact1');
-    return downloadModel(url,signal,report);
-  },config);
   for (const config of [defaultModel,...models]) {
     const choice = document.createElement('button');
     choice.textContent = config.id+' · '+config.name;
-    choice.onclick = () => {
-      if (config.url) fetchModel(config);
-      else { restore(app); dialog.close(); }
-    };
+    if (config.url) {
+      const indicator=document.createElement('small');
+      choice.append('　',indicator);
+      const entry=catalogEntry(app,config,indicator);
+      choice.onclick=entry.select;
+      // Background failures stay on the relevant menu row. Clicking it retries.
+      if (config===defaultModel) entry.select();
+      else entry.prepare().catch(()=>{});
+    } else choice.onclick=()=>{restore(app);dialog.close()};
     dialog.querySelector('.catalog').append(choice);
   }
   input.onchange=()=>{
     const file=input.files[0];
-    if(file)change(app,()=>file.arrayBuffer(),{id:'自选车型',name:file.name.replace(/\.glb$/i,''),length:3.94});
+    if(file)openLocal(app,file);
   };
-  if(defaultModel.url) await fetchModel(defaultModel);
 }
 init();
