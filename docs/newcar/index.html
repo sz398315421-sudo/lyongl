@@ -16,8 +16,10 @@
     <style>#loader{--ink:#2a2b29;--ink-2:#4b4a43;--ink-3:#8a8574;--orange:#e36b24;--olive:#6a7044;z-index:4;color:var(--ink);-webkit-user-select:none;user-select:none;background:radial-gradient(70% 60% at 50% 46%,#fffdf58c,#0000 70%),linear-gradient(#2a2b290b 1px,#0000 1px) 0 0/100px 100px,linear-gradient(90deg,#2a2b290b 1px,#0000 1px) 0 0/100px 100px,linear-gradient(#2a2b2906 1px,#0000 1px) 0 0/20px 20px,linear-gradient(90deg,#2a2b2906 1px,#0000 1px) 0 0/20px 20px,radial-gradient(120% 100%,#ebe5d4 55%,#dcd4bd 100%);place-items:center;font-family:IBM Plex Mono,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;transition:opacity .75s .1s,visibility 0s linear .9s;display:grid;position:fixed;inset:0}#loader.done{opacity:0;visibility:hidden;pointer-events:none}#loader .ld-frame{border:1.5px solid var(--ink);position:absolute;inset:8px}#loader .ld-frame:after{content:"";border:1px solid var(--ink);position:absolute;inset:12.5px}#loader .ld-sheet{background:#ede8dadb;border:1px solid #2a2b2999;width:min(600px,100vw - 96px);transition:transform .85s cubic-bezier(.2,.7,.2,1);position:relative}#loader.done .ld-sheet{transform:translateY(-12px)scale(.985)}#loader .ld-sheet:before,#loader .ld-sheet:after{content:"";border:0 solid var(--orange);width:9px;height:9px;position:absolute}#loader .ld-sheet:before{border-top-width:1.5px;border-left-width:1.5px;top:-4px;left:-4px}#loader .ld-sheet:after{border-bottom-width:1.5px;border-right-width:1.5px;bottom:-4px;right:-4px}#loader .ld-head{border-bottom:1px solid #2a2b2933;justify-content:space-between;align-items:center;padding:12px 16px 10px;display:flex}#loader .ld-id small{letter-spacing:.14em;color:var(--ink-3);font-size:9px;display:block}#loader .ld-id b{letter-spacing:.05em;font-size:28px;font-weight:600;line-height:1.05;display:block}#loader .ld-id span{letter-spacing:.16em;font-size:10px}#loader .ld-org{color:#56544c;letter-spacing:.16em;text-align:center;flex-direction:column;align-items:center;gap:4px;font-size:8.5px;line-height:1.3;display:flex}#loader .ld-org svg{width:46px;height:31px}#loader .ld-sub{letter-spacing:.12em;color:var(--ink-2);border-bottom:1px solid #2a2b2933;justify-content:space-between;padding:6px 16px;font-size:9.5px;display:flex}#loader .ld-clock{font-variant-numeric:tabular-nums;color:var(--ink-3)}#loader .ld-draw{padding:14px 18px 8px;position:relative;overflow:hidden}#loader .ld-draw svg{fill:none;stroke-linecap:round;stroke-linejoin:round;width:100%;height:auto;max-height:34vh;margin:0 auto;display:block;overflow:visible}#loader [data-from],#loader .pre{stroke-dasharray:1;stroke-dashoffset:1px}#loader [data-from]{opacity:0}#loader .pre{stroke:var(--ink);animation:1.4s cubic-bezier(.4,0,.2,1) forwards ld-draw}#loader .pre.g{stroke-width:.8px}#loader .pre.h{stroke-width:.4px;stroke:#2a2b2973;animation-delay:.3s}#loader .k{stroke:var(--ink);stroke-width:.7px}#loader .t{stroke-width:.45px}#loader .o{stroke:var(--orange);stroke-width:.9px}#loader .o.s{stroke-width:1.6px}#loader .v{stroke:var(--olive);stroke-width:1.9px}#loader .j{stroke:var(--orange);stroke-width:.9px}#loader .d{stroke:var(--ink-2);stroke-width:.4px}#loader .dt{fill:var(--ink);stroke:none;letter-spacing:.06em;opacity:0;font-size:6.4px;transition:opacity .4s}#loader .dt.on{opacity:1}#loader .ld-scan{pointer-events:none;width:100%;animation:2.6s cubic-bezier(.45,0,.55,1) infinite ld-scan;position:absolute;inset:8px 0 4px;transform:translate(-100%)}#loader .ld-scan:after{content:"";background:linear-gradient(#0000,#e36b24d9 30% 70%,#0000);width:1px;position:absolute;top:0;bottom:0;right:0}#loader .ld-steps{border-top:1px solid #2a2b2933;border-bottom:1px solid #2a2b2933;grid-template-rows:repeat(6,auto);grid-template-columns:1fr 1fr;grid-auto-flow:column;gap:3px 24px;margin:0;padding:9px 16px 8px;list-style:none;display:grid}#loader .ld-steps li{letter-spacing:.05em;color:#a19c8a;white-space:nowrap;grid-template-columns:9px 1fr auto;align-items:center;gap:8px;font-size:9.4px;display:grid}#loader .ld-steps .bx{box-sizing:border-box;border:1.2px solid;width:9px;height:9px}#loader .ld-steps .lb{text-overflow:ellipsis;overflow:hidden}#loader .ld-steps .ms{font-variant-numeric:tabular-nums;color:var(--ink-3)}#loader .ld-steps li.run{color:var(--ink)}#loader .ld-steps li.run .bx{border-color:var(--orange);animation:.7s steps(2,jump-none) infinite ld-blink}#loader .ld-steps li.ok{color:var(--ink)}#loader .ld-steps li.ok .bx{background:var(--ink);border-color:var(--ink)}#loader .ld-steps li.err{color:var(--orange)}#loader .ld-steps li.err .bx{background:var(--orange);border-color:var(--orange)}#loader .ld-foot{align-items:center;gap:10px;padding:10px 16px 7px;display:flex}#loader .ld-ret{width:16px;height:16px;stroke:var(--orange);stroke-width:1.3px;fill:none;flex:none;animation:1.8s linear infinite ld-rot}#loader .ld-now{text-overflow:ellipsis;white-space:nowrap;letter-spacing:.1em;min-width:0;color:var(--ink-2);flex:1;font-size:9.6px;overflow:hidden}#loader .ld-pct{letter-spacing:.04em;font-variant-numeric:tabular-nums;font-size:20px;font-weight:600}#loader .ld-bar{border:1px solid var(--ink);background:repeating-linear-gradient(90deg,#2a2b291f 0 10%,#0000 10% 20%);height:7px;margin:0 16px;position:relative}#loader .ld-fill{background:var(--ink);transform-origin:0;position:absolute;inset:0;transform:scaleX(0)}#loader .ld-ticks{color:var(--ink-3);justify-content:space-between;padding:4px 13px 12px;font-size:8.5px;display:flex}#loader .ld-hint{text-align:center;letter-spacing:.16em;color:var(--ink-3);margin:0;font-size:9px;position:absolute;bottom:34px;left:0;right:0}#loader.fail .ld-ret{animation:none}#loader.fail .ld-now,#loader.fail .ld-pct{color:var(--orange)}#loader.fail .ld-now{white-space:normal;line-height:1.5}#loader.fail .ld-scan{display:none}@keyframes ld-draw{to{stroke-dashoffset:0}}@keyframes ld-scan{to{transform:translate(0)}}@keyframes ld-rot{to{transform:rotate(360deg)}}@keyframes ld-blink{50%{background:var(--orange)}}@media (prefers-reduced-motion:reduce){#loader .ld-scan,#loader .ld-ret,#loader .ld-steps li.run .bx{animation:none}}</style>
     <script>if (!location.search) history.replaceState(null, '', location.pathname + '?on=solar,labels&hour=6.5&auto=0' + location.hash);</script>
     <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
-    <script type="module" src="./assets/rover-runtime.js"></script>
+    <script type="module" src="./assets/rover-runtime.js?v=immersive1"></script>
     <script type="module" src="./swap.js"></script>
+    <script type="module" src="./immersive.js"></script>
+    <link rel="stylesheet" href="./immersive.css">
     <link rel="stylesheet" crossorigin href="./assets/index-7r2T8rcX.css">
   <style>.model-entry{padding:0 10px 5px;text-align:right}.model-entry .mini{font:inherit;font-size:10px;letter-spacing:.05em;padding:2px 6px}html:lang(zh-CN) .help-body{line-height:1.55}html:lang(zh-CN) .help-body p{line-break:strict}</style>
   </head>
@@ -92,7 +94,7 @@
       <noscript><p class="ld-hint" style="bottom: 56px; color: #e36b24">请启用 JavaScript 以绘制工程图</p></noscript>
     </div>
 
-    <canvas id="gl"></canvas>
+    <canvas id="gl" tabindex="-1" aria-label="三维车辆场景，沉浸模式下轻点场景或按 Esc 退出"></canvas>
     <div id="night" aria-hidden="true"></div>
 
     <div id="sheet">
@@ -104,6 +106,7 @@
         <div class="cell" id="view-name">等轴测视图</div>
         <div class="cell">C&nbsp;版</div>
         <div class="cell">图纸 1 / 2</div>
+        <button class="cell" type="button" id="immersive-btn" title="进入沉浸模式，轻点场景或按 Esc 退出">沉浸模式</button>
         <button class="cell" id="help-btn" aria-haspopup="dialog" title="查看车辆说明和全部操作（?）">? 帮助</button>
       </header>
 
@@ -147,7 +150,7 @@
       <section id="stage" aria-label="三维车辆视图">
         <div id="stage-meta"><span id="cam-meta">方位 000° · 仰角 00°</span><span id="mode-meta">模式 · 着色</span><span id="sun-meta"></span></div>
         <div id="warn" class="hidden" role="status"></div>
-        <div id="hint">拖动旋转　滚轮缩放　双击地面设定目标　W/S/A/D 驾驶　? 帮助</div>
+        <div id="hint">拖动旋转　滚轮缩放　双击地面设定目标　W/S/A/D 驾驶　沉浸模式中轻点或按 Esc 退出</div>
       </section>
 
       <aside id="right" class="col">
@@ -255,6 +258,7 @@
           <p class="lede">
             这张实时工程图展示了一辆六轮探测车。它会扫描前方地形，根据自身越障能力规划路线，在各个勘测目标之间自主行驶。图中数据来自仿真参数和模型测量值。
           </p>
+          <p>进入沉浸模式后可继续旋转和缩放。轻点场景或按 Esc 即可退出。</p>
           <div class="help-grid for-touch">
             <div>
               <h4>观察与驾驶</h4>

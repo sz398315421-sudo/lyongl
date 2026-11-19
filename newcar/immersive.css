@@ -1,0 +1,5 @@
+body.immersive { background: var(--paper); }
+.immersive #sheet, .immersive #overlay, .immersive #tooltip,
+.immersive #grain, .immersive #crease { visibility: hidden !important; }
+.immersive #sheet *, .immersive #overlay *, .immersive #tooltip { pointer-events: none !important; }
+.immersive #gl:focus { outline: none; }
