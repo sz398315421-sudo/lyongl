@@ -1,9 +1,10 @@
-import { defaultModel } from './model-config.js';
+import { defaultModel, models, identifyModel } from './model-config.js?v=catalog1';
+import { createVehicleRig } from './vehicle-rig.js';
 
 const button = document.getElementById('change-model');
 const style = document.createElement('link');
 style.rel = 'stylesheet';
-style.href = new URL('./swap.css', import.meta.url);
+style.href = new URL('./swap.css?v=catalog1', import.meta.url);
 document.head.append(style);
 
 const dialog = document.createElement('dialog');
@@ -11,15 +12,16 @@ dialog.id = 'model-dialog';
 dialog.setAttribute('aria-labelledby', 'model-dialog-title');
 dialog.innerHTML = `
   <header><strong id="model-dialog-title">更换车型</strong><button type="button" data-close aria-label="关闭">×</button></header>
-  <p>选择包含贴图的 GLB 文件，在当前地形上预览车辆。文件仅在本机读取。</p>
-  <p>驾驶、悬架与导航沿用 ER-6 底盘参数。通用车型支持实体、线框和透视显示。</p>
+  <div class="catalog"></div>
   <input hidden type="file" accept=".glb" aria-label="本地 GLB 车型">
-  <div class="actions"><button data-open>选择本地 GLB</button><button data-reset disabled>恢复 ER-6</button></div>
+  <div class="actions"><button data-open>打开其他 GLB…</button></div>
   <output role="status" aria-live="polite"></output>`;
 document.body.append(dialog);
 const input = dialog.querySelector('input');
 const status = dialog.querySelector('output');
-const reset = dialog.querySelector('[data-reset]');
+const controls = document.createElement('div');
+controls.id = 'vehicle-controls';
+document.querySelector('#toggles').after(controls);
 let active = null;
 let original = null;
 let generation = 0;
@@ -50,7 +52,8 @@ async function readVehicle(buffer, config) {
     if (/^(blob:|data:)/i.test(url)) return url;
     throw new Error('请将材质与纹理嵌入一个 GLB 文件。');
   });
-  const { scene } = await new GLTFLoader(manager).parseAsync(buffer, '');
+  const { scene, animations } = await new GLTFLoader(manager).parseAsync(buffer, '');
+  config = identifyModel(scene) || config;
   const wrapper = new T.Group();
   const orientation = new T.Group();
   orientation.rotation.y = (Number(config.heading) || 0) * Math.PI / 180;
@@ -67,6 +70,7 @@ async function readVehicle(buffer, config) {
   wrapper.scale.setScalar(scale);
   const center = box.getCenter(new T.Vector3());
   wrapper.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+  const rig = createVehicleRig(T, scene, animations, config.kind || 'generic', scale);
   const surfaces = [];
   wrapper.traverse(mesh => {
     if (!mesh.isMesh) return;
@@ -79,7 +83,8 @@ async function readVehicle(buffer, config) {
   function renderMode(mode) {
     for (const [mesh, material] of surfaces) mesh.material = mode === 'line' ? wire : mode === 'xray' ? xray : material;
   }
-  return { wrapper, config, dimensions: dimensions.multiplyScalar(scale), renderMode, dispose() {
+  return { wrapper, rig, config, dimensions: dimensions.multiplyScalar(scale), renderMode, dispose() {
+    rig.dispose();
     renderMode('shaded');
     wrapper.removeFromParent();
     disposeModel(wrapper);
@@ -96,12 +101,35 @@ function bindSimulation(app) {
   for (const child of [...rover.body.children]) group.add(child);
   rover.body.add(group);
   overlay.gLeaders.classList.add('er6-leaders');
-  const nodes = ['.tb-id .big', '.tb-id .sub', '.foot-id b', '#dim-front-w', '#dim-front-h', '#dim-side-l', '#dim-top-w'].map(s => document.querySelector(s));
+  const nodes = ['.tb-id .big', '.tb-id .sub', '.foot-id b', '#dim-front-w', '#dim-front-h', '#dim-side-l', '#dim-top-w', '#titlebar .grow', '#help-title'].map(s => document.querySelector(s));
   original = { group, nodes, text: nodes.map(el=>el?.textContent) };
+  original.extents = app.minis.views.map(view=>view.ext);
+  const writeSettings = app.share.write.bind(app.share);
+  app.share.write = () => {
+    if (!active) return writeSettings();
+    const settings = app.sys;
+    app.sys = {...original.settings, overlay:settings.overlay};
+    try { writeSettings(); } finally { app.sys = settings; }
+  };
 
   const setSystem = app.setSystem.bind(app);
   app.setSystem = (key, value) => {
-    if (!active || !unavailable.includes(key)) setSystem(key, value);
+    if (!active || key === 'overlay') setSystem(key, value);
+  };
+  original.setSystem = setSystem;
+  const pointTurn = app.pointTurn.bind(app);
+  app.pointTurn = () => { if (!active || active.config.pointTurn) pointTurn(); };
+  const driveUpdate = app.drive.update.bind(app.drive);
+  app.drive.update = (dt, input) => {
+    if (active?.mode) {
+      const limit = Math.min(input.profile.maxSpeed, active.mode[1]);
+      input = {...input, profile:{...input.profile, maxSpeed:limit}};
+    }
+    driveUpdate(dt, input);
+    if (active) {
+      active.rig.update(dt, app.drive);
+      if (active.playing) updateArm(Math.min(1, active.progress + dt / active.rig.armDuration));
+    }
   };
   const setMode = app.setRenderMode.bind(app);
   app.setRenderMode = mode => {
@@ -125,6 +153,53 @@ function bindSimulation(app) {
     extraSpecs.append(row);
   }
   original.extraSpecs = extraSpecs;
+  const layout = document.createElement('div');
+  layout.innerHTML = '<dt>行走机构</dt><dd></dd>';
+  extraSpecs.prepend(layout);
+  original.layout = layout.querySelector('dd');
+  const help = document.createElement('div');
+  help.className = 'help-body vehicle-help';
+  document.querySelector('#help .help-body').after(help);
+  original.help = help;
+}
+
+function updateArm(progress) {
+  active.progress = progress;
+  active.rig.setArm(progress);
+  controls.querySelector('input').value = Math.round(progress * 100);
+  controls.querySelector('output').value = Math.round(progress * 100) + '%';
+  if (progress >= 1) active.playing = false;
+  controls.querySelector('[data-play]').textContent = active.playing ? '暂停' : '播放动作';
+}
+
+function configureControls(model) {
+  const {config, rig} = model;
+  controls.replaceChildren();
+  if (config.modes) {
+    const label = document.createElement('label');
+    label.textContent = '驾驶模式';
+    const select = document.createElement('select');
+    for (const [name, speed] of config.modes) select.add(new Option(name + ' · ' + (speed * 3.6).toFixed(1) + ' km/h', name));
+    select.onchange = () => { model.mode = config.modes[select.selectedIndex]; };
+    model.mode = config.modes[0];
+    label.append(select);
+    controls.append(label);
+  }
+  if (rig.hasArm) {
+    const arm = document.createElement('div');
+    arm.innerHTML = '<label>机械臂行程 <output>0%</output><input type="range" min="0" max="100" value="0"></label><div><button class="mini" data-play>播放动作</button> <button class="mini" data-home>复位</button></div>';
+    controls.append(arm);
+    arm.querySelector('input').oninput = event => { model.playing = false; updateArm(event.target.value / 100); };
+    arm.querySelector('[data-play]').onclick = () => {
+      if (model.progress >= 1) updateArm(0);
+      model.playing = !model.playing;
+      updateArm(model.progress);
+    };
+    arm.querySelector('[data-home]').onclick = () => { model.playing = false; updateArm(0); };
+    updateArm(0);
+  }
+  controls.onkeydown = e => e.stopPropagation();
+  if (!controls.children.length) controls.textContent = '通用车型 · 外观预览';
 }
 
 function activate(app, model) {
@@ -132,32 +207,55 @@ function activate(app, model) {
   if (app.focused >= 0) app.setFocus(-1);
   app.hoverCallout(-1);
   app.setHoverPart(null);
+  if (!active) original.settings = {...app.sys};
+  app.stop();
+  app.drive.v = app.drive.vw = app.drive.omega = 0;
+  app.panels.keys.clear();
   active?.dispose();
   active = model;
   original.group.visible = false;
   app.rover.body.add(model.wrapper);
   document.body.classList.add('has-imported-model');
+  document.body.classList.toggle('can-point-turn', !!model.config.pointTurn);
+  app.scoutView.group.visible = false;
+  app.tracks.mesh.visible = false;
+  for (const [key,value] of Object.entries({solar:false,drone:false,reactor:true,radiators:true,lights:false,lidar:false,thermal:false,labels:false,dims:false,explode:false,hover:false})) {
+    original.setSystem(key,value);
+  }
   for (const key of unavailable) app.panels.showEls[key].disabled = true;
   const { config, dimensions } = model;
   const dims = [dimensions.z, dimensions.y, dimensions.x].map(n=>Math.round(n*1000));
-  const labels = [config.id, config.name, config.id+' ／ '+config.name, '宽 '+dims[0], '高 '+dims[1], '长 '+dims[2], dims[2]+' × '+dims[0]];
+  const labels = [config.id, config.name, config.id+' ／ '+config.name, '宽 '+dims[0], '高 '+dims[1], '长 '+dims[2], dims[2]+' × '+dims[0],config.name,config.name+' · 操作说明'];
   original.nodes.forEach((el,i)=>{if(el) el.textContent=labels[i]});
-  original.extraSpecs.querySelectorAll('dd').forEach(dd=>dd.textContent=dimensions[dd.dataset.dimension].toFixed(2)+' 米');
+  original.layout.textContent = config.layout || '通用底盘';
+  original.extraSpecs.querySelectorAll('[data-dimension]').forEach(dd=>dd.textContent=dimensions[dd.dataset.dimension].toFixed(2)+' 米');
+  const heights = Math.max(dimensions.y,2.1);
+  const extents = [[dimensions.z,heights],[dimensions.x,heights],[dimensions.x,dimensions.z]];
+  app.minis.views.forEach((view,i)=>{ view.ext=extents[i]; });
   model.renderMode(app.lib.mode);
-  reset.disabled=false;
+  configureControls(model);
+  original.help.textContent = 'W/S 加减油门，A/D 转向，空格停车。拖动旋转视角，滚轮缩放。' +
+    (config.layout ? config.layout+'。系统面板可切换仿真限速，实际速度受地形影响。' : '此模型使用通用底盘。') +
+    (model.rig.hasArm ? '拖动机械臂行程可逐段观察关节，也可播放完整动作。T 键启动原地转向。' : '');
   app.resize();
 }
 
 function restore(app) {
   ++generation;
   if (!active) return;
+  app.stop();
   active.dispose();
   active=null;
   original.group.visible=true;
-  document.body.classList.remove('has-imported-model');
+  app.minis.views.forEach((view,i)=>{ view.ext=original.extents[i]; });
+  document.body.classList.remove('has-imported-model','can-point-turn');
+  controls.replaceChildren();
+  app.scoutView.group.visible = true;
+  app.tracks.mesh.visible = true;
+  app.tracks.reset();
+  for (const [key,value] of Object.entries(original.settings)) if (key !== 'overlay') original.setSystem(key,value);
   for (const key of unavailable) app.panels.showEls[key].disabled=false;
   original.nodes.forEach((el,i)=>{if(el) el.textContent=original.text[i]});
-  reset.disabled=true;
   status.textContent='';
   app.resize();
 }
@@ -174,7 +272,7 @@ async function change(app, getBuffer, config) {
   } catch(error) {
     if(token!==generation)return;
     console.error('车型载入失败',error);
-    status.textContent='无法载入车型，请选择内嵌材质和纹理的标准 GLB 文件。';
+    status.textContent=config.url ? '车型下载或解析失败，请重新选择以重试。' : '无法载入车型，请选择内嵌材质和纹理的标准 GLB 文件。';
     if(!dialog.open) dialog.showModal();
   }
 }
@@ -195,15 +293,24 @@ async function init() {
   dialog.addEventListener('close',()=>{++generation;input.value=''});
   dialog.querySelector('[data-close]').onclick=()=>dialog.close();
   dialog.querySelector('[data-open]').onclick=()=>input.click();
-  reset.onclick=()=>{restore(app);dialog.close()};
+  const fetchModel = config => change(app,async()=>{
+    const response=await fetch(new URL(config.url, import.meta.url));
+    if(!response.ok)throw new Error('车型请求失败');
+    return response.arrayBuffer();
+  },config);
+  for (const config of [defaultModel,...models]) {
+    const choice = document.createElement('button');
+    choice.textContent = config.id+' · '+config.name;
+    choice.onclick = () => {
+      if (config.url) fetchModel(config);
+      else { restore(app); dialog.close(); }
+    };
+    dialog.querySelector('.catalog').append(choice);
+  }
   input.onchange=()=>{
     const file=input.files[0];
     if(file)change(app,()=>file.arrayBuffer(),{id:'自选车型',name:file.name.replace(/\.glb$/i,''),length:3.94});
   };
-  if(defaultModel.url) await change(app,async()=>{
-    const response=await fetch(defaultModel.url);
-    if(!response.ok)throw new Error('车型请求失败');
-    return response.arrayBuffer();
-  },defaultModel);
+  if(defaultModel.url) await fetchModel(defaultModel);
 }
 init();

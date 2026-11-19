@@ -10,3 +10,15 @@
 .has-imported-model #imported-specs{display:block!important;margin:0;padding:4px 10px}
 #imported-specs div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #aaa59066}
 #imported-specs dd{margin:0}
+#model-dialog .catalog{display:grid;gap:8px;margin:16px 0}
+#model-dialog .catalog button{text-align:left;padding:10px 12px}
+#model-dialog .catalog button:hover,#model-dialog .catalog button:focus-visible{border-color:var(--orange);background:#fff9e9}
+#vehicle-controls,.vehicle-help{display:none}
+.has-imported-model #vehicle-controls,.has-imported-model .vehicle-help{display:block}
+.has-imported-model #toggles,.has-imported-model #susp-card,.has-imported-model #help .help-body:not(.vehicle-help),.has-imported-model #show-row button:disabled,.has-imported-model:not(.can-point-turn) #sys-card .action-row{display:none!important}
+#vehicle-controls{padding:8px 10px;border-bottom:1px solid #aaa59066}
+#vehicle-controls label{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+#vehicle-controls select,#vehicle-controls button{font:inherit;color:inherit;background:#f1eddf;border:1px solid #888574;padding:4px 6px}
+#vehicle-controls>div{margin-top:10px}
+#vehicle-controls input{width:100%;accent-color:var(--orange)}
+.vehicle-help{line-height:1.8}
