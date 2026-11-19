@@ -1,5 +1,6 @@
 import { defaultModel, models, identifyModel } from './model-config.js?v=catalog1';
 import { createVehicleRig } from './vehicle-rig.js';
+import { downloadModel } from './model-download.js';
 
 const button = document.getElementById('change-model');
 const style = document.createElement('link');
@@ -26,9 +27,11 @@ let active = null;
 let original = null;
 let generation = 0;
 let library = null;
+let pending = null;
 
 async function loadLibrary() {
-  if (!library) library = Promise.all([import('three'), import('./vendor/GLTFLoader.js')]);
+  if (!library) library = Promise.all([import('three'), import('./vendor/GLTFLoader.js'), import('./vendor/DRACOLoader.js')])
+    .catch(error => { library = null; throw error; });
   return library;
 }
 
@@ -46,13 +49,21 @@ function disposeModel(model) {
 }
 
 async function readVehicle(buffer, config) {
-  const [T, { GLTFLoader }] = await loadLibrary();
+  const [T, { GLTFLoader }, { DRACOLoader }] = await loadLibrary();
   const manager = new T.LoadingManager();
   manager.setURLModifier(url => {
     if (/^(blob:|data:)/i.test(url)) return url;
     throw new Error('请将材质与纹理嵌入一个 GLB 文件。');
   });
-  const { scene, animations } = await new GLTFLoader(manager).parseAsync(buffer, '');
+  const decoder = new DRACOLoader().setDecoderPath({
+    js:new URL('./vendor/draco/draco_wasm_wrapper.js',import.meta.url).href,
+    wasm:new URL('./vendor/draco/draco_decoder.wasm',import.meta.url).href
+  }).setWorkerLimit(2);
+  let gltf;
+  try {
+    gltf = await new GLTFLoader(manager).setDRACOLoader(decoder).parseAsync(buffer,'');
+  } finally { decoder.dispose(); }
+  const { scene, animations } = gltf;
   config = identifyModel(scene) || config;
   const wrapper = new T.Group();
   const orientation = new T.Group();
@@ -261,10 +272,32 @@ function restore(app) {
 }
 
 async function change(app, getBuffer, config) {
+  pending?.abort();
+  const controller = new AbortController();
+  pending = controller;
   const token=++generation;
-  status.textContent='正在读取车型…';
+  const show = message => { if (token === generation) status.textContent=message; };
+  show(config.url ? '正在连接车型库…' : '正在读取本地文件…');
+  let timer;
+  const deadline = ms => {
+    clearTimeout(timer);
+    timer = setTimeout(()=>{
+      if (token !== generation) return;
+      show('加载超时，请重新选择车型以重试。');
+      ++generation;
+      controller.abort();
+    },ms);
+  };
+  deadline(120000);
   try {
-    const model=await readVehicle(await getBuffer(),config);
+    const [buffer] = await Promise.all([getBuffer(controller.signal,(loaded,total)=>{
+      show('正在下载 '+config.id+' · '+Math.min(100,Math.floor(100*loaded/total))+'%');
+    }),loadLibrary()]);
+    if (token!==generation) return;
+    show('正在解析 '+config.id+' 的模型与关节…');
+    deadline(45000);
+    await new Promise(resolve=>setTimeout(resolve,0));
+    const model=await readVehicle(buffer,config);
     if (token!==generation) return model.dispose();
     activate(app,model);
     status.textContent='';
@@ -274,6 +307,10 @@ async function change(app, getBuffer, config) {
     console.error('车型载入失败',error);
     status.textContent=config.url ? '车型下载或解析失败，请重新选择以重试。' : '无法载入车型，请选择内嵌材质和纹理的标准 GLB 文件。';
     if(!dialog.open) dialog.showModal();
+  } finally {
+    clearTimeout(timer);
+    controller.abort();
+    if (pending === controller) pending=null;
   }
 }
 
@@ -290,13 +327,13 @@ async function init() {
     dialog.showModal();
   });
   dialog.addEventListener('keydown',event=>event.stopPropagation());
-  dialog.addEventListener('close',()=>{++generation;input.value=''});
+  dialog.addEventListener('close',()=>{++generation;pending?.abort();input.value=''});
   dialog.querySelector('[data-close]').onclick=()=>dialog.close();
   dialog.querySelector('[data-open]').onclick=()=>input.click();
-  const fetchModel = config => change(app,async()=>{
-    const response=await fetch(new URL(config.url, import.meta.url));
-    if(!response.ok)throw new Error('车型请求失败');
-    return response.arrayBuffer();
+  const fetchModel = config => change(app,(signal,report)=>{
+    const url = new URL(config.url,import.meta.url);
+    url.searchParams.set('v','compact1');
+    return downloadModel(url,signal,report);
   },config);
   for (const config of [defaultModel,...models]) {
     const choice = document.createElement('button');
