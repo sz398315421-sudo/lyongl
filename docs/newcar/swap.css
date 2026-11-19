@@ -1,0 +1,12 @@
+#model-dialog{color:var(--ink,#292b26);background:#ebe7d8;border:1px solid currentColor;width:min(410px,90vw);padding:18px 20px;font-family:inherit}
+#model-dialog::backdrop{background:#24251e66}
+#model-dialog header,#model-dialog .actions{display:flex;align-items:center;gap:10px}
+#model-dialog header{justify-content:space-between;border-bottom:1px solid #999582;padding-bottom:9px}
+#model-dialog button{font:inherit;color:inherit;background:#f1eddf;border:1px solid #888574;padding:5px 10px;cursor:pointer}
+#model-dialog button:disabled,.has-imported-model #show-row button:disabled{cursor:default;opacity:.45}
+#model-dialog p{font-size:14px;line-height:1.65;margin:14px 0}
+#model-dialog output{display:block;font-size:13px;margin-top:12px}
+#imported-specs,.has-imported-model #specs,.has-imported-model #callouts,.has-imported-model #overlay .dim,.has-imported-model #overlay .er6-leaders{display:none!important}
+.has-imported-model #imported-specs{display:block!important;margin:0;padding:4px 10px}
+#imported-specs div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #aaa59066}
+#imported-specs dd{margin:0}

@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>ER-6 全地形探测车 · 交互工程图</title>
+    <meta name="description" content="在火星工程图上驾驶六轮探测车，观察摇臂悬架、地形导航、太阳翼和侦察旋翼机的实时工作状态。" />
+    <meta name="theme-color" content="#ebe5d4" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="./assets/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+    <link rel="preload" href="./assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./assets/ibm-plex-mono-latin-500-normal-DSY6xOcd.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2" as="font" type="font/woff2" crossorigin />
+    <style>#loader{--ink:#2a2b29;--ink-2:#4b4a43;--ink-3:#8a8574;--orange:#e36b24;--olive:#6a7044;z-index:4;color:var(--ink);-webkit-user-select:none;user-select:none;background:radial-gradient(70% 60% at 50% 46%,#fffdf58c,#0000 70%),linear-gradient(#2a2b290b 1px,#0000 1px) 0 0/100px 100px,linear-gradient(90deg,#2a2b290b 1px,#0000 1px) 0 0/100px 100px,linear-gradient(#2a2b2906 1px,#0000 1px) 0 0/20px 20px,linear-gradient(90deg,#2a2b2906 1px,#0000 1px) 0 0/20px 20px,radial-gradient(120% 100%,#ebe5d4 55%,#dcd4bd 100%);place-items:center;font-family:IBM Plex Mono,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;transition:opacity .75s .1s,visibility 0s linear .9s;display:grid;position:fixed;inset:0}#loader.done{opacity:0;visibility:hidden;pointer-events:none}#loader .ld-frame{border:1.5px solid var(--ink);position:absolute;inset:8px}#loader .ld-frame:after{content:"";border:1px solid var(--ink);position:absolute;inset:12.5px}#loader .ld-sheet{background:#ede8dadb;border:1px solid #2a2b2999;width:min(600px,100vw - 96px);transition:transform .85s cubic-bezier(.2,.7,.2,1);position:relative}#loader.done .ld-sheet{transform:translateY(-12px)scale(.985)}#loader .ld-sheet:before,#loader .ld-sheet:after{content:"";border:0 solid var(--orange);width:9px;height:9px;position:absolute}#loader .ld-sheet:before{border-top-width:1.5px;border-left-width:1.5px;top:-4px;left:-4px}#loader .ld-sheet:after{border-bottom-width:1.5px;border-right-width:1.5px;bottom:-4px;right:-4px}#loader .ld-head{border-bottom:1px solid #2a2b2933;justify-content:space-between;align-items:center;padding:12px 16px 10px;display:flex}#loader .ld-id small{letter-spacing:.14em;color:var(--ink-3);font-size:9px;display:block}#loader .ld-id b{letter-spacing:.05em;font-size:28px;font-weight:600;line-height:1.05;display:block}#loader .ld-id span{letter-spacing:.16em;font-size:10px}#loader .ld-org{color:#56544c;letter-spacing:.16em;text-align:center;flex-direction:column;align-items:center;gap:4px;font-size:8.5px;line-height:1.3;display:flex}#loader .ld-org svg{width:46px;height:31px}#loader .ld-sub{letter-spacing:.12em;color:var(--ink-2);border-bottom:1px solid #2a2b2933;justify-content:space-between;padding:6px 16px;font-size:9.5px;display:flex}#loader .ld-clock{font-variant-numeric:tabular-nums;color:var(--ink-3)}#loader .ld-draw{padding:14px 18px 8px;position:relative;overflow:hidden}#loader .ld-draw svg{fill:none;stroke-linecap:round;stroke-linejoin:round;width:100%;height:auto;max-height:34vh;margin:0 auto;display:block;overflow:visible}#loader [data-from],#loader .pre{stroke-dasharray:1;stroke-dashoffset:1px}#loader [data-from]{opacity:0}#loader .pre{stroke:var(--ink);animation:1.4s cubic-bezier(.4,0,.2,1) forwards ld-draw}#loader .pre.g{stroke-width:.8px}#loader .pre.h{stroke-width:.4px;stroke:#2a2b2973;animation-delay:.3s}#loader .k{stroke:var(--ink);stroke-width:.7px}#loader .t{stroke-width:.45px}#loader .o{stroke:var(--orange);stroke-width:.9px}#loader .o.s{stroke-width:1.6px}#loader .v{stroke:var(--olive);stroke-width:1.9px}#loader .j{stroke:var(--orange);stroke-width:.9px}#loader .d{stroke:var(--ink-2);stroke-width:.4px}#loader .dt{fill:var(--ink);stroke:none;letter-spacing:.06em;opacity:0;font-size:6.4px;transition:opacity .4s}#loader .dt.on{opacity:1}#loader .ld-scan{pointer-events:none;width:100%;animation:2.6s cubic-bezier(.45,0,.55,1) infinite ld-scan;position:absolute;inset:8px 0 4px;transform:translate(-100%)}#loader .ld-scan:after{content:"";background:linear-gradient(#0000,#e36b24d9 30% 70%,#0000);width:1px;position:absolute;top:0;bottom:0;right:0}#loader .ld-steps{border-top:1px solid #2a2b2933;border-bottom:1px solid #2a2b2933;grid-template-rows:repeat(6,auto);grid-template-columns:1fr 1fr;grid-auto-flow:column;gap:3px 24px;margin:0;padding:9px 16px 8px;list-style:none;display:grid}#loader .ld-steps li{letter-spacing:.05em;color:#a19c8a;white-space:nowrap;grid-template-columns:9px 1fr auto;align-items:center;gap:8px;font-size:9.4px;display:grid}#loader .ld-steps .bx{box-sizing:border-box;border:1.2px solid;width:9px;height:9px}#loader .ld-steps .lb{text-overflow:ellipsis;overflow:hidden}#loader .ld-steps .ms{font-variant-numeric:tabular-nums;color:var(--ink-3)}#loader .ld-steps li.run{color:var(--ink)}#loader .ld-steps li.run .bx{border-color:var(--orange);animation:.7s steps(2,jump-none) infinite ld-blink}#loader .ld-steps li.ok{color:var(--ink)}#loader .ld-steps li.ok .bx{background:var(--ink);border-color:var(--ink)}#loader .ld-steps li.err{color:var(--orange)}#loader .ld-steps li.err .bx{background:var(--orange);border-color:var(--orange)}#loader .ld-foot{align-items:center;gap:10px;padding:10px 16px 7px;display:flex}#loader .ld-ret{width:16px;height:16px;stroke:var(--orange);stroke-width:1.3px;fill:none;flex:none;animation:1.8s linear infinite ld-rot}#loader .ld-now{text-overflow:ellipsis;white-space:nowrap;letter-spacing:.1em;min-width:0;color:var(--ink-2);flex:1;font-size:9.6px;overflow:hidden}#loader .ld-pct{letter-spacing:.04em;font-variant-numeric:tabular-nums;font-size:20px;font-weight:600}#loader .ld-bar{border:1px solid var(--ink);background:repeating-linear-gradient(90deg,#2a2b291f 0 10%,#0000 10% 20%);height:7px;margin:0 16px;position:relative}#loader .ld-fill{background:var(--ink);transform-origin:0;position:absolute;inset:0;transform:scaleX(0)}#loader .ld-ticks{color:var(--ink-3);justify-content:space-between;padding:4px 13px 12px;font-size:8.5px;display:flex}#loader .ld-hint{text-align:center;letter-spacing:.16em;color:var(--ink-3);margin:0;font-size:9px;position:absolute;bottom:34px;left:0;right:0}#loader.fail .ld-ret{animation:none}#loader.fail .ld-now,#loader.fail .ld-pct{color:var(--orange)}#loader.fail .ld-now{white-space:normal;line-height:1.5}#loader.fail .ld-scan{display:none}@keyframes ld-draw{to{stroke-dashoffset:0}}@keyframes ld-scan{to{transform:translate(0)}}@keyframes ld-rot{to{transform:rotate(360deg)}}@keyframes ld-blink{50%{background:var(--orange)}}@media (prefers-reduced-motion:reduce){#loader .ld-scan,#loader .ld-ret,#loader .ld-steps li.run .bx{animation:none}}</style>
+    <script>if (!location.search) history.replaceState(null, '', location.pathname + '?on=solar,labels&hour=6.5&auto=0' + location.hash);</script>
+    <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+    <script type="module" src="./assets/rover-runtime.js"></script>
+    <script type="module" src="./swap.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-7r2T8rcX.css">
+  <style>.model-entry{padding:0 10px 5px;text-align:right}.model-entry .mini{font:inherit;font-size:10px;letter-spacing:.05em;padding:2px 6px}html:lang(zh-CN) .help-body{line-height:1.55}html:lang(zh-CN) .help-body p{line-break:strict}</style>
+  </head>
+  <body>
+    <div id="loader" aria-busy="true" aria-label="正在绘制 ER-6 工程图">
+      <div class="ld-frame"></div>
+      <div class="ld-sheet">
+        <header class="ld-head">
+          <div class="ld-id"><small>车辆编号</small><b>ER-6</b><span>全地形探测车</span></div>
+          <div class="ld-org">
+            <svg viewBox="0 0 64 44" aria-hidden="true">
+              <path d="M4 40 L26 6 L38 24 L44 15 L60 40Z" fill="currentColor" />
+              <path d="M26 6 L31.5 14.5 L20.6 14.5Z" fill="#e36b24" />
+            </svg>
+            <span>星际勘探<br />工程部</span>
+          </div>
+        </header>
+        <div class="ld-sub"><span>整车总布置图 · 正在绘制第 1 张（共 2 张）</span><span class="ld-clock">T+0.00 S</span></div>
+        <div class="ld-draw">
+    <svg viewBox="0 0 300 160" aria-hidden="true">
+      <path pathLength="1" class="pre g" d="M6 132 H294"/>
+      <path pathLength="1" class="pre h" d="M14 132 l-5 6 M22 132 l-5 6 M30 132 l-5 6 M38 132 l-5 6 M46 132 l-5 6 M54 132 l-5 6 M62 132 l-5 6 M70 132 l-5 6 M78 132 l-5 6 M86 132 l-5 6 M94 132 l-5 6 M102 132 l-5 6 M110 132 l-5 6 M118 132 l-5 6 M126 132 l-5 6 M134 132 l-5 6 M142 132 l-5 6 M150 132 l-5 6 M158 132 l-5 6 M166 132 l-5 6 M174 132 l-5 6 M182 132 l-5 6 M190 132 l-5 6 M198 132 l-5 6 M206 132 l-5 6 M214 132 l-5 6 M222 132 l-5 6 M230 132 l-5 6 M238 132 l-5 6 M246 132 l-5 6 M254 132 l-5 6 M262 132 l-5 6 M270 132 l-5 6 M278 132 l-5 6 M286 132 l-5 6"/>
+      <circle class="k" pathLength="1" data-from="0.04" cx="66.0" cy="106.8" r="25.2"/>
+      <circle class="o" pathLength="1" data-from="0.1" cx="66.0" cy="106.8" r="19.5"/>
+      <circle class="k" pathLength="1" data-from="0.14" cx="66.0" cy="106.8" r="7"/>
+      <circle class="k" pathLength="1" data-from="0.09" cx="153.6" cy="106.8" r="25.2"/>
+      <circle class="o" pathLength="1" data-from="0.15" cx="153.6" cy="106.8" r="19.5"/>
+      <circle class="k" pathLength="1" data-from="0.19" cx="153.6" cy="106.8" r="7"/>
+      <circle class="k" pathLength="1" data-from="0.14" cx="234.0" cy="106.8" r="25.2"/>
+      <circle class="o" pathLength="1" data-from="0.2" cx="234.0" cy="106.8" r="19.5"/>
+      <circle class="k" pathLength="1" data-from="0.24" cx="234.0" cy="106.8" r="7"/>
+      <path class="k" pathLength="1" data-from="0.18" d="M62.4 106.2 L38.4 96.0 L36.0 93.0 L36.0 85.8 L262.8 85.8 L262.8 93.0 L259.2 97.2 L240.0 106.2 Z"/>
+      <path class="k" pathLength="1" data-from="0.26" d="M36.0 87.3 L36.0 73.8 L50.4 64.8 L98.4 36.0 L144.0 34.8 L144.0 87.3"/>
+      <path class="k t" pathLength="1" data-from="0.34" d="M50.4 69.0 L144.0 66.0 M98.4 66.0 L98.4 36.0 M120.0 66.0 L120.0 35.4"/>
+      <path class="o s" pathLength="1" data-from="0.38" d="M36.0 81.0 L50.4 77.4 L98.4 76.5"/>
+      <path class="k" pathLength="1" data-from="0.32" d="M144.0 43.2 L207.0 43.2 L207.0 86.4"/>
+      <path class="k t" pathLength="1" data-from="0.42" d="M177.6 80.4 V51.6 H204.0 V80.4 Z M147.0 80.4 V51.6 H173.4 V80.4 Z"/>
+      <path class="k" pathLength="1" data-from="0.36" d="M207.0 38.1 H262.8 V86.1"/>
+      <path class="o" pathLength="1" data-from="0.46" d="M208.8 38.4 V35.4 H260.4 V38.4"/>
+      <path class="k t" pathLength="1" data-from="0.5" d="M208.2 40.8 H261.0 V77.4 H208.2 Z M210.0 44.4 H259.2 M210.0 48.8 H259.2 M210.0 53.2 H259.2 M210.0 57.6 H259.2 M210.0 62.0 H259.2 M210.0 66.4 H259.2 M210.0 70.8 H259.2 M210.0 75.2 H259.2"/>
+      <path class="v" pathLength="1" data-from="0.54" d="M66.0 64.5 L106.8 62.4 L150 73.2 L193.2 85.2 M66.0 64.5 V106.8"/>
+      <path class="v" pathLength="1" data-from="0.6" d="M153.6 106.8 L193.2 85.2 L234.0 64.5 M234.0 64.5 V106.8"/>
+      <circle class="j" pathLength="1" data-from="0.62" cx="150" cy="73.2" r="5.5"/>
+      <circle class="j" pathLength="1" data-from="0.64" cx="193.2" cy="85.2" r="4.5"/>
+      <circle class="j" pathLength="1" data-from="0.64" cx="106.8" cy="62.4" r="3"/>
+      <path class="k t" pathLength="1" data-from="0.66" d="M165.6 67.2 V34.8"/>
+      <circle class="k" pathLength="1" data-from="0.68" cx="165.6" cy="34.8" r="2.5"/>
+      <path class="k" pathLength="1" data-from="0.7" d="M126.0 35.1 V27.3 M120.6 27.3 H131.4 V21.9 H120.6 Z M122.4 21.9 V18.0 H129.6 V21.9"/>
+      <path class="k t" pathLength="1" data-from="0.72" d="M139.2 34.8 V8.4 M100.8 34.2 H105.6"/>
+      <circle class="o" pathLength="1" data-from="0.74" cx="33.9" cy="89.4" r="2.8"/>
+      <circle class="k" pathLength="1" data-from="0.74" cx="36.3" cy="101.1" r="2.9"/>
+      <path class="k" pathLength="1" data-from="0.74" d="M262.8 92.4 H267.0"/>
+      <path class="d" pathLength="1" data-from="0.8" d="M31.1 146 H267.0 M28.1 149 l6 -6 M264.0 149 l6 -6 M31.1 137 V150 M267.0 137 V150"/>
+      <path class="d" pathLength="1" data-from="0.84" d="M283 132 V17.9 M280 135 l6 -6 M280 20.9 l6 -6 M276 17.9 H290"/>
+      <text class="dt" data-show="0.86" x="149.05" y="157" text-anchor="middle"><tspan id="ld-len">3 932</tspan></text>
+      <text class="dt" data-show="0.9" transform="translate(294 74.95) rotate(-90)" text-anchor="middle"><tspan id="ld-hgt">1 902</tspan></text>
+    </svg>
+          <div class="ld-scan"></div>
+        </div>
+        <ol class="ld-steps">
+          <li class="run"><i class="bx"></i><span class="lb">脚本模块</span><span class="ms">···</span></li>
+        </ol>
+        <div class="ld-foot">
+          <svg class="ld-ret" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="5.5" /><path d="M10 1v5M10 14v5M1 10h5M14 10h5" /></svg>
+          <span class="ld-now" role="status">正在加载脚本模块…</span>
+          <span class="ld-pct">00%</span>
+        </div>
+        <div class="ld-bar"><i class="ld-fill"></i></div>
+        <div class="ld-ticks"><span>0</span><span>25</span><span>50</span><span>75</span><span>100 %</span></div>
+      </div>
+      <p class="ld-hint">图号 VX-226 · C 版 · 桌面 / WebGL 2</p>
+      <noscript><p class="ld-hint" style="bottom: 56px; color: #e36b24">请启用 JavaScript 以绘制工程图</p></noscript>
+    </div>
+
+    <canvas id="gl"></canvas>
+    <div id="night" aria-hidden="true"></div>
+
+    <div id="sheet">
+      <div id="frame" aria-hidden="true"></div>
+
+      <header id="titlebar">
+        <div class="cell grow">行星探测车 <b>//</b> 六号车</div>
+        <div class="cell">图号&nbsp;VX-226</div>
+        <div class="cell" id="view-name">等轴测视图</div>
+        <div class="cell">C&nbsp;版</div>
+        <div class="cell">图纸 1 / 2</div>
+        <button class="cell" id="help-btn" aria-haspopup="dialog" title="查看车辆说明和全部操作（?）">? 帮助</button>
+      </header>
+
+      <aside id="left" class="col">
+        <section id="callouts" aria-label="车辆部件标注"></section>
+
+        <section class="card" id="sys-card">
+          <header><span>系统 // 控制</span><i>S-01</i></header>
+          <div class="toggles" id="toggles"></div>
+          <div class="seg-row">
+            <span class="seg-label">图层</span>
+            <div class="seg multi" id="show-row"></div>
+          </div>
+          <div class="seg-row">
+            <span class="seg-label">渲染</span>
+            <div class="seg" id="render-mode">
+              <button data-mode="shaded" class="on">着色</button>
+              <button data-mode="line">线框</button>
+              <button data-mode="xray">透视</button>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn wide" id="point-turn" title="四角车轮转向就位后，车辆绕中轴原地转动">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.5-3.6" /><path d="M12 1.8v3h-3" /></svg>
+              原地转向 360°
+            </button>
+          </div>
+        </section>
+
+        <section class="card" id="ortho-card">
+          <header><span>正投影 // 实时</span><i>O-02</i></header>
+          <div class="ortho" id="ortho">
+            <canvas id="mini"></canvas>
+            <div class="ov" data-view="front"><b>正视</b><span class="dim-h" id="dim-front-w"></span><span class="dim-v" id="dim-front-h"></span></div>
+            <div class="ov" data-view="side"><b>侧视</b><span class="dim-h" id="dim-side-l"></span></div>
+            <div class="ov" data-view="top"><b>俯视</b><span class="dim-h" id="dim-top-w"></span></div>
+          </div>
+        </section>
+      </aside>
+
+      <section id="stage" aria-label="三维车辆视图">
+        <div id="stage-meta"><span id="cam-meta">方位 000° · 仰角 00°</span><span id="mode-meta">模式 · 着色</span><span id="sun-meta"></span></div>
+        <div id="warn" class="hidden" role="status"></div>
+        <div id="hint">拖动旋转　滚轮缩放　双击地面设定目标　W/S/A/D 驾驶　? 帮助</div>
+      </section>
+
+      <aside id="right" class="col">
+        <section class="card title-block">
+          <div class="tb-head">
+            <div class="tb-id">
+              <span class="lbl">车辆编号</span>
+              <span class="big">ER-6</span>
+              <span class="sub">全地形探测车</span>
+            </div>
+            <div class="logo">
+              <svg viewBox="0 0 64 44" aria-hidden="true">
+                <path d="M4 40 L26 6 L38 24 L44 15 L60 40Z" fill="currentColor" />
+                <path d="M26 6 L31.5 14.5 L20.6 14.5Z" fill="var(--orange)" />
+              </svg>
+              <span>星际勘探<br />工程部</span>
+            </div>
+          </div>
+          <div class="model-entry"><button class="mini" id="change-model" type="button" aria-haspopup="dialog">更换车型</button></div>
+          <dl class="specs" id="specs"></dl>
+        </section>
+
+        <section class="card" id="terrain-card">
+          <header><span>地形选择</span><i>T-02</i></header>
+          <div class="radios" id="terrain-radios" role="radiogroup" aria-label="地形选择"></div>
+          <div class="auto-row">
+            <button class="check" id="auto-toggle" aria-pressed="true" title="在航点之间自主行驶（G）"><span class="box"></span>自主驾驶</button>
+            <button class="mini" id="next-wp" title="切换到新航点（N）">下一航点 ›</button>
+            <span class="kv" id="terrain-kv"></span>
+          </div>
+        </section>
+
+        <!-- PANEL OFF FOR NOW: hazard map. Uncomment this block to bring it back;
+             nothing else needs changing (the app draws whichever panels are in the page).
+        <section class="card" id="nav-card">
+          <header><span>导航 // 风险图与路线</span><i>N-03</i></header>
+          <div class="fill"><canvas id="nav"></canvas></div>
+          <div class="legend">
+            <span><i class="sw caution"></i>崎岖</span><span><i class="sw hazard"></i>禁行</span><span><i class="sw unknown"></i>未探测</span>
+            <span class="grow"></span><span id="nav-meta"></span>
+          </div>
+        </section>
+        -->
+
+        <section class="card" id="susp-card">
+          <header><span>悬架 // 运动分析</span><i>K-04</i></header>
+          <div class="fill"><canvas id="susp"></canvas></div>
+          <div class="readouts" id="susp-readouts"></div>
+          <canvas id="loads"></canvas>
+        </section>
+
+        <!-- PANEL OFF FOR NOW: reactor, solar, battery and coolant gauges. Uncomment to bring it back.
+        <section class="card" id="power-card">
+          <header><span>供能 // 反应堆与电池</span><i>P-05</i></header>
+          <canvas id="power"></canvas>
+        </section>
+        -->
+      </aside>
+
+      <footer id="footbar">
+        <div class="foot-title">
+          <b>整车总布置图</b>
+          <span id="scale-text">比例 1:20</span>
+        </div>
+        <svg id="scalebar" aria-hidden="true"></svg>
+        <!-- narrow screens only: the two side columns become drawers these open -->
+        <div class="foot-group drawers">
+          <button id="drawer-sys" aria-expanded="false" aria-controls="left">系统</button>
+          <button id="drawer-data" aria-expanded="false" aria-controls="right">车辆</button>
+        </div>
+        <div class="foot-group" id="view-buttons">
+          <span class="fl">视角</span>
+          <button data-view="iso" class="on">轴测</button>
+          <button data-view="front">正视</button>
+          <button data-view="side">侧视</button>
+          <button data-view="top">俯视</button>
+          <button data-view="rear">后视</button>
+        </div>
+        <div class="foot-group sol" title="当地太阳时，按 [ 或 ] 每次调整一小时">
+          <span class="fl" id="sol-label">太阳时</span>
+          <button id="sol-back" aria-label="提前一小时">−1时</button>
+          <span class="clock"><b id="sol-clock">09:00</b></span>
+          <button id="sol-fwd" aria-label="推后一小时">+1时</button>
+        </div>
+        <div class="foot-group drive">
+          <span class="fl">驾驶</span>
+          <button id="drive-stop" title="停车（空格）">■</button>
+          <input type="range" id="throttle" min="-100" max="100" value="0" step="1" aria-label="驱动速度" />
+          <span class="speed"><b id="speed">0.0</b> 千米/时</span>
+        </div>
+        <div class="foot-id">
+          <b>ER-6 // 全地形探测车</b>
+          <span>星际勘探工程部 · 图纸 1 / 2</span>
+        </div>
+      </footer>
+    </div>
+
+    <svg id="overlay" aria-hidden="true"></svg>
+    <div id="tooltip" role="tooltip"></div>
+
+    <div id="help" hidden>
+      <section class="card help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <header><span id="help-title">ER-6 // 工程图使用说明</span><button id="help-close" aria-label="关闭">关闭 ✕</button></header>
+        <div class="help-body">
+          <p class="lede">
+            这张实时工程图展示了一辆六轮探测车。它会扫描前方地形，根据自身越障能力规划路线，在各个勘测目标之间自主行驶。图中数据来自仿真参数和模型测量值。
+          </p>
+          <div class="help-grid for-touch">
+            <div>
+              <h4>观察与驾驶</h4>
+              <dl>
+                <dt>单指拖动</dt><dd>旋转视角</dd>
+                <dt>双指操作</dt><dd>缩放与平移</dd>
+                <dt>点按部件</dt><dd>查看部件细节，再点空白处退出</dd>
+                <dt>双击地面</dt><dd>让车辆驶向该点</dd>
+                <dt>系统 · 车辆</dt><dd>展开开关面板或车辆数据</dd>
+              </dl>
+            </div>
+          </div>
+          <div class="help-grid for-keys">
+            <div>
+              <h4>观察</h4>
+              <dl>
+                <dt>拖动</dt><dd>旋转视角</dd>
+                <dt>滚轮</dt><dd>缩放</dd>
+                <dt>右键拖动</dt><dd>平移</dd>
+                <dt>点击部件</dt><dd>查看部件细节</dd>
+                <dt><kbd>Esc</kbd></dt><dd>退出细节视图</dd>
+                <dt><kbd>1</kbd>–<kbd>5</kbd></dt><dd>轴测、正视、侧视、俯视、后视</dd>
+                <dt><kbd>V</kbd></dt><dd>切换着色、线框与透视</dd>
+              </dl>
+            </div>
+            <div>
+              <h4>驾驶</h4>
+              <dl>
+                <dt><kbd>G</kbd></dt><dd>开关自主驾驶</dd>
+                <dt><kbd>N</kbd></dt><dd>下一航点</dd>
+                <dt>双击地面</dt><dd>驶向该点</dd>
+                <dt><kbd>W</kbd><kbd>S</kbd><kbd>A</kbd><kbd>D</kbd></dt><dd>手动驾驶</dd>
+                <dt><kbd>空格</kbd></dt><dd>停车</dd>
+                <dt><kbd>T</kbd></dt><dd>原地转向</dd>
+              </dl>
+            </div>
+            <div>
+              <h4>系统</h4>
+              <dl>
+                <dt><kbd>X</kbd> <kbd>R</kbd></dt><dd>反应堆、散热翼</dd>
+                <dt><kbd>P</kbd></dt><dd>太阳翼（停车时展开）</dd>
+                <dt><kbd>L</kbd> <kbd>I</kbd></dt><dd>激光雷达、土壤成像仪</dd>
+                <dt><kbd>U</kbd></dt><dd>侦察旋翼机</dd>
+                <dt><kbd>F</kbd></dt><dd>泛光灯</dd>
+                <dt><kbd>[</kbd> <kbd>]</kbd></dt><dd>将当地时间调早或调晚一小时</dd>
+              </dl>
+            </div>
+            <div>
+              <h4>图纸</h4>
+              <dl>
+                <dt><kbd>K</kbd></dt><dd>部件标注</dd>
+                <dt><kbd>H</kbd></dt><dd>显示探测范围与不可通行区域</dd>
+                <dt><kbd>M</kbd></dt><dd>尺寸标注</dd>
+                <dt><kbd>E</kbd></dt><dd>分解视图</dd>
+                <dt><kbd>O</kbd></dt><dd>悬停高亮并查看部件规格</dd>
+                <dt><kbd>?</kbd></dt><dd>打开操作说明</dd>
+              </dl>
+            </div>
+          </div>
+          <h4>试一试</h4>
+          <ul>
+            <li>切换地形，观察车辆如何寻找坡道穿越河槽、顺着雅丹的脊线前进，或在崎岖的熔岩地上调节悬架。</li>
+            <li>在沙丘上放飞侦察旋翼机，看它如何勘测前路。</li>
+            <li>关闭激光雷达，把时间调至夜间，再打开泛光灯观察照明范围。</li>
+            <li>启用太阳翼并关闭反应堆，观察车辆如何调整停靠方向，利用日照补充能量。</li>
+            <li>收起散热翼，观察反应堆的输出功率如何变化。</li>
+          </ul>
+          <p class="note">地址栏会同步记录地形、系统开关和视角。复制链接即可分享当前工程图设置。</p>
+        </div>
+      </section>
+    </div>
+
+    <div id="lost" hidden>
+      <section class="card help-card">
+        <header><span>图形上下文已丢失</span></header>
+        <div class="help-body">
+          <p class="lede">浏览器已中断三维绘制。显卡驱动重置或同时运行的图形页面过多都可能引发这一情况。</p>
+          <button class="btn" onclick="location.reload()">重新加载工程图</button>
+        </div>
+      </section>
+    </div>
+    <div id="crease" aria-hidden="true"></div>
+    <div id="grain" aria-hidden="true"></div>
+
+  </body>
+</html>
