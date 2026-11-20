@@ -1,11 +1,14 @@
 import { defaultModel, models, identifyModel } from './model-config.js?v=catalog1';
 import { createVehicleRig } from './vehicle-rig.js';
+import { createVehicleContact } from './vehicle-contact.js';
+import { createVehicleSystems } from './vehicle-systems.js';
+import { buildControls, buildVehicleSpecs, buildPartViews } from './vehicle-panels.js';
 import { downloadModel } from './model-download.js';
 
 const button = document.getElementById('change-model');
 const style = document.createElement('link');
 style.rel = 'stylesheet';
-style.href = new URL('./swap.css?v=catalog1', import.meta.url);
+style.href = new URL('./swap.css?v=systems1', import.meta.url);
 document.head.append(style);
 
 const dialog = document.createElement('dialog');
@@ -82,6 +85,9 @@ async function readVehicle(buffer, config) {
   const center = box.getCenter(new T.Vector3());
   wrapper.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
   const rig = createVehicleRig(T, scene, animations, config.kind || 'generic', scale);
+  dimensions.multiplyScalar(scale);
+  const contact = createVehicleContact(T,wrapper,config,dimensions);
+  const systems = createVehicleSystems(T,scene,config,wrapper,animations);
   const surfaces = [];
   wrapper.traverse(mesh => {
     if (!mesh.isMesh) return;
@@ -94,7 +100,8 @@ async function readVehicle(buffer, config) {
   function renderMode(mode) {
     for (const [mesh, material] of surfaces) mesh.material = mode === 'line' ? wire : mode === 'xray' ? xray : material;
   }
-  return { wrapper, rig, config, dimensions: dimensions.multiplyScalar(scale), renderMode, dispose() {
+  return { wrapper, rig, systems, contact, config, dimensions, distance:0, partCenter:node=>new T.Box3().setFromObject(node).getCenter(new T.Vector3()), renderMode, dispose() {
+    systems.dispose();
     rig.dispose();
     renderMode('shaded');
     wrapper.removeFromParent();
@@ -130,14 +137,24 @@ function bindSimulation(app) {
   original.setSystem = setSystem;
   const pointTurn = app.pointTurn.bind(app);
   app.pointTurn = () => { if (!active || active.config.pointTurn) pointTurn(); };
+  const setPose=rover.setPose.bind(rover);
+  rover.setPose=q=>{setPose(q); active?.contact?.pose(app);};
   const driveUpdate = app.drive.update.bind(app.drive);
   app.drive.update = (dt, input) => {
     if (active?.mode) {
       const limit = Math.min(input.profile.maxSpeed, active.mode[1]);
       input = {...input, profile:{...input.profile, maxSpeed:limit}};
     }
-    driveUpdate(dt, input);
+    const startOdo=app.drive.odometer;
+    active?.contact?.beforeDrive(app.drive);
+    if (active && app.drive.parked) {
+      if(app.drive.throttle || app.drive.auto) app.stop();
+    } else driveUpdate(dt, input);
+    active?.contact?.afterDrive(app);
     if (active) {
+      active.distance+=Math.max(0,app.drive.odometer-startOdo);
+      active.systems.update(dt,app.drive,app);
+      if(app.frame%6===0) active.refreshSpecs?.();
       active.rig.update(dt, app.drive);
       if (active.playing) updateArm(Math.min(1, active.progress + dt / active.rig.armDuration));
     }
@@ -153,21 +170,14 @@ function bindSimulation(app) {
     active.renderMode('line');
     try { drawMiniatures(); } finally { active.renderMode(app.lib.mode); }
   };
-  const extraSpecs = document.createElement('dl');
+  const extraSpecs = document.createElement('section');
   extraSpecs.id = 'imported-specs';
   document.querySelector('#specs').after(extraSpecs);
-  for (const [key,label] of [['x','车长'],['z','车宽'],['y','车高']]) {
-    const row=document.createElement('div'), term=document.createElement('dt'), value=document.createElement('dd');
-    term.textContent=label;
-    value.dataset.dimension=key;
-    row.append(term,value);
-    extraSpecs.append(row);
-  }
-  original.extraSpecs = extraSpecs;
-  const layout = document.createElement('div');
-  layout.innerHTML = '<dt>行走机构</dt><dd></dd>';
-  extraSpecs.prepend(layout);
-  original.layout = layout.querySelector('dd');
+  original.extraSpecs=extraSpecs;
+  original.parts=document.createElement('section');
+  original.parts.id='vehicle-parts';
+  original.parts.setAttribute('aria-label','车辆部件详图');
+  document.querySelector('#callouts').after(original.parts);
   const help = document.createElement('div');
   help.className = 'help-body vehicle-help';
   document.querySelector('#help .help-body').after(help);
@@ -183,37 +193,10 @@ function updateArm(progress) {
   controls.querySelector('[data-play]').textContent = active.playing ? '暂停' : '播放动作';
 }
 
-function configureControls(model) {
-  const {config, rig} = model;
-  controls.replaceChildren();
-  if (config.modes) {
-    const label = document.createElement('label');
-    label.textContent = '驾驶模式';
-    const select = document.createElement('select');
-    for (const [name, speed] of config.modes) select.add(new Option(name + ' · ' + (speed * 3.6).toFixed(1) + ' km/h', name));
-    select.onchange = () => { model.mode = config.modes[select.selectedIndex]; };
-    model.mode = config.modes[0];
-    label.append(select);
-    controls.append(label);
-  }
-  if (rig.hasArm) {
-    const arm = document.createElement('div');
-    arm.innerHTML = '<label>机械臂行程 <output>0%</output><input type="range" min="0" max="100" value="0"></label><div><button class="mini" data-play>播放动作</button> <button class="mini" data-home>复位</button></div>';
-    controls.append(arm);
-    arm.querySelector('input').oninput = event => { model.playing = false; updateArm(event.target.value / 100); };
-    arm.querySelector('[data-play]').onclick = () => {
-      if (model.progress >= 1) updateArm(0);
-      model.playing = !model.playing;
-      updateArm(model.progress);
-    };
-    arm.querySelector('[data-home]').onclick = () => { model.playing = false; updateArm(0); };
-    updateArm(0);
-  }
-  controls.onkeydown = e => e.stopPropagation();
-  if (!controls.children.length) controls.textContent = '通用车型 · 外观预览';
-}
-
-function releaseActive() {
+function releaseActive(app) {
+  if(active && app.viewName.textContent.startsWith('部件详图 ·'))app.setView('iso');
+  active?.systems.reset(app);
+  app.drive.parked=false;
   if (active?.builtIn) {
     active.playing = false;
     active.wrapper.removeFromParent();
@@ -232,7 +215,7 @@ function activate(app, model) {
   app.stop();
   app.drive.v = app.drive.vw = app.drive.omega = 0;
   app.panels.keys.clear();
-  releaseActive();
+  releaseActive(app);
   active = model;
   original.group.visible = false;
   app.rover.body.add(model.wrapper);
@@ -248,16 +231,19 @@ function activate(app, model) {
   const dims = [dimensions.z, dimensions.y, dimensions.x].map(n=>Math.round(n*1000));
   const labels = [config.id, config.name, config.id+' ／ '+config.name, '宽 '+dims[0], '高 '+dims[1], '长 '+dims[2], dims[2]+' × '+dims[0],config.name,config.name+' · 操作说明'];
   original.nodes.forEach((el,i)=>{if(el) el.textContent=labels[i]});
-  original.layout.textContent = config.layout || '通用底盘';
-  original.extraSpecs.querySelectorAll('[data-dimension]').forEach(dd=>dd.textContent=dimensions[dd.dataset.dimension].toFixed(2)+' 米');
+  model.contact?.pose(app);
   const heights = Math.max(dimensions.y,2.1);
   const extents = [[dimensions.z,heights],[dimensions.x,heights],[dimensions.x,dimensions.z]];
   app.minis.views.forEach((view,i)=>{ view.ext=extents[i]; });
   model.renderMode(app.lib.mode);
-  configureControls(model);
+  buildPartViews(original.parts,model,app);
+  buildControls(controls,model,app,updateArm);
+  model.refreshSpecs=buildVehicleSpecs(original.extraSpecs,model,app);
+  model.refreshSpecs();
   original.help.textContent = 'W/S 加减油门，A/D 转向，空格停车。拖动旋转视角，滚轮缩放。' +
     (config.layout ? config.layout+'。系统面板可切换仿真限速，实际速度受地形影响。' : '此模型使用通用底盘。') +
     (model.rig.hasArm ? '拖动机械臂行程可逐段观察关节，也可播放完整动作。T 键启动原地转向。' : '');
+  if(model.systems.toggles.length) original.help.textContent+=' 可操作部件包括'+model.systems.toggles.map(t=>t.label).join('、')+'。';
   app.resize();
 }
 
@@ -265,7 +251,7 @@ function restore(app) {
   ++generation;
   if (!active) return;
   app.stop();
-  releaseActive();
+  releaseActive(app);
   active=null;
   original.group.visible=true;
   app.minis.views.forEach((view,i)=>{ view.ext=original.extents[i]; });
