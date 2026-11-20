@@ -9,7 +9,7 @@ function prepareOcean(){
   if(root.dataset.page==='project')ocean??=import('./project-ocean.js').catch(error=>console.warn('Static project background remains available.',error));
 }
 document.addEventListener('portfolio:content',prepareOcean);prepareOcean();
-if(surface())import('./original-hero.js?v=20261028-mobile-sync').catch(error=>{
+if(surface())import('./original-hero.js?v=20261120-access-v2').catch(error=>{
   host.dataset.sceneState='fallback';host.dataset.sceneLoading='false';
   document.querySelector('.hero').classList.add('scene-fallback');
   document.dispatchEvent(new Event('portfolio:scene-settled'));

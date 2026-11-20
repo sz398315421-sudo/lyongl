@@ -6,7 +6,9 @@ import {webcrypto} from 'node:crypto';
 
 const source = await readFile(new URL('../docs/access-control.js', import.meta.url), 'utf8');
 const accessPassword = process.env.PORTFOLIO_TEST_PASSWORD;
-function fixture(route, {stored = false, storageBlocked = false, crypto = webcrypto} = {}) {
+const revokedPassword = process.env.PORTFOLIO_REVOKED_PASSWORD;
+const sessionKey = source.match(/const sessionKey = '([^']+)'/)[1];
+function fixture(route, {stored = false, legacyStored = false, storageBlocked = false, crypto = webcrypto} = {}) {
   const events = {}, windowEvents = {}, fields = {};
   const root = {dataset: {}};
   const nodes = {};
@@ -16,15 +18,18 @@ function fixture(route, {stored = false, storageBlocked = false, crypto = webcry
     matches() { return this.modal; }, close() { this.open = this.modal = false; },
     showModal() { this.open = this.modal = true; }, focus() {}, select() {},
     setAttribute(k,v) { this.attributes[k]=v; }, removeAttribute(k) { delete this.attributes[k]; }};
-  let ready = false, session = stored ? 'granted' : null;
+  let ready = false;
+  const session = new Map();
+  if (stored) session.set(sessionKey, 'granted');
+  if (legacyStored) session.set('yongle:portfolio-access:v1', 'granted');
   const location = new URL(route, 'https://lyongl.xyz');
   const document = {documentElement:root,
     getElementById:id => ready ? node(id) : null,
     addEventListener:(type,fn)=>events[type]=fn,
     dispatchEvent:event=>events[event.type]?.(event)};
   const window = {crypto, addEventListener:(type,fn)=>windowEvents[type]=fn};
-  const sessionStorage = {getItem() { if(storageBlocked)throw Error(); return session; },
-    setItem(_,value) { if(storageBlocked)throw Error(); session=value; }};
+  const sessionStorage = {getItem(key) { if(storageBlocked)throw Error(); return session.get(key) ?? null; },
+    setItem(key,value) { if(storageBlocked)throw Error(); session.set(key,value); }};
   runInNewContext(source, {document,window,location,sessionStorage,URL,Event,TextEncoder,Uint8Array});
   ready = true; events.DOMContentLoaded();
   return {root,window,location,node,events,windowEvents,
@@ -59,6 +64,16 @@ test('the supplied deployment password unlocks the original deep link', {skip:!a
 
 test('session unlock survives reload', () => {
   assert.equal(fixture('/about/',{stored:true}).root.dataset.access,'open');
+});
+
+test('the previous password session no longer grants access', () => {
+  assert.equal(fixture('/about/',{legacyStored:true}).root.dataset.access,'locked');
+});
+
+test('the revoked password no longer unlocks private pages', {skip:!revokedPassword}, async () => {
+  const f=fixture('/projects/');await f.submit(revokedPassword);
+  assert.equal(f.root.dataset.access,'locked');
+  assert.match(f.node('access-error').textContent,/不正确/);
 });
 
 test('storage denial still permits this document to unlock', {skip:!accessPassword}, async () => {
@@ -96,7 +111,7 @@ test('switching from public hashes back to private routes locks again without gr
 });
 
 test('courtyard frame responds when the parent unlocks the shared tab session', () => {
-  const f=fixture('/unseen-engine/');f.windowEvents.storage({key:'yongle:portfolio-access:v1',newValue:'granted'});
+  const f=fixture('/unseen-engine/');f.windowEvents.storage({key:sessionKey,newValue:'granted'});
   assert.equal(f.root.dataset.access,'open');assert.equal(f.node('access-gate').open,false);
 });
 

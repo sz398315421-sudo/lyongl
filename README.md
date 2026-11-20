@@ -32,6 +32,8 @@
 
 2026-11-20：浏览器使用 Web Crypto 的 PBKDF2 与 SHA-256 校验密码，发布文件只包含随机盐值、迭代次数和派生校验值，不再保存明文密码。测试正确密码时，通过进程环境变量 `PORTFOLIO_TEST_PASSWORD` 注入，勿写入源码或提交。该校验仍在客户端执行，不提供服务端访问控制。
 
+同日轮换密码与随机盐，并升级访问会话版本，旧会话在加载新版页面后失效。通过 `PORTFOLIO_REVOKED_PASSWORD` 注入旧密码可验证其已不可用；庭院 iframe 和入口脚本同步更新缓存版本。
+
 ## 弹幕小游戏
 
 [打开 CHROMAFALL · 霓虹颜料领地](https://lyongl.xyz/danmugame/)

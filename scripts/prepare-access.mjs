@@ -9,7 +9,7 @@ const head = `
   <!-- access-control:start -->
   <style>html[data-access="locked"] body>:not(#access-gate):not(.access-noscript){visibility:hidden!important;pointer-events:none!important}html:not([data-access="locked"]) #access-gate{display:none!important}</style>
   <link rel="stylesheet" href="/access-control.css?v=20261102-minimal">
-  <script src="/access-control.js?v=20261120-pbkdf2"></script>
+  <script src="/access-control.js?v=20261120-access-v2"></script>
   <!-- access-control:end -->`;
 const gate = `
   <!-- access-gate:start -->
@@ -37,8 +37,8 @@ for (const route of routes) {
     .replace(/<html([^>]*?)>/, (_, attrs) => `<html${attrs.replace(/ data-access="[^"]*"/, '')} data-access="locked">`)
     .replace(/<head>/, `<head>${head}`)
     .replace(/<body([^>]*)>/, `<body$1>${gate}`)
-    .replace(/app-controller\.js\?v=[^" ]+/, 'app-controller.js?v=20261102-secret')
-    .replace(/scene-start\.js\?v=[^" ]+/, 'scene-start.js?v=20261102-gallery-ready')
+    .replace(/app-controller\.js\?v=[^" ]+/, 'app-controller.js?v=20261120-access-v2')
+    .replace(/scene-start\.js\?v=[^" ]+/, 'scene-start.js?v=20261120-access-v2')
     .replace(/welcome\.js\?v=[^" ]+/, 'welcome.js?v=20261102-secret');
   await writeFile(url, html);
 }

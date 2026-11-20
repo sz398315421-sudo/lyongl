@@ -2,11 +2,11 @@
 (() => {
   'use strict';
   const root = document.documentElement;
-  const sessionKey = 'yongle:portfolio-access:v1';
+  const sessionKey = 'yongle:portfolio-access:v2';
   const passwordVerifier = Object.freeze({
-    salt: '4f4f7553dc0f6439179c103e417d6009',
+    salt: '6519cc621543bfba7e34e5b6ef6aaa7d',
     iterations: 600000,
-    hash: '34fc8af92a49d4dfa10fcd9741b4c6a18a2b0a7470b4ea3f393ce1d0c842b6a1',
+    hash: '122ebeb2e59836bc445af6e86e07f839f671244e4552dcfc03134aa79c37877b',
   });
   async function verifyPassword(password) {
     const subtle = window.crypto?.subtle;
