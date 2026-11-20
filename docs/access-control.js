@@ -3,6 +3,20 @@
   'use strict';
   const root = document.documentElement;
   const sessionKey = 'yongle:portfolio-access:v1';
+  const passwordVerifier = Object.freeze({
+    salt: '4f4f7553dc0f6439179c103e417d6009',
+    iterations: 600000,
+    hash: '34fc8af92a49d4dfa10fcd9741b4c6a18a2b0a7470b4ea3f393ce1d0c842b6a1',
+  });
+  async function verifyPassword(password) {
+    const subtle = window.crypto?.subtle;
+    if (!subtle) throw new Error('Password verification requires Web Crypto.');
+    const salt = Uint8Array.from(passwordVerifier.salt.match(/../g), byte => parseInt(byte, 16));
+    const key = await subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bits = await subtle.deriveBits({name:'PBKDF2', hash:'SHA-256', salt, iterations:passwordVerifier.iterations}, key, 256);
+    const hash = Array.from(new Uint8Array(bits), byte => byte.toString(16).padStart(2, '0')).join('');
+    return hash === passwordVerifier.hash;
+  }
   let unlocked = false;
   try { unlocked = sessionStorage.getItem(sessionKey) === 'granted'; } catch {}
 
@@ -36,21 +50,44 @@
     const form = document.getElementById('access-form');
     const input = document.getElementById('access-password');
     const error = document.getElementById('access-error');
+    const submit = form.querySelector('button[type="submit"]');
+    let checking = false;
     gate.addEventListener('cancel', event => event.preventDefault());
-    form.addEventListener('submit', event => {
+    form.addEventListener('submit', async event => {
       event.preventDefault();
-      if (input.value !== '6666') {
-        error.textContent = input.value ? '密码不正确，请重试。' : '请输入密码。';
+      if (checking) return;
+      if (!input.value) {
+        error.textContent = '请输入密码。';
         input.setAttribute('aria-invalid', 'true');
-        input.focus(); input.select();
+        input.focus();
         return;
       }
-      unlocked = true;
-      try { sessionStorage.setItem(sessionKey, 'granted'); } catch {}
-      input.value = ''; error.textContent = '';
+      checking = true;
+      input.disabled = submit.disabled = true;
+      gate.setAttribute('aria-busy', 'true');
+      error.textContent = '';
       input.removeAttribute('aria-invalid');
-      sync();
-      document.dispatchEvent(new Event('portfolio:unlocked'));
+      let valid = false;
+      try {
+        valid = await verifyPassword(input.value);
+        if (!valid) {
+          error.textContent = '密码不正确，请重试。';
+          input.setAttribute('aria-invalid', 'true');
+          return;
+        }
+        unlocked = true;
+        try { sessionStorage.setItem(sessionKey, 'granted'); } catch {}
+        input.value = '';
+        sync();
+        document.dispatchEvent(new Event('portfolio:unlocked'));
+      } catch {
+        error.textContent = '密码验证暂不可用，请刷新重试。';
+      } finally {
+        checking = false;
+        input.disabled = submit.disabled = false;
+        gate.removeAttribute('aria-busy');
+        if (!valid) { input.focus(); input.select(); }
+      }
     });
     input.addEventListener('input', () => {
       error.textContent = ''; input.removeAttribute('aria-invalid');

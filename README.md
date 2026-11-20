@@ -30,6 +30,8 @@
 
 访问界面在 `docs/access-control.js`、`docs/access-control.css`，共享标记由 `node scripts/prepare-access.mjs` 更新到所有作品集 HTML。GitHub Pages 仅提供静态文件；此功能是前端浏览门槛，无法替代服务器认证，也不会保护公开仓库或静态资源的直接访问。
 
+2026-11-20：浏览器使用 Web Crypto 的 PBKDF2 与 SHA-256 校验密码，发布文件只包含随机盐值、迭代次数和派生校验值，不再保存明文密码。测试正确密码时，通过进程环境变量 `PORTFOLIO_TEST_PASSWORD` 注入，勿写入源码或提交。该校验仍在客户端执行，不提供服务端访问控制。
+
 ## 弹幕小游戏
 
 [打开 CHROMAFALL · 霓虹颜料领地](https://lyongl.xyz/danmugame/)

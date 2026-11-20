@@ -2,14 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile, readdir} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
+import {webcrypto} from 'node:crypto';
 
 const source = await readFile(new URL('../docs/access-control.js', import.meta.url), 'utf8');
-function fixture(route, {stored = false, storageBlocked = false} = {}) {
+const accessPassword = process.env.PORTFOLIO_TEST_PASSWORD;
+function fixture(route, {stored = false, storageBlocked = false, crypto = webcrypto} = {}) {
   const events = {}, windowEvents = {}, fields = {};
   const root = {dataset: {}};
   const nodes = {};
   const node = id => nodes[id] ??= {hidden:false,open:id==='access-gate',value:'',textContent:'',attributes:{},
     addEventListener(type, fn) { fields[`${id}:${type}`] = fn; },
+    querySelector() { return node('access-submit'); },
     matches() { return this.modal; }, close() { this.open = this.modal = false; },
     showModal() { this.open = this.modal = true; }, focus() {}, select() {},
     setAttribute(k,v) { this.attributes[k]=v; }, removeAttribute(k) { delete this.attributes[k]; }};
@@ -19,13 +22,13 @@ function fixture(route, {stored = false, storageBlocked = false} = {}) {
     getElementById:id => ready ? node(id) : null,
     addEventListener:(type,fn)=>events[type]=fn,
     dispatchEvent:event=>events[event.type]?.(event)};
-  const window = {addEventListener:(type,fn)=>windowEvents[type]=fn};
+  const window = {crypto, addEventListener:(type,fn)=>windowEvents[type]=fn};
   const sessionStorage = {getItem() { if(storageBlocked)throw Error(); return session; },
     setItem(_,value) { if(storageBlocked)throw Error(); session=value; }};
-  runInNewContext(source, {document,window,location,sessionStorage,URL,Event});
+  runInNewContext(source, {document,window,location,sessionStorage,URL,Event,TextEncoder,Uint8Array});
   ready = true; events.DOMContentLoaded();
   return {root,window,location,node,events,windowEvents,
-    submit(value) { node('access-password').value=value;fields['access-form:submit']({preventDefault(){}}); }};
+    submit(value) { node('access-password').value=value;return fields['access-form:submit']({preventDefault(){}}); }};
 }
 
 test('only exploration and its experiment trees are public', () => {
@@ -39,20 +42,50 @@ test('only exploration and its experiment trees are public', () => {
   }
 });
 
-test('wrong or empty passwords stay locked; correct password unlocks the original deep link', () => {
-  const f=fixture('/projects/hongqi/');let notified=false;f.events['portfolio:unlocked']=()=>notified=true;
-  for (const value of ['', '1234','666','66666',' 6666']) {
-    f.submit(value);assert.equal(f.root.dataset.access,'locked');assert.ok(f.node('access-error').textContent);
+test('wrong or empty passwords stay locked', async () => {
+  const f=fixture('/projects/hongqi/');
+  for (const value of ['', '1234', 'incorrect-password']) {
+    await f.submit(value);assert.equal(f.root.dataset.access,'locked');assert.ok(f.node('access-error').textContent);
+    assert.equal(f.node('access-password').disabled || false, false);
   }
-  f.submit('6666');assert.equal(f.root.dataset.access,'open');assert.equal(f.node('access-gate').open,false);
+});
+
+test('the supplied deployment password unlocks the original deep link', {skip:!accessPassword}, async () => {
+  const f=fixture('/projects/hongqi/');let notified=false;f.events['portfolio:unlocked']=()=>notified=true;
+  await f.submit(accessPassword);assert.equal(f.root.dataset.access,'open');assert.equal(f.node('access-gate').open,false);
   assert.equal(f.location.pathname,'/projects/hongqi/');assert.equal(notified,true);
   assert.equal(f.node('access-password').value,'');
 });
 
-test('session unlock survives reload; storage denial still permits this document to unlock', () => {
+test('session unlock survives reload', () => {
   assert.equal(fixture('/about/',{stored:true}).root.dataset.access,'open');
-  const f=fixture('/',{storageBlocked:true});f.submit('6666');assert.equal(f.root.dataset.access,'open');
+});
+
+test('storage denial still permits this document to unlock', {skip:!accessPassword}, async () => {
+  const f=fixture('/',{storageBlocked:true});await f.submit(accessPassword);assert.equal(f.root.dataset.access,'open');
   assert.equal(f.window.portfolioAccess.canView('/projects/'),true);
+});
+
+test('missing or failed cryptography stays locked and restores the form controls', async () => {
+  for (const crypto of [undefined, {subtle:{importKey:async()=>{throw new Error('unavailable');}}}]) {
+    const f=fixture('/',{crypto:crypto || null});await f.submit('test-password');
+    assert.equal(f.root.dataset.access,'locked');
+    assert.match(f.node('access-error').textContent,/暂不可用/);
+    assert.equal(f.node('access-password').disabled,false);
+    assert.equal(f.node('access-submit').disabled,false);
+  }
+});
+
+test('repeated submits do not start concurrent password derivations', async () => {
+  let release, calls=0;
+  const f=fixture('/',{crypto:{subtle:{importKey:()=>new Promise(resolve=>{calls++;release=resolve;}),deriveBits:async()=>new ArrayBuffer(32)}}});
+  const pending=f.submit('test-password');await f.submit('test-password');
+  assert.equal(calls,1);assert.equal(f.node('access-submit').disabled,true);
+  release({});await pending;assert.equal(f.node('access-submit').disabled,false);
+});
+
+test('deployed verifier does not contain the supplied plaintext password', {skip:!accessPassword}, () => {
+  assert.ok(!source.includes(accessPassword));
 });
 
 test('switching from public hashes back to private routes locks again without granting access', () => {
