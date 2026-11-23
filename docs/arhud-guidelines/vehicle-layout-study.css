@@ -1,0 +1,58 @@
+.vehicle-study { background: #f5f7fa; color: #172238; }
+.study-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 16px max(22px, calc((100vw - 1200px) / 2));
+  background: #fff;
+  border-bottom: 1px solid #d7dfe8;
+}
+.study-top nav { display: flex; flex-wrap: wrap; gap: 18px; }
+.study-main {
+  max-width: 1200px;
+  width: calc(100% - 40px);
+  margin: 0 auto;
+  padding: 0 0 48px;
+}
+.study-title { padding: 48px 0 22px; }
+.study-title h1 { margin: 8px 0 16px; font-size: clamp(28px, 5vw, 47px); }
+.study-title > p { max-width: 780px; }
+.study-section { padding: 24px 0 30px; border-top: 1px solid #d7dfe8; scroll-margin-top: 20px; }
+.study-section h2 { margin-top: 0; }
+.study-controls { display: flex; gap: 12px 20px; flex-wrap: wrap; align-items: end; margin: 16px 0; }
+.study-controls label { display: grid; gap: 4px; font-size: .93rem; }
+.study-controls select { padding: 7px 10px; min-width: 140px; }
+.study-controls p { margin: 0; }
+.study-grid, .study-findings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.vehicle-card, .study-findings article { background: #fff; border: 1px solid #d7dfe8; border-radius: 10px; padding: 18px; }
+.vehicle-card[hidden] { display: none; }
+.vehicle-card { scroll-margin-top: 20px; }
+.vehicle-card h3, .study-findings h3 { margin: 6px 0; }
+.vehicle-meta, .vehicle-note, .vehicle-card figcaption { font-size: .89rem; }
+.vehicle-meta { color: #4f6177; margin: 0; }
+.vehicle-card figure { margin: 14px 0 0; }
+.vehicle-image { display: grid; place-items: center; background: #eef2f6; min-height: 180px; border-radius: 6px; overflow: hidden; }
+.vehicle-image img { display: block; max-width: 100%; max-height: 390px; object-fit: contain; }
+.vehicle-card figcaption { margin-top: 8px; }
+.vehicle-card dl { margin: 14px 0; }
+.vehicle-card dl div { display: grid; grid-template-columns: 105px 1fr; gap: 8px; padding: 9px 0; border-top: 1px solid #e1e6ee; }
+.vehicle-card dt { color: #345478; font-weight: 600; }
+.vehicle-card dd { margin: 0; }
+.vehicle-sources a { display: inline-block; margin-right: 10px; }
+.study-matrix { min-width: 970px; }
+.study-matrix th, .study-matrix td { vertical-align: top; }
+.study-matrix small { display: block; margin-top: 5px; }
+.study-footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid #d7dfe8; padding-top: 18px; }
+@media (max-width: 720px) {
+  .study-grid, .study-findings { grid-template-columns: 1fr; }
+  .study-main { width: calc(100% - 28px); }
+  .study-title { padding-top: 30px; }
+}
+@media print {
+  .study-top, .study-controls, .study-title .downloads { display: none; }
+  .study-main { width: 100%; }
+  .study-grid, .study-findings { grid-template-columns: 1fr; }
+  .vehicle-card { break-inside: avoid; }
+  .study-matrix { min-width: 0; }
+}
