@@ -24,6 +24,7 @@ for (const side of ['left', 'right']) {
     const card = document.getElementById(`case-${select.value}`).cloneNode(true);
     card.removeAttribute('id');
     card.hidden = false;
+    card.querySelector('.vehicle-displays').open = true;
     panel.replaceChildren(card);
   });
 }
@@ -39,6 +40,33 @@ function revealLinkedCase() {
   target.scrollIntoView();
 }
 
+const ratioFilter = document.getElementById('ratio-filter');
+const ratioCount = document.getElementById('ratio-count');
+const screenRows = document.querySelectorAll('[data-ratio-status]');
+
+function filterRatios() {
+  let visible = 0;
+  for (const row of screenRows) {
+    row.hidden = Boolean(ratioFilter.value && row.dataset.ratioStatus !== ratioFilter.value);
+    if (!row.hidden) visible += 1;
+  }
+  ratioCount.textContent = `${visible} 条参数`;
+}
+
+function revealLinkedRatios() {
+  const id = location.hash.slice(1);
+  if (!id.startsWith('ratio-')) return;
+  const group = document.getElementById(id);
+  if (!group?.querySelector('tr[hidden]')) return;
+  ratioFilter.value = '';
+  filterRatios();
+  group.scrollIntoView();
+}
+
+ratioFilter.addEventListener('change', filterRatios);
+window.addEventListener('hashchange', revealLinkedRatios);
 window.addEventListener('hashchange', revealLinkedCase);
+filterRatios();
 filterGallery();
+revealLinkedRatios();
 revealLinkedCase();

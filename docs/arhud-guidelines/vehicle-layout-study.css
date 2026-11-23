@@ -39,15 +39,41 @@
 .vehicle-card dl div { display: grid; grid-template-columns: 105px 1fr; gap: 8px; padding: 9px 0; border-top: 1px solid #e1e6ee; }
 .vehicle-card dt { color: #345478; font-weight: 600; }
 .vehicle-card dd { margin: 0; }
+.vehicle-displays { border-top: 1px solid #d7dfe8; padding-top: 10px; font-size: .9rem; }
+.vehicle-displays summary { width: fit-content; cursor: pointer; font-weight: 650; color: #345478; }
+.vehicle-displays ul { list-style: none; margin: 9px 0; padding: 0; }
+.vehicle-displays li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(68px, auto);
+  align-items: start;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid #e1e6ee;
+}
+.vehicle-displays li span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.vehicle-displays small { display: block; color: #4f6177; }
 .vehicle-sources a { display: inline-block; margin-right: 10px; }
 .study-matrix { min-width: 970px; }
 .study-matrix th, .study-matrix td { vertical-align: top; }
 .study-matrix small { display: block; margin-top: 5px; }
+.ratio-method { max-width: 860px; }
+.ratio-method li { margin-block: 6px; }
+.ratio-method strong { margin-inline-end: 8px; }
+.ratio-controls { align-items: center; }
+.ratio-controls a { margin-inline-start: auto; }
+.ratio-table-wrap { max-height: 640px; overflow: auto; }
+.study-ratios { min-width: 860px; font-variant-numeric: tabular-nums; }
+.study-ratios thead { position: sticky; top: 0; z-index: 1; }
+.study-ratios tbody { scroll-margin-top: 65px; }
+.study-ratios tbody + tbody { border-top: 2px solid #d7dfe8; }
+.study-ratios [hidden] { display: none; }
+.study-ratios .ratio-value { white-space: nowrap; font-weight: 650; }
 .study-footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid #d7dfe8; padding-top: 18px; }
 @media (max-width: 720px) {
   .study-grid, .study-findings { grid-template-columns: 1fr; }
   .study-main { width: calc(100% - 28px); }
   .study-title { padding-top: 30px; }
+  .ratio-controls a { margin-inline-start: 0; }
 }
 @media print {
   .study-top, .study-controls, .study-title .downloads { display: none; }
@@ -55,4 +81,6 @@
   .study-grid, .study-findings { grid-template-columns: 1fr; }
   .vehicle-card { break-inside: avoid; }
   .study-matrix { min-width: 0; }
+  .study-ratios thead { position: static; }
+  .ratio-table-wrap { max-height: none; overflow: visible; }
 }

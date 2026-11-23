@@ -16,6 +16,44 @@
       "assist": "右侧编排限速和道路提示，图中保留原手册引线",
       "note": "在保留中央车速的同时，用两侧容纳常用信息。手册说明可开启 AR 增强，图示仅对应所选版本。",
       "displayType": "状态区＋道路关联 AR",
+      "displays": [
+        {
+          "screen": "双焦面 AR-HUD",
+          "published": "近、远双焦面",
+          "source": "https://aito.auto/model/m9-new/configuration/",
+          "note": "近区与远区的宽高分别待确认。",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "主驾仪表",
+          "published": "12.3 英寸",
+          "source": "https://aito.auto/model/m9-new/configuration/",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "17.2 英寸",
+          "source": "https://aito.auto/model/m9-new/configuration/",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "副驾",
+          "published": "17.2 英寸",
+          "source": "https://aito.auto/model/m9-new/configuration/",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "2abbb641c7f983e50f6993227a0902d6d5663fa2aa00fc3e2372bbe0ecd65378"
     },
     {
@@ -33,6 +71,56 @@
       "assist": "中央显示车道、车辆、辅助驾驶和告警",
       "note": "手册明确给出左导航、中辅助、右车速。中央车道场景属于 HUD 内的环境可视化，公开手册未给出它与真实车道的位置注册证据。",
       "displayType": "固定信息区 HUD",
+      "displays": [
+        {
+          "screen": "HUD 手册示意区",
+          "published": "黑底布局框",
+          "source": "https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html",
+          "note": "原图 800 × 396，黑底 x=0、y=96、宽 800、高 300。",
+          "basis": "图示估算",
+          "width": 800,
+          "height": 300,
+          "unit": "图像 px",
+          "aspectRatio": 2.6666666666666665,
+          "heightAt1920": null
+        },
+        {
+          "screen": "安全驾驶交互屏",
+          "published": "方向盘交互屏",
+          "source": "https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "座舱触控屏",
+          "source": "https://www.lixiang.com/i8",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "副驾",
+          "published": "座舱触控屏",
+          "source": "https://www.lixiang.com/i8",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "后舱娱乐",
+          "published": "产品页列 21.4 英寸，随配置",
+          "source": "https://www.lixiang.com/i8",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "97990a0577c64e6cc3369646f078bee6f4c956bde60dfa9b60b13d1ead219ddd"
     },
     {
@@ -52,6 +140,35 @@
       "assist": "左侧有续航，当前图未展示警告态",
       "note": "信息围绕中心速度锚点排布，下方仪表重复关键速度。本文按可观察布局归类，未用此图判定道路注册能力。",
       "displayType": "固定信息区 HUD",
+      "displays": [
+        {
+          "screen": "HUD",
+          "published": "56 英寸",
+          "source": "https://s1.xiaomiev.com/activity-outer-assets/0328/env/SU7%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E8%A1%A8.pdf",
+          "note": "初代配置表，依车型。",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "翻转仪表",
+          "published": "7.1 英寸",
+          "source": "https://s1.xiaomiev.com/activity-outer-assets/0328/env/SU7%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E8%A1%A8.pdf",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "16.1 英寸 / 3K",
+          "source": "https://s1.xiaomiev.com/activity-outer-assets/0328/env/SU7%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E8%A1%A8.pdf",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "cbaf9c64b6d560065564989cc37f51743d6ff54e5743159c6b239d472bd7e3b2"
     },
     {
@@ -70,6 +187,35 @@
       "assist": "演示图有 NGP 和限速，发布文列出变道意图与场景告警",
       "note": "固定读数和场景提示可并存。比较重点是密集路口里贴路提示与信息带是否争抢注意力，发布会大屏无法验证实车效果。",
       "displayType": "状态区＋道路关联 AR",
+      "displays": [
+        {
+          "screen": "AR-HUD",
+          "published": "87 英寸等效 / 10 m",
+          "source": "https://www.xiaopeng.com/news/company_news/5473.html",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "15.6 英寸",
+          "source": "https://www.xiaopeng.com/g7/configuration.html",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "后排娱乐",
+          "published": "8 英寸",
+          "source": "https://www.xiaopeng.com/g7/configuration.html",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "2628673cfe8156b94ec944eb280c04d58ed88259756ea10ba1aaafb2e7631b89"
     },
     {
@@ -88,6 +234,26 @@
       "assist": "中央可见车辆图形，左侧 P 挡",
       "note": "产品页将其称为 AR-HUD。静态原图适合看横向分工，告警位置、实际贴路精度和国内 OTA 版本仍待核对。",
       "displayType": "状态区＋道路关联 AR",
+      "displays": [
+        {
+          "screen": "AR-HUD",
+          "published": "35.5 英寸",
+          "source": "https://www.zeekrlife.com/global/vehicles/007",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "15.05 英寸 / 2.5K OLED",
+          "source": "https://www.zeekrlife.com/global/vehicles/007",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "805a97a0e04a71de54ab3073dc907801958dd7cddb9b9ba1545baa8459761bd7"
     },
     {
@@ -106,7 +272,256 @@
       "assist": "主驾与乘客可见的横向空间承担不同任务",
       "note": "利用前风挡下黑区显示，横向空间增加后，主驾关键信息仍需要独立分组。品牌给出的 1.1m 是条带宽度口径。",
       "displayType": "风挡下缘信息带",
+      "displays": [
+        {
+          "screen": "天际屏",
+          "published": "全宽 1.1 m",
+          "source": "https://www.xiaomiev.com/yu7",
+          "note": "风挡下缘投影。各段显示高度和有效边界待确认。",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "中控触屏",
+          "source": "https://www.xiaomiev.com/yu7",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "后排移动控制屏",
+          "published": "随配置",
+          "source": "https://www.xiaomiev.com/yu7",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "ca30a4105c0910431544b75ee75e378957476c28505f97e16c1e578aa095121e"
+    },
+    {
+      "id": "m8",
+      "model": "问界 M8",
+      "region": "中国品牌",
+      "type": "ar",
+      "scope": "中国增程版 · 2026-09 手册",
+      "file": "assets/layout-study/m8-manual.jpg",
+      "evidence": "官方手册图",
+      "source": "https://hima.auto/dam/hima-site/cn/wenjie/service/pdf/260930/问界M8增程版使用说明书.pdf#page=28",
+      "technical": "https://hima.auto/wenjie/m8/configuration/",
+      "credit": "鸿蒙智行 · 使用说明书 PDF 第 28 页「抬头显示」",
+      "speed": "车速 60 在固定信息群中央偏右，下方标单位",
+      "nav": "小地图和 150 m 转向提示在车速左边，蓝色箭头在上方",
+      "assist": "限速、道路提示集中在车速右侧，手册另列交通与摄像头图标",
+      "note": "与 M9 样例并看，可观察地图、车速与右侧提示如何横排。M8 的手册另列 AR 增强、转向灯激活影像和小地图开关。One Glass 下仍须分别建三个实体屏画板。",
+      "displayType": "状态区＋道路关联 AR",
+      "displays": [
+        {
+          "screen": "AR-HUD",
+          "published": "支持 AR 增强",
+          "source": "https://hima.auto/dam/hima-site/cn/wenjie/service/pdf/260930/问界M8增程版使用说明书.pdf#page=28",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "主驾仪表",
+          "published": "12.3 英寸",
+          "source": "https://hima.auto/wenjie/m8/configuration/",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "15.6 英寸",
+          "source": "https://hima.auto/wenjie/m8/configuration/",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "副驾",
+          "published": "16 英寸",
+          "source": "https://hima.auto/wenjie/m8/configuration/",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "后舱智能投影",
+          "published": "按配置",
+          "source": "https://hima.auto/wenjie/m8/configuration/",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
+      "sha256": "1fcf3ce168210eb60576b9306f66264c409bdfbcfb9df625a40bd1d7bf6f0a5b"
+    },
+    {
+      "id": "s07",
+      "model": "深蓝 S07",
+      "region": "中国品牌",
+      "type": "ar",
+      "scope": "2025 澳大利亚手册 · S07 系列",
+      "file": "assets/layout-study/s07-manual.png",
+      "evidence": "官方手册图",
+      "source": "https://www.deepal.com.au/media/lemnpbqs/deepal_s07_owners_manual_211125.pdf#page=134",
+      "technical": "https://www.deepal.com.au/vehicles/deepal/s07/",
+      "credit": "DEEPAL Australia · 手册纸面第 122 页，PDF 第 134 页",
+      "speed": "车速 80 居近区中间，常用指示灯位于更下方",
+      "nav": "路口引导与车道图形对齐到道路场景，上下分层",
+      "assist": "前车、行人和盲区提示分布在场景内，接管类文字另有独立位置",
+      "note": "驾驶信息主要由 HUD 承担。做同类布局时，可优先验证 AR 提示与 HUD 底部持续读数是否互相遮挡。图示功能与国内配置以各市场手册为准。",
+      "displayType": "状态区＋道路关联 AR",
+      "displays": [
+        {
+          "screen": "AR-HUD",
+          "published": "中国配置 55 英寸",
+          "source": "https://www.deepal.com.cn/car/configuration?car=S07&sort=1&source=1",
+          "note": "布局图来自澳版手册。",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "中国配置 15.6 英寸 / 2.5K",
+          "source": "https://www.deepal.com.cn/car/configuration?car=S07&sort=1&source=1",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
+      "sha256": "c0b94f6a3e7c05eb3e36c6814f50a1b3cab3638c393a241b216c3357d140c10b"
+    },
+    {
+      "id": "e8",
+      "model": "吉利银河 E8",
+      "region": "中国品牌",
+      "type": "cockpit",
+      "scope": "中国首发代 · 2024 座舱团队访谈",
+      "file": "assets/layout-study/e8-cockpit.png",
+      "evidence": "座舱团队访谈配图",
+      "source": "https://www.xevcar.com/gongsi/0GQ42F22024.html",
+      "asset": "https://www.itdcw.com/uploads/image/20240718/1721274519395576.png",
+      "technical": "https://matrix.geely.com/mall-design/overview/1742742873907666945",
+      "credit": "我爱电车网 · 吉利汽车研究院座舱团队专访 · 车机界面原图",
+      "speed": "贯穿屏最左侧的仪表区，行驶示例显示 78。HUD 位置待核实",
+      "nav": "访谈图为座舱 HMI 多状态，HUD 导航位置待核实",
+      "assist": "贯穿屏的驾驶信息集中在左区，中部与右部可承担其他任务",
+      "note": "仪表、中控和副驾内容共享同一块贯穿屏。25.6 英寸 AR-HUD 出现在部分原代配置，图中观察的是贯穿屏布局。",
+      "displayType": "座舱屏对照 · 配备 HUD",
+      "displays": [
+        {
+          "screen": "AR-HUD",
+          "published": "25.6 英寸",
+          "source": "https://matrix.geely.com/mall-design/overview/1742742873907666945",
+          "note": "部分原代配置。",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "45 英寸贯穿屏",
+          "published": "仪表／中控／副驾同屏",
+          "source": "https://www.xevcar.com/gongsi/0GQ42F22024.html",
+          "note": "2024 年座舱团队公开的实车呈现分辨率。",
+          "basis": "团队披露实车分辨率",
+          "width": 7680,
+          "height": 936,
+          "unit": "px",
+          "aspectRatio": 8.205128205128204,
+          "heightAt1920": 234
+        },
+        {
+          "screen": "贯穿屏有效显示区",
+          "published": "45 英寸屏的有效显示区",
+          "source": "https://auto.cri.cn/20231107/c0abc4a7-d724-a52a-f018-4706848596d0.html",
+          "note": "国际在线转述官方数据。按实车像素建立数字画板。",
+          "basis": "公开有效尺寸",
+          "width": 1130,
+          "height": 138,
+          "unit": "mm",
+          "aspectRatio": 8.18840579710145,
+          "heightAt1920": null
+        }
+      ],
+      "sha256": "e1ccf71e6d2e2e88e3b94659eecbe9a0ba0ef989f9b5b85040b04b1d55187f3a"
+    },
+    {
+      "id": "seal",
+      "model": "比亚迪海豹 SEAL",
+      "region": "中国品牌",
+      "type": "cockpit",
+      "scope": "海外左舵产品图及手册 · HUD 依配置",
+      "file": "assets/layout-study/seal-cockpit.jpg",
+      "evidence": "官方座舱图",
+      "source": "https://www.byd.com/bs/car/seal",
+      "asset": "https://www.byd.com/material/byd-site/mx/product/byd-seal/pc/interior.jpg",
+      "technical": "https://www.byd.com/content/dam/byd-site/eu/support/service/manual/20250219/BYD%20SEAL%20Owner%27s%20Manual-Left-hand%20Drive-EN-241025.pdf",
+      "credit": "BYD · SEAL 海外车型页 · 座舱内饰图",
+      "speed": "独立仪表保留驾驶信息。欧版手册另列 HUD 车速，具体位置待核实",
+      "nav": "座舱中部为可旋转中控屏，HUD 导航布局待核实",
+      "assist": "欧版左舵手册列出 HUD 限速、ACC、车道偏离和盲区提示",
+      "note": "独立仪表与可旋转中控分工。中控框可按横置与竖置做两种原型。欧版手册用于核对 HUD 的功能范围。",
+      "displayType": "座舱屏对照 · 配备 HUD",
+      "displays": [
+        {
+          "screen": "HUD",
+          "published": "欧洲左舵手册，随配置",
+          "source": "https://www.byd.com/content/dam/byd-site/eu/support/service/manual/20250219/BYD%20SEAL%20Owner%27s%20Manual-Left-hand%20Drive-EN-241025.pdf",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "主驾仪表",
+          "published": "欧洲版 10.25 英寸",
+          "source": "https://www.byd.com/eu/news-list/BYD_SEAL_Dynamic_and_Intelligent.html",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控 · 横置",
+          "published": "15.6 英寸可旋转屏",
+          "source": "https://www.byd.com/bs/car/seal",
+          "note": "BYD 巴哈马车型页，适用配置以目标市场为准。",
+          "basis": "公开分辨率",
+          "width": 1920,
+          "height": 1080,
+          "unit": "px",
+          "aspectRatio": 1.7777777777777777,
+          "heightAt1920": 1080
+        },
+        {
+          "screen": "中控 · 竖置",
+          "published": "同一块旋转屏",
+          "source": "https://www.byd.com/bs/car/seal",
+          "note": "由公开分辨率交换宽高，供竖置状态建框。",
+          "basis": "旋转换算",
+          "width": 1080,
+          "height": 1920,
+          "unit": "px",
+          "aspectRatio": 0.5625,
+          "heightAt1920": 3413
+        }
+      ],
+      "sha256": "2035d2d35a00d2d8863909d3bbbb9bd24a9d5ea67bcfa17528c3ee4aae293b2f"
     },
     {
       "id": "camry",
@@ -123,6 +538,35 @@
       "assist": "左侧图示有辅助信息，下方保留额外信息区域",
       "note": "同一个固定区域可以按情境切换任务。作为传统 HUD 历史基线保留，图中布局对应 2024 北美版。",
       "displayType": "固定信息区 HUD",
+      "displays": [
+        {
+          "screen": "HUD",
+          "published": "10 英寸，依配置",
+          "source": "https://www.toyota.com/content/dam/toyota/brochures/pdf/2024/camry_ebrochure.pdf",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "仪表信息屏",
+          "published": "4.2 或 7 英寸，依配置",
+          "source": "https://www.toyota.com/content/dam/toyota/brochures/pdf/2024/camry_ebrochure.pdf",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "7 或 9 英寸，依配置",
+          "source": "https://www.toyota.com/content/dam/toyota/brochures/pdf/2024/camry_ebrochure.pdf",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "ca6d14f5bc877e0a4ca0dddef0448ad0866a9dd5b2dc82aa564378c0532388be"
     },
     {
@@ -141,6 +585,38 @@
       "assist": "车道与跟车在左侧，交通标志在右上",
       "note": "两个速度值同时出现时，位置、尺寸、图标必须能区分当前车速与设定速度。",
       "displayType": "固定信息区 HUD",
+      "displays": [
+        {
+          "screen": "HUD 手册示意区",
+          "published": "Touring Hybrid",
+          "source": "https://techinfo.honda.com/rjanisis/pubs/OM/AH/A30B2626IOM/enu/details/683838e7c795e9-04852150.html",
+          "note": "原图 925 × 689，深色底 x≈70、y≈198、宽≈786、高≈294。",
+          "basis": "图示估算",
+          "width": 786,
+          "height": 294,
+          "unit": "图像 px",
+          "aspectRatio": 2.673469387755102,
+          "heightAt1920": null
+        },
+        {
+          "screen": "主驾仪表",
+          "published": "10.2 英寸",
+          "source": "https://www.hondainfocenter.com/2026/Accord/Feature-Guide/Features-by-Trim/",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "12.3 英寸",
+          "source": "https://www.hondainfocenter.com/2026/Accord/Feature-Guide/Features-by-Trim/",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "fbd2ae09db658f42d7ca0772f99468b3570bbb9fff8d88a7937b7762f9974230"
     },
     {
@@ -159,6 +635,47 @@
       "assist": "车道跟随、跟车、盲区和周边车辆占中部与右侧",
       "note": "手册用 11 个编号解释信息项。此图能对照模块位置，具体项目受配置、地区和辅助驾驶状态影响。",
       "displayType": "固定信息区 HUD",
+      "displays": [
+        {
+          "screen": "HUD 手册示意区",
+          "published": "Head Up Display Information",
+          "source": "https://ownersmanual.kia.com/full_webhelp/MV1A/2026/en_US/topics/chapter5_21_1.html",
+          "note": "原图 323 × 131，黑底 x≈43、y=0、宽≈238、高=131。",
+          "basis": "图示估算",
+          "width": 238,
+          "height": 131,
+          "unit": "图像 px",
+          "aspectRatio": 1.816793893129771,
+          "heightAt1920": null
+        },
+        {
+          "screen": "主驾仪表",
+          "published": "12.3 英寸",
+          "source": "https://www.kiamedia.com/us/en/models/ev9/2026/features",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "空调触控",
+          "published": "5 英寸",
+          "source": "https://www.kiamedia.com/us/en/models/ev9/2026/features",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "12.3 英寸",
+          "source": "https://www.kiamedia.com/us/en/models/ev9/2026/features",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "568a5fde8e5e9573e82b0e1df1901382c53d5aa5457f271948e963db9a1c185b"
     },
     {
@@ -177,6 +694,80 @@
       "assist": "下方聚合状态，品牌说明包含跟距辅助",
       "note": "用短时出现的鱼骨箭头回答「往哪走」。配图为经销商来源，实拍状态及具体配置未核实。",
       "displayType": "状态区＋道路关联 AR",
+      "displays": [
+        {
+          "screen": "AR-HUD",
+          "published": "77 英寸等效 / 10 m",
+          "source": "https://media.mbusa.com/news/meet-the-s-class-digital-my-mbux-mercedes-benz-user-experience",
+          "note": "视场角的横纵比。",
+          "basis": "公开视场角",
+          "width": 10,
+          "height": 5,
+          "unit": "°",
+          "aspectRatio": 2,
+          "heightAt1920": null
+        },
+        {
+          "screen": "主驾仪表",
+          "published": "12.3 英寸",
+          "source": "https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f",
+          "note": "",
+          "basis": "公开分辨率",
+          "width": 2400,
+          "height": 900,
+          "unit": "px",
+          "aspectRatio": 2.6666666666666665,
+          "heightAt1920": 720
+        },
+        {
+          "screen": "中控 · 基础款",
+          "published": "11.9 英寸",
+          "source": "https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f",
+          "note": "",
+          "basis": "公开分辨率",
+          "width": 1624,
+          "height": 1728,
+          "unit": "px",
+          "aspectRatio": 0.9398148148148148,
+          "heightAt1920": 2043
+        },
+        {
+          "screen": "中控 · OLED",
+          "published": "12.8 英寸",
+          "source": "https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f",
+          "note": "",
+          "basis": "公开分辨率",
+          "width": 1888,
+          "height": 1728,
+          "unit": "px",
+          "aspectRatio": 1.0925925925925926,
+          "heightAt1920": 1757
+        },
+        {
+          "screen": "后排娱乐 × 2",
+          "published": "11.6 英寸，选配",
+          "source": "https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f",
+          "note": "",
+          "basis": "公开分辨率",
+          "width": 1920,
+          "height": 1080,
+          "unit": "px",
+          "aspectRatio": 1.7777777777777777,
+          "heightAt1920": 1080
+        },
+        {
+          "screen": "后排平板",
+          "published": "7 英寸，选配",
+          "source": "https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f",
+          "note": "",
+          "basis": "公开分辨率",
+          "width": 1280,
+          "height": 800,
+          "unit": "px",
+          "aspectRatio": 1.6,
+          "heightAt1920": 1200
+        }
+      ],
       "sha256": "f759328cff7f1d474057183bc7335f025233979b70cf702f175e7d6413955113"
     },
     {
@@ -195,6 +786,44 @@
       "assist": "速度、交通标志、辅助驾驶与导航共享显示系统",
       "note": "原图有状态区与增强区的引线。厂商表述的最远增强范围描述场景关联，光学虚像距离需另查技术规格。",
       "displayType": "状态区＋道路关联 AR",
+      "displays": [
+        {
+          "screen": "AR-HUD",
+          "published": "增强区等效约 88 英寸",
+          "source": "https://www.audi.com/en/the-audi-q6-e-tron-electric-mobility-on-a-new-level-15929/experience-digitalization-new-display-and-operating-concept-15941",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "主驾仪表",
+          "published": "11.9 英寸 OLED",
+          "source": "https://www.audi.com/en/the-audi-q6-e-tron-electric-mobility-on-a-new-level-15929/experience-digitalization-new-display-and-operating-concept-15941",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "14.5 英寸 OLED",
+          "source": "https://www.audi.com/en/the-audi-q6-e-tron-electric-mobility-on-a-new-level-15929/experience-digitalization-new-display-and-operating-concept-15941",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "副驾",
+          "published": "10.9 英寸，选配",
+          "source": "https://www.audi.com/en/the-audi-q6-e-tron-electric-mobility-on-a-new-level-15929/experience-digitalization-new-display-and-operating-concept-15941",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "01de5efb50a0f4c76576dfdbd56c01704df81a13497669b7a8864f8743280497"
     },
     {
@@ -213,6 +842,44 @@
       "assist": "设备可呈现车道和跟距警告，小仪表还保留基础信息",
       "note": "状态近区和道路远区分工清晰，需关注 HUD 与小仪表出现同一信息时的一致性。",
       "displayType": "状态区＋道路关联 AR",
+      "displays": [
+        {
+          "screen": "AR-HUD 近区",
+          "published": "虚像约 3.5 m",
+          "source": "https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "AR-HUD 远区",
+          "published": "虚像约 10 m",
+          "source": "https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "ID. Display",
+          "published": "紧凑型仪表",
+          "source": "https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "15 英寸",
+          "source": "https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "f92a7016900c18a277e3d02d8e9624ce738b3d93f6eb8f25e0339a2f54091c31"
     },
     {
@@ -232,6 +899,38 @@
       "assist": "条带中部及右侧可配置，和上方 HUD 协同",
       "note": "这张图是系统示意，车型应用以 iX3 资料为准。对比 YU7 时应逐层看信息归属和可见对象。",
       "displayType": "下缘信息带＋独立 HUD",
+      "displays": [
+        {
+          "screen": "3D HUD",
+          "published": "独立选配",
+          "source": "https://www.press.bmwgroup.com/netherlands/article/attachment/T0452407NL/636696#page=22",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "Panoramic Vision",
+          "published": "风挡 A 柱至 A 柱",
+          "source": "https://www.press.bmwgroup.com/netherlands/article/attachment/T0452407NL/636696#page=22",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "中控",
+          "published": "17.9 英寸异形",
+          "source": "https://www.press.bmwgroup.com/netherlands/article/attachment/T0452407NL/636696#page=22",
+          "note": "比例用于像素外接框。设计区域需再套用异形边界。",
+          "basis": "公开分辨率",
+          "width": 3340,
+          "height": 1440,
+          "unit": "px",
+          "aspectRatio": 2.3194444444444446,
+          "heightAt1920": 828
+        }
+      ],
       "sha256": "823dd018576e27a18442cd4e83b37517d630a520a4efad41fc9158fcea850d72"
     },
     {
@@ -251,6 +950,35 @@
       "assist": "该帧未充分显示警告态，仪表与 HUD 同框",
       "note": "实车帧可观察空间层级和道路背景，曝光、眼点与动态精度仍需受控实测。",
       "displayType": "状态区＋道路关联 AR",
+      "displays": [
+        {
+          "screen": "AR-HUD",
+          "published": "Platinum 配置",
+          "source": "https://news.cadillac.com/newsroom.detail.html/Pages/news/us/en/2024/nov/1112-vistiq.html",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "驾驶信息与中控",
+          "published": "33 英寸曲面一体屏",
+          "source": "https://news.cadillac.com/newsroom.detail.html/Pages/news/us/en/2024/nov/1112-vistiq.html",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        },
+        {
+          "screen": "前后排控制屏",
+          "published": "前排与后排各一块",
+          "source": "https://www.tomsguide.com/vehicle-tech/evs/i-drove-the-2026-cadillac-vistiq-for-a-week-and-its-just-the-right-mix-of-luxury-and-value",
+          "note": "",
+          "basis": "未公开",
+          "aspectRatio": null,
+          "heightAt1920": null
+        }
+      ],
       "sha256": "6a38c6ce5a5831bcb8028377f2f277a5bad4e35dddf7990799ca2cb0cf1c1bc5"
     }
   ]

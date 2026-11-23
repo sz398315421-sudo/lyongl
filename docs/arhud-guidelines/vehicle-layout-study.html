@@ -3,70 +3,606 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="对照 14 款市售车型的 HUD、AR-HUD 和风挡下缘信息带，查看图源、布局矩阵及国内外车型差异。">
+  <meta name="description" content="对照 18 款市售车型的 HUD、AR-HUD、风挡信息带及座舱屏，查看原图、布局和屏幕宽高比。">
   <title>市售车型 HUD 布局研究 · AR-HUD 设计指南</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="vehicle-layout-study.css">
 </head>
 <body class="vehicle-study">
-  <header class="study-top"><a href="index.html#vehicle-layout-study">← AR-HUD 设计指南</a><nav aria-label="研究目录"><a href="#compare">双车对照</a><a href="#matrix">布局矩阵</a><a href="#gallery">车型原图</a><a href="#findings">国内外差异</a></nav></header>
+  <header class="study-top"><a href="index.html#vehicle-layout-study">← AR-HUD 设计指南</a><nav aria-label="研究目录"><a href="#compare">双车对照</a><a href="#screen-ratios">屏幕比例</a><a href="#matrix">布局矩阵</a><a href="#gallery">车型原图</a><a href="#findings">国内外差异</a></nav></header>
   <main class="study-main">
     <header class="study-title">
       <p class="vehicle-meta">AR-HUD 设计指南 v1.3 · 研究日期 2026-11-23</p>
       <h1>市售车型 HUD 布局研究</h1>
-      <p>对照 14 款量产车型的手册图、官方技术图和媒体实车画面，观察关键信息放在哪里，以及驾驶任务变化时如何调配显示空间。</p>
-      <div class="downloads"><a href="vehicle-layout-matrix.csv" download>下载布局矩阵 CSV</a><a href="vehicle-layout-evidence.json" download>下载图源与版本 JSON</a></div>
+      <p>对照 18 款量产车型的手册图、官方技术图和媒体实车画面，观察关键信息放在哪里，以及驾驶任务变化时如何调配显示空间。</p>
+      <div class="downloads"><a href="vehicle-layout-matrix.csv" download>下载布局矩阵 CSV</a><a href="vehicle-display-ratios.csv" download>下载屏幕参数 CSV</a><a href="vehicle-layout-evidence.json" download>下载图源与版本 JSON</a></div>
     </header>
     <section id="method" class="study-section">
       <h2>样本与读图方法</h2>
-      <p>选择有清楚图源的代表性量产车型，中国品牌 6 款，海外品牌 8 款。选样覆盖不同市场、配置与代际，适用于布局对照。销量和市场渗透率需要另行核验。</p>
+      <p>选择有清楚图源的代表性量产车型，中国品牌 10 款，海外品牌 8 款。中国品牌样本包含出口版手册和产品图，按所列市场与配置阅读。</p>
       <ul>
         <li>固定信息区 HUD 包含普通 HUD 及画面内的地图或环境可视化。道路关联 AR 按厂商资料及示例归类，实际注册精度需实测。</li>
         <li>风挡下缘信息带沿黑区布置信息。宝马样本还提供独立 3D HUD，按两层显示架构记录。</li>
+        <li>标为「座舱屏对照」的样本有 HUD 配置，图像用来研究实体屏的分工，HUD 内的位置以进一步的图源为准。</li>
         <li>每张图按其市场、年款、配置和场景阅读。图中未出现的项目标为待确认，照片中的相对位置仅用于定性观察。</li>
       </ul>
       <p>图像保留原内容。小鹏图为发布会画面局部，丰田为手册页局部，大众图从官方 PDF 提取，凯迪拉克为媒体试驾视频帧。</p>
     </section>
     <section id="compare" class="study-section">
       <h2>双车对照</h2>
-      <p>默认并看同为道路关联 AR 的小鹏 G7 与大众 ID.7。也可换成小米 YU7 与宝马 iX3 对照风挡下缘布局。</p>
-      <div class="study-controls"><label>左侧车型<select id="compare-left"><option value="m9">问界 M9</option><option value="i8">理想 i8</option><option value="su7">小米 SU7</option><option value="g7" selected>小鹏 G7</option><option value="007">极氪 007</option><option value="yu7">小米 YU7</option><option value="camry">丰田 Camry</option><option value="accord">本田 Accord Hybrid</option><option value="ev9">起亚 EV9</option><option value="sclass">奔驰 S 级 W223</option><option value="q6">奥迪 Q6 e-tron</option><option value="id7">大众 ID.7</option><option value="ix3">宝马 iX3</option><option value="vistiq">凯迪拉克 VISTIQ</option></select></label><label>右侧车型<select id="compare-right"><option value="m9">问界 M9</option><option value="i8">理想 i8</option><option value="su7">小米 SU7</option><option value="g7">小鹏 G7</option><option value="007">极氪 007</option><option value="yu7">小米 YU7</option><option value="camry">丰田 Camry</option><option value="accord">本田 Accord Hybrid</option><option value="ev9">起亚 EV9</option><option value="sclass">奔驰 S 级 W223</option><option value="q6">奥迪 Q6 e-tron</option><option value="id7" selected>大众 ID.7</option><option value="ix3">宝马 iX3</option><option value="vistiq">凯迪拉克 VISTIQ</option></select></label></div>
+      <p>默认并看问界 M8 与深蓝 S07，比较独立仪表与由 HUD 承担主要行车信息的布局。可换成银河 E8 与海豹 SEAL 对照贯穿屏和独立可旋转屏。</p>
+      <div class="study-controls"><label>左侧车型<select id="compare-left"><option value="m9">问界 M9</option><option value="i8">理想 i8</option><option value="su7">小米 SU7</option><option value="g7">小鹏 G7</option><option value="007">极氪 007</option><option value="yu7">小米 YU7</option><option value="m8" selected>问界 M8</option><option value="s07">深蓝 S07</option><option value="e8">吉利银河 E8</option><option value="seal">比亚迪海豹 SEAL</option><option value="camry">丰田 Camry</option><option value="accord">本田 Accord Hybrid</option><option value="ev9">起亚 EV9</option><option value="sclass">奔驰 S 级 W223</option><option value="q6">奥迪 Q6 e-tron</option><option value="id7">大众 ID.7</option><option value="ix3">宝马 iX3</option><option value="vistiq">凯迪拉克 VISTIQ</option></select></label><label>右侧车型<select id="compare-right"><option value="m9">问界 M9</option><option value="i8">理想 i8</option><option value="su7">小米 SU7</option><option value="g7">小鹏 G7</option><option value="007">极氪 007</option><option value="yu7">小米 YU7</option><option value="m8">问界 M8</option><option value="s07" selected>深蓝 S07</option><option value="e8">吉利银河 E8</option><option value="seal">比亚迪海豹 SEAL</option><option value="camry">丰田 Camry</option><option value="accord">本田 Accord Hybrid</option><option value="ev9">起亚 EV9</option><option value="sclass">奔驰 S 级 W223</option><option value="q6">奥迪 Q6 e-tron</option><option value="id7">大众 ID.7</option><option value="ix3">宝马 iX3</option><option value="vistiq">凯迪拉克 VISTIQ</option></select></label></div>
       <div class="study-grid"><div id="compare-left-panel"><article class="vehicle-card">
-    <header><p class="vehicle-meta">中国品牌 · 状态区＋道路关联 AR</p><h3>小鹏 G7</h3><p class="vehicle-meta">2025 首发演示 · 中国</p></header>
+    <header><p class="vehicle-meta">中国品牌 · 状态区＋道路关联 AR</p><h3>问界 M8</h3><p class="vehicle-meta">中国增程版 · 2026-09 手册</p></header>
     <figure>
-      <a class="vehicle-image" href="assets/layout-study/g7.jpg" target="_blank" rel="noopener"><img src="assets/layout-study/g7.jpg" loading="lazy" alt="小鹏 G7 官方发布会摄影 · 局部，下方信息带中央，左右分布状态与时间"></a>
-      <figcaption><strong>官方发布会摄影 · 局部</strong> · 小鹏汽车 · 2025-06-05 发布页 · 发布会大屏局部</figcaption>
+      <a class="vehicle-image" href="assets/layout-study/m8-manual.jpg" target="_blank" rel="noopener"><img src="assets/layout-study/m8-manual.jpg" loading="lazy" alt="问界 M8 官方手册图，车速 60 在固定信息群中央偏右，下方标单位"></a>
+      <figcaption><strong>官方手册图</strong> · 鸿蒙智行 · 使用说明书 PDF 第 28 页「抬头显示」</figcaption>
     </figure>
     <dl>
-      <div><dt>车速锚点</dt><dd>下方信息带中央，左右分布状态与时间</dd></div>
-      <div><dt>导航</dt><dd>右转箭头在道路画面上方，车道动作提示位于下方</dd></div>
-      <div><dt>辅助驾驶与告警</dt><dd>演示图有 NGP 和限速，发布文列出变道意图与场景告警</dd></div>
+      <div><dt>车速锚点</dt><dd>车速 60 在固定信息群中央偏右，下方标单位</dd></div>
+      <div><dt>导航</dt><dd>小地图和 150 m 转向提示在车速左边，蓝色箭头在上方</dd></div>
+      <div><dt>辅助驾驶与告警</dt><dd>限速、道路提示集中在车速右侧，手册另列交通与摄像头图标</dd></div>
     </dl>
-    <p class="vehicle-note">固定读数和场景提示可并存。比较重点是密集路口里贴路提示与信息带是否争抢注意力，发布会大屏无法验证实车效果。</p>
-    <p class="vehicle-sources"><a href="https://www.xiaopeng.com/news/company_news/5473.html" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://xps01.xiaopeng.com/cms/content/pic/2025/06-05/16-37-560883-1528072277.jpg" target="_blank" rel="noopener noreferrer">原始图像 ↗</a></p>
+    <details class="vehicle-displays" open>
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>支持 AR 增强</span><span>未公开</span></li><li><span>主驾仪表</span><span>12.3 英寸</span><span>未公开</span></li><li><span>中控</span><span>15.6 英寸</span><span>未公开</span></li><li><span>副驾</span><span>16 英寸</span><span>未公开</span></li><li><span>后舱智能投影</span><span>按配置</span><span>未公开</span></li></ul>
+      <a href="#ratio-m8">定位屏幕参数表</a>
+    </details>
+    <p class="vehicle-note">与 M9 样例并看，可观察地图、车速与右侧提示如何横排。M8 的手册另列 AR 增强、转向灯激活影像和小地图开关。One Glass 下仍须分别建三个实体屏画板。</p>
+    <p class="vehicle-sources"><a href="https://hima.auto/dam/hima-site/cn/wenjie/service/pdf/260930/问界M8增程版使用说明书.pdf#page=28" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://hima.auto/wenjie/m8/configuration/" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
   </article></div><div id="compare-right-panel"><article class="vehicle-card">
-    <header><p class="vehicle-meta">海外品牌 · 状态区＋道路关联 AR</p><h3>大众 ID.7</h3><p class="vehicle-meta">欧洲发布资料 · ID.7</p></header>
+    <header><p class="vehicle-meta">中国品牌 · 状态区＋道路关联 AR</p><h3>深蓝 S07</h3><p class="vehicle-meta">2025 澳大利亚手册 · S07 系列</p></header>
     <figure>
-      <a class="vehicle-image" href="assets/layout-study/id7.png" target="_blank" rel="noopener"><img src="assets/layout-study/id7.png" loading="lazy" alt="大众 ID.7 官方技术资料 · 内嵌图，官方说明车速和限速属于 HUD 近区状态"></a>
-      <figcaption><strong>官方技术资料 · 内嵌图</strong> · Volkswagen Newsroom · ID.7 press kit 第 17 页 HMI concept</figcaption>
+      <a class="vehicle-image" href="assets/layout-study/s07-manual.png" target="_blank" rel="noopener"><img src="assets/layout-study/s07-manual.png" loading="lazy" alt="深蓝 S07 官方手册图，车速 80 居近区中间，常用指示灯位于更下方"></a>
+      <figcaption><strong>官方手册图</strong> · DEEPAL Australia · 手册纸面第 122 页，PDF 第 134 页</figcaption>
     </figure>
     <dl>
-      <div><dt>车速锚点</dt><dd>官方说明车速和限速属于 HUD 近区状态</dd></div>
-      <div><dt>导航</dt><dd>远区负责转向与车道级提示，原图有绿色箭头</dd></div>
-      <div><dt>辅助驾驶与告警</dt><dd>设备可呈现车道和跟距警告，小仪表还保留基础信息</dd></div>
+      <div><dt>车速锚点</dt><dd>车速 80 居近区中间，常用指示灯位于更下方</dd></div>
+      <div><dt>导航</dt><dd>路口引导与车道图形对齐到道路场景，上下分层</dd></div>
+      <div><dt>辅助驾驶与告警</dt><dd>前车、行人和盲区提示分布在场景内，接管类文字另有独立位置</dd></div>
     </dl>
-    <p class="vehicle-note">状态近区和道路远区分工清晰，需关注 HUD 与小仪表出现同一信息时的一致性。</p>
-    <p class="vehicle-sources"><a href="https://www.volkswagen-newsroom.com/en/publications/more/the-new-id-7-2562/download#page=17" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
+    <details class="vehicle-displays" open>
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>中国配置 55 英寸</span><span>未公开</span></li><li><span>中控</span><span>中国配置 15.6 英寸 / 2.5K</span><span>未公开</span></li></ul>
+      <a href="#ratio-s07">定位屏幕参数表</a>
+    </details>
+    <p class="vehicle-note">驾驶信息主要由 HUD 承担。做同类布局时，可优先验证 AR 提示与 HUD 底部持续读数是否互相遮挡。图示功能与国内配置以各市场手册为准。</p>
+    <p class="vehicle-sources"><a href="https://www.deepal.com.au/media/lemnpbqs/deepal_s07_owners_manual_211125.pdf#page=134" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.deepal.com.au/vehicles/deepal/s07/" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
   </article></div></div>
       <p class="vehicle-meta">各图的拍摄位置、曝光和显示条件不同。图像大小、颜色与画面位置仅用于定性对照。</p>
     </section>
+    <section id="screen-ratios" class="study-section">
+      <h2>屏幕比例与设计画板</h2>
+      <p>逐车记录研究范围内的前挡显示、仪表、中控、副驾及相关后排屏。宽高比取横向 ÷ 纵向。尺寸随市场、年款和配置变化，以下以各行链接为准。</p>
+      <ul class="ratio-method">
+        <li><strong>原生画板</strong>按公开像素宽高建立。表中的「1920 宽画板」等比例换算为整数高度，用于对照设计。异形屏还需裁切边界，旋转屏需分别排版。</li>
+        <li><strong>HUD 视场</strong>按横纵视场角计算角度比。若要换算至等距、轴对称且垂直于视线的平面，用 tan(水平 FOV/2) ÷ tan(垂直 FOV/2)。硬件像素画板需查投影规格。</li>
+        <li><strong>图示估算</strong>只量手册原图中标出的独立底框，用于排版对比。单独的对角线、条带宽、3K 等简称无法推导宽高比，表中记为「未公开」。</li>
+      </ul>
+      <div class="study-controls ratio-controls"><label>比例依据<select id="ratio-filter"><option value="">全部显示区域</option><option value="published">有公开宽高依据</option><option value="diagram">有手册图示估算</option><option value="unknown">比例未公开</option></select></label><p id="ratio-count" role="status">64 条参数</p><a href="vehicle-display-ratios.csv" download>下载屏幕参数 CSV ↓</a></div>
+      <div class="table-wrap ratio-table-wrap" tabindex="0" role="region" aria-label="车型屏幕比例参数表">
+        <table class="study-matrix study-ratios"><thead><tr><th scope="col">车型与显示区域</th><th scope="col">宽高比</th><th scope="col">依据宽 × 高</th><th scope="col">公开参数与范围</th><th scope="col">1920 宽画板（px）</th><th scope="col">证据来源</th></tr></thead><tbody id="ratio-m9">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-m9">问界 M9</a><small>双焦面 AR-HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>近、远双焦面<small>近区与远区的宽高分别待确认。</small></td>
+      <td>—</td>
+      <td>未公开<small><a href="https://aito.auto/model/m9-new/configuration/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-m9">问界 M9</a><small>主驾仪表</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>12.3 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://aito.auto/model/m9-new/configuration/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-m9">问界 M9</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>17.2 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://aito.auto/model/m9-new/configuration/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-m9">问界 M9</a><small>副驾</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>17.2 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://aito.auto/model/m9-new/configuration/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-i8">
+    <tr data-ratio-status="diagram">
+      <th scope="row"><a href="#case-i8">理想 i8</a><small>HUD 手册示意区</small></th>
+      <td class="ratio-value">2.67:1</td>
+      <td>800 × 300 图像 px</td>
+      <td>黑底布局框<small>原图 800 × 396，黑底 x=0、y=96、宽 800、高 300。</small></td>
+      <td>—</td>
+      <td>图示估算<small><a href="https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-i8">理想 i8</a><small>安全驾驶交互屏</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>方向盘交互屏</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-i8">理想 i8</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>座舱触控屏</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.lixiang.com/i8" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-i8">理想 i8</a><small>副驾</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>座舱触控屏</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.lixiang.com/i8" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-i8">理想 i8</a><small>后舱娱乐</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>产品页列 21.4 英寸，随配置</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.lixiang.com/i8" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-su7">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-su7">小米 SU7</a><small>HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>56 英寸<small>初代配置表，依车型。</small></td>
+      <td>—</td>
+      <td>未公开<small><a href="https://s1.xiaomiev.com/activity-outer-assets/0328/env/SU7%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E8%A1%A8.pdf" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-su7">小米 SU7</a><small>翻转仪表</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>7.1 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://s1.xiaomiev.com/activity-outer-assets/0328/env/SU7%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E8%A1%A8.pdf" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-su7">小米 SU7</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>16.1 英寸 / 3K</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://s1.xiaomiev.com/activity-outer-assets/0328/env/SU7%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE%E8%A1%A8.pdf" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-g7">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-g7">小鹏 G7</a><small>AR-HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>87 英寸等效 / 10 m</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.xiaopeng.com/news/company_news/5473.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-g7">小鹏 G7</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>15.6 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.xiaopeng.com/g7/configuration.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-g7">小鹏 G7</a><small>后排娱乐</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>8 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.xiaopeng.com/g7/configuration.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-007">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-007">极氪 007</a><small>AR-HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>35.5 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.zeekrlife.com/global/vehicles/007" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-007">极氪 007</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>15.05 英寸 / 2.5K OLED</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.zeekrlife.com/global/vehicles/007" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-yu7">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-yu7">小米 YU7</a><small>天际屏</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>全宽 1.1 m<small>风挡下缘投影。各段显示高度和有效边界待确认。</small></td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.xiaomiev.com/yu7" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-yu7">小米 YU7</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>中控触屏</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.xiaomiev.com/yu7" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-yu7">小米 YU7</a><small>后排移动控制屏</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>随配置</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.xiaomiev.com/yu7" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-m8">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-m8">问界 M8</a><small>AR-HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>支持 AR 增强</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://hima.auto/dam/hima-site/cn/wenjie/service/pdf/260930/问界M8增程版使用说明书.pdf#page=28" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-m8">问界 M8</a><small>主驾仪表</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>12.3 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://hima.auto/wenjie/m8/configuration/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-m8">问界 M8</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>15.6 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://hima.auto/wenjie/m8/configuration/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-m8">问界 M8</a><small>副驾</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>16 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://hima.auto/wenjie/m8/configuration/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-m8">问界 M8</a><small>后舱智能投影</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>按配置</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://hima.auto/wenjie/m8/configuration/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-s07">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-s07">深蓝 S07</a><small>AR-HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>中国配置 55 英寸<small>布局图来自澳版手册。</small></td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.deepal.com.cn/car/configuration?car=S07&amp;sort=1&amp;source=1" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-s07">深蓝 S07</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>中国配置 15.6 英寸 / 2.5K</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.deepal.com.cn/car/configuration?car=S07&amp;sort=1&amp;source=1" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-e8">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-e8">吉利银河 E8</a><small>AR-HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>25.6 英寸<small>部分原代配置。</small></td>
+      <td>—</td>
+      <td>未公开<small><a href="https://matrix.geely.com/mall-design/overview/1742742873907666945" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-e8">吉利银河 E8</a><small>45 英寸贯穿屏</small></th>
+      <td class="ratio-value">8.21:1</td>
+      <td>7680 × 936 px</td>
+      <td>仪表／中控／副驾同屏<small>2024 年座舱团队公开的实车呈现分辨率。</small></td>
+      <td>1920 × 234</td>
+      <td>团队披露实车分辨率<small><a href="https://www.xevcar.com/gongsi/0GQ42F22024.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-e8">吉利银河 E8</a><small>贯穿屏有效显示区</small></th>
+      <td class="ratio-value">8.19:1</td>
+      <td>1130 × 138 mm</td>
+      <td>45 英寸屏的有效显示区<small>国际在线转述官方数据。按实车像素建立数字画板。</small></td>
+      <td>—</td>
+      <td>公开有效尺寸<small><a href="https://auto.cri.cn/20231107/c0abc4a7-d724-a52a-f018-4706848596d0.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-seal">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-seal">比亚迪海豹 SEAL</a><small>HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>欧洲左舵手册，随配置</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.byd.com/content/dam/byd-site/eu/support/service/manual/20250219/BYD%20SEAL%20Owner%27s%20Manual-Left-hand%20Drive-EN-241025.pdf" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-seal">比亚迪海豹 SEAL</a><small>主驾仪表</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>欧洲版 10.25 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.byd.com/eu/news-list/BYD_SEAL_Dynamic_and_Intelligent.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-seal">比亚迪海豹 SEAL</a><small>中控 · 横置</small></th>
+      <td class="ratio-value">1.78:1</td>
+      <td>1920 × 1080 px</td>
+      <td>15.6 英寸可旋转屏<small>BYD 巴哈马车型页，适用配置以目标市场为准。</small></td>
+      <td>1920 × 1080</td>
+      <td>公开分辨率<small><a href="https://www.byd.com/bs/car/seal" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-seal">比亚迪海豹 SEAL</a><small>中控 · 竖置</small></th>
+      <td class="ratio-value">0.56:1</td>
+      <td>1080 × 1920 px</td>
+      <td>同一块旋转屏<small>由公开分辨率交换宽高，供竖置状态建框。</small></td>
+      <td>1920 × 3413</td>
+      <td>旋转换算<small><a href="https://www.byd.com/bs/car/seal" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-camry">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-camry">丰田 Camry</a><small>HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>10 英寸，依配置</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.toyota.com/content/dam/toyota/brochures/pdf/2024/camry_ebrochure.pdf" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-camry">丰田 Camry</a><small>仪表信息屏</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>4.2 或 7 英寸，依配置</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.toyota.com/content/dam/toyota/brochures/pdf/2024/camry_ebrochure.pdf" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-camry">丰田 Camry</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>7 或 9 英寸，依配置</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.toyota.com/content/dam/toyota/brochures/pdf/2024/camry_ebrochure.pdf" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-accord">
+    <tr data-ratio-status="diagram">
+      <th scope="row"><a href="#case-accord">本田 Accord Hybrid</a><small>HUD 手册示意区</small></th>
+      <td class="ratio-value">2.67:1</td>
+      <td>786 × 294 图像 px</td>
+      <td>Touring Hybrid<small>原图 925 × 689，深色底 x≈70、y≈198、宽≈786、高≈294。</small></td>
+      <td>—</td>
+      <td>图示估算<small><a href="https://techinfo.honda.com/rjanisis/pubs/OM/AH/A30B2626IOM/enu/details/683838e7c795e9-04852150.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-accord">本田 Accord Hybrid</a><small>主驾仪表</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>10.2 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.hondainfocenter.com/2026/Accord/Feature-Guide/Features-by-Trim/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-accord">本田 Accord Hybrid</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>12.3 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.hondainfocenter.com/2026/Accord/Feature-Guide/Features-by-Trim/" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-ev9">
+    <tr data-ratio-status="diagram">
+      <th scope="row"><a href="#case-ev9">起亚 EV9</a><small>HUD 手册示意区</small></th>
+      <td class="ratio-value">1.82:1</td>
+      <td>238 × 131 图像 px</td>
+      <td>Head Up Display Information<small>原图 323 × 131，黑底 x≈43、y=0、宽≈238、高=131。</small></td>
+      <td>—</td>
+      <td>图示估算<small><a href="https://ownersmanual.kia.com/full_webhelp/MV1A/2026/en_US/topics/chapter5_21_1.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-ev9">起亚 EV9</a><small>主驾仪表</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>12.3 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.kiamedia.com/us/en/models/ev9/2026/features" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-ev9">起亚 EV9</a><small>空调触控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>5 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.kiamedia.com/us/en/models/ev9/2026/features" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-ev9">起亚 EV9</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>12.3 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.kiamedia.com/us/en/models/ev9/2026/features" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-sclass">
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-sclass">奔驰 S 级 W223</a><small>AR-HUD</small></th>
+      <td class="ratio-value">2.00:1</td>
+      <td>10° × 5°</td>
+      <td>77 英寸等效 / 10 m<small>视场角的横纵比。</small></td>
+      <td>—</td>
+      <td>公开视场角<small><a href="https://media.mbusa.com/news/meet-the-s-class-digital-my-mbux-mercedes-benz-user-experience" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-sclass">奔驰 S 级 W223</a><small>主驾仪表</small></th>
+      <td class="ratio-value">2.67:1</td>
+      <td>2400 × 900 px</td>
+      <td>12.3 英寸</td>
+      <td>1920 × 720</td>
+      <td>公开分辨率<small><a href="https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-sclass">奔驰 S 级 W223</a><small>中控 · 基础款</small></th>
+      <td class="ratio-value">0.94:1</td>
+      <td>1624 × 1728 px</td>
+      <td>11.9 英寸</td>
+      <td>1920 × 2043</td>
+      <td>公开分辨率<small><a href="https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-sclass">奔驰 S 级 W223</a><small>中控 · OLED</small></th>
+      <td class="ratio-value">1.09:1</td>
+      <td>1888 × 1728 px</td>
+      <td>12.8 英寸</td>
+      <td>1920 × 1757</td>
+      <td>公开分辨率<small><a href="https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-sclass">奔驰 S 级 W223</a><small>后排娱乐 × 2</small></th>
+      <td class="ratio-value">1.78:1</td>
+      <td>1920 × 1080 px</td>
+      <td>11.6 英寸，选配</td>
+      <td>1920 × 1080</td>
+      <td>公开分辨率<small><a href="https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-sclass">奔驰 S 级 W223</a><small>后排平板</small></th>
+      <td class="ratio-value">1.60:1</td>
+      <td>1280 × 800 px</td>
+      <td>7 英寸，选配</td>
+      <td>1920 × 1200</td>
+      <td>公开分辨率<small><a href="https://media.mercedes-benz.com/en/article/575c2af4-af10-4a23-8718-e65aa9e9914f" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-q6">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-q6">奥迪 Q6 e-tron</a><small>AR-HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>增强区等效约 88 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.audi.com/en/the-audi-q6-e-tron-electric-mobility-on-a-new-level-15929/experience-digitalization-new-display-and-operating-concept-15941" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-q6">奥迪 Q6 e-tron</a><small>主驾仪表</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>11.9 英寸 OLED</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.audi.com/en/the-audi-q6-e-tron-electric-mobility-on-a-new-level-15929/experience-digitalization-new-display-and-operating-concept-15941" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-q6">奥迪 Q6 e-tron</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>14.5 英寸 OLED</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.audi.com/en/the-audi-q6-e-tron-electric-mobility-on-a-new-level-15929/experience-digitalization-new-display-and-operating-concept-15941" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-q6">奥迪 Q6 e-tron</a><small>副驾</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>10.9 英寸，选配</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.audi.com/en/the-audi-q6-e-tron-electric-mobility-on-a-new-level-15929/experience-digitalization-new-display-and-operating-concept-15941" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-id7">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-id7">大众 ID.7</a><small>AR-HUD 近区</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>虚像约 3.5 m</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-id7">大众 ID.7</a><small>AR-HUD 远区</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>虚像约 10 m</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-id7">大众 ID.7</a><small>ID. Display</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>紧凑型仪表</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-id7">大众 ID.7</a><small>中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>15 英寸</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-ix3">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-ix3">宝马 iX3</a><small>3D HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>独立选配</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.press.bmwgroup.com/netherlands/article/attachment/T0452407NL/636696#page=22" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-ix3">宝马 iX3</a><small>Panoramic Vision</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>风挡 A 柱至 A 柱</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.press.bmwgroup.com/netherlands/article/attachment/T0452407NL/636696#page=22" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="published">
+      <th scope="row"><a href="#case-ix3">宝马 iX3</a><small>中控</small></th>
+      <td class="ratio-value">2.32:1</td>
+      <td>3340 × 1440 px</td>
+      <td>17.9 英寸异形<small>比例用于像素外接框。设计区域需再套用异形边界。</small></td>
+      <td>1920 × 828</td>
+      <td>公开分辨率<small><a href="https://www.press.bmwgroup.com/netherlands/article/attachment/T0452407NL/636696#page=22" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody><tbody id="ratio-vistiq">
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-vistiq">凯迪拉克 VISTIQ</a><small>AR-HUD</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>Platinum 配置</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://news.cadillac.com/newsroom.detail.html/Pages/news/us/en/2024/nov/1112-vistiq.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-vistiq">凯迪拉克 VISTIQ</a><small>驾驶信息与中控</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>33 英寸曲面一体屏</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://news.cadillac.com/newsroom.detail.html/Pages/news/us/en/2024/nov/1112-vistiq.html" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr>
+    <tr data-ratio-status="unknown">
+      <th scope="row"><a href="#case-vistiq">凯迪拉克 VISTIQ</a><small>前后排控制屏</small></th>
+      <td class="ratio-value">未公开</td>
+      <td>—</td>
+      <td>前排与后排各一块</td>
+      <td>—</td>
+      <td>未公开<small><a href="https://www.tomsguide.com/vehicle-tech/evs/i-drove-the-2026-cadillac-vistiq-for-a-week-and-its-just-the-right-mix-of-luxury-and-value" target="_blank" rel="noopener noreferrer">查看依据 ↗</a></small></td>
+    </tr></tbody></table>
+      </div>
+    </section>
     <section id="matrix" class="study-section">
       <h2>逐车布局矩阵</h2>
-      <div class="table-wrap"><table class="study-matrix"><thead><tr><th scope="col">车型与版本</th><th scope="col">归类</th><th scope="col">车速锚点</th><th scope="col">导航</th><th scope="col">辅助驾驶与告警</th><th scope="col">图源类型</th></tr></thead><tbody><tr><th scope="row"><a href="#case-m9">问界 M9</a><small>2026 款增程版 · 中国手册</small></th><td>中国品牌<small>状态区＋道路关联 AR</small></td><td>画面中部，车速数字居主位</td><td>左侧地图和转向距离，上方另有绿色箭头示例</td><td>右侧编排限速和道路提示，图中保留原手册引线</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-i8">理想 i8</a><small>2026 Max · 中国手册</small></th><td>中国品牌<small>固定信息区 HUD</small></td><td>右侧，车速与挡位集中</td><td>左侧，方向、距离、路线与预计到达时间</td><td>中央显示车道、车辆、辅助驾驶和告警</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-su7">小米 SU7</a><small>初代发布图 · 2024</small></th><td>中国品牌<small>固定信息区 HUD</small></td><td>画面中央，限速邻近车速</td><td>路线示意位于上部，转向和距离在右侧</td><td>左侧有续航，当前图未展示警告态</td><td>厂商图 · 媒体转载</td></tr><tr><th scope="row"><a href="#case-g7">小鹏 G7</a><small>2025 首发演示 · 中国</small></th><td>中国品牌<small>状态区＋道路关联 AR</small></td><td>下方信息带中央，左右分布状态与时间</td><td>右转箭头在道路画面上方，车道动作提示位于下方</td><td>演示图有 NGP 和限速，发布文列出变道意图与场景告警</td><td>官方发布会摄影 · 局部</td></tr><tr><th scope="row"><a href="#case-007">极氪 007</a><small>全球车型页 · 展示配置</small></th><td>中国品牌<small>状态区＋道路关联 AR</small></td><td>示图为 P 挡，行驶车速位置待确认</td><td>画面右侧可见转向与 57 米提示</td><td>中央可见车辆图形，左侧 P 挡</td><td>官方车型图</td></tr><tr><th scope="row"><a href="#case-yu7">小米 YU7</a><small>2025 产品页 · 小米天际屏</small></th><td>中国品牌<small>风挡下缘信息带</small></td><td>主驾侧行车信息区，示图为 P 挡</td><td>下缘横向区可编排信息卡，配置依模式</td><td>主驾与乘客可见的横向空间承担不同任务</td><td>官方车型图</td></tr><tr><th scope="row"><a href="#case-camry">丰田 Camry</a><small>2024 · 北美 HUD 配置</small></th><td>海外品牌<small>固定信息区 HUD</small></td><td>右侧，挡位和限速挨近车速</td><td>左侧共享导航与辅助驾驶区域</td><td>左侧图示有辅助信息，下方保留额外信息区域</td><td>官方快速指南 · 局部</td></tr><tr><th scope="row"><a href="#case-accord">本田 Accord Hybrid</a><small>2026 · 北美 HUD 配置</small></th><td>海外品牌<small>固定信息区 HUD</small></td><td>右下为当前车速，左下 50 mph 属辅助驾驶读数</td><td>手册列出逐向指引，示图为车道告警态</td><td>车道与跟车在左侧，交通标志在右上</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-ev9">起亚 EV9</a><small>2026 · 美国 MV1A 手册</small></th><td>海外品牌<small>固定信息区 HUD</small></td><td>下部中央，巡航设定速度在左侧</td><td>上部左侧为逐向箭头和距离</td><td>车道跟随、跟车、盲区和周边车辆占中部与右侧</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-sclass">奔驰 S 级 W223</a><small>2020 代际发布 · 可选 AR-HUD</small></th><td>海外品牌<small>状态区＋道路关联 AR</small></td><td>图中车速位于下方状态群中偏右</td><td>上方多枚鱼骨箭头叠加在路口方向</td><td>下方聚合状态，品牌说明包含跟距辅助</td><td>经销商转载配图</td></tr><tr><th scope="row"><a href="#case-q6">奥迪 Q6 e-tron</a><small>2024 Audi 技术图 · 第二代 AR-HUD</small></th><td>海外品牌<small>状态区＋道路关联 AR</small></td><td>状态区内，位于上方道路关联图形之下</td><td>原图标注道路关联的增强区域</td><td>速度、交通标志、辅助驾驶与导航共享显示系统</td><td>官方技术示意</td></tr><tr><th scope="row"><a href="#case-id7">大众 ID.7</a><small>欧洲发布资料 · ID.7</small></th><td>海外品牌<small>状态区＋道路关联 AR</small></td><td>官方说明车速和限速属于 HUD 近区状态</td><td>远区负责转向与车道级提示，原图有绿色箭头</td><td>设备可呈现车道和跟距警告，小仪表还保留基础信息</td><td>官方技术资料 · 内嵌图</td></tr><tr><th scope="row"><a href="#case-ix3">宝马 iX3</a><small>新世代 iX3 · 2025 技术发布</small></th><td>海外品牌<small>下缘信息带＋独立 HUD</small></td><td>主驾前方的 Panoramic Vision 条带左侧</td><td>可选 3D HUD 在条带上方显示导航和辅助驾驶</td><td>条带中部及右侧可配置，和上方 HUD 协同</td><td>官方系统示意 · 媒体转载</td></tr><tr><th scope="row"><a href="#case-vistiq">凯迪拉克 VISTIQ</a><small>2026 Platinum · 北美媒体试驾</small></th><td>海外品牌<small>状态区＋道路关联 AR</small></td><td>画面下方可见固定读数，细字难以辨识</td><td>绿色转向箭头位于状态信息上方，与道路画面关联</td><td>该帧未充分显示警告态，仪表与 HUD 同框</td><td>媒体实车画面 · 视频帧</td></tr></tbody></table></div>
+      <div class="table-wrap"><table class="study-matrix"><thead><tr><th scope="col">车型与版本</th><th scope="col">归类</th><th scope="col">车速锚点</th><th scope="col">导航</th><th scope="col">辅助驾驶与告警</th><th scope="col">图源类型</th></tr></thead><tbody><tr><th scope="row"><a href="#case-m9">问界 M9</a><small>2026 款增程版 · 中国手册</small></th><td>中国品牌<small>状态区＋道路关联 AR</small></td><td>画面中部，车速数字居主位</td><td>左侧地图和转向距离，上方另有绿色箭头示例</td><td>右侧编排限速和道路提示，图中保留原手册引线</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-i8">理想 i8</a><small>2026 Max · 中国手册</small></th><td>中国品牌<small>固定信息区 HUD</small></td><td>右侧，车速与挡位集中</td><td>左侧，方向、距离、路线与预计到达时间</td><td>中央显示车道、车辆、辅助驾驶和告警</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-su7">小米 SU7</a><small>初代发布图 · 2024</small></th><td>中国品牌<small>固定信息区 HUD</small></td><td>画面中央，限速邻近车速</td><td>路线示意位于上部，转向和距离在右侧</td><td>左侧有续航，当前图未展示警告态</td><td>厂商图 · 媒体转载</td></tr><tr><th scope="row"><a href="#case-g7">小鹏 G7</a><small>2025 首发演示 · 中国</small></th><td>中国品牌<small>状态区＋道路关联 AR</small></td><td>下方信息带中央，左右分布状态与时间</td><td>右转箭头在道路画面上方，车道动作提示位于下方</td><td>演示图有 NGP 和限速，发布文列出变道意图与场景告警</td><td>官方发布会摄影 · 局部</td></tr><tr><th scope="row"><a href="#case-007">极氪 007</a><small>全球车型页 · 展示配置</small></th><td>中国品牌<small>状态区＋道路关联 AR</small></td><td>示图为 P 挡，行驶车速位置待确认</td><td>画面右侧可见转向与 57 米提示</td><td>中央可见车辆图形，左侧 P 挡</td><td>官方车型图</td></tr><tr><th scope="row"><a href="#case-yu7">小米 YU7</a><small>2025 产品页 · 小米天际屏</small></th><td>中国品牌<small>风挡下缘信息带</small></td><td>主驾侧行车信息区，示图为 P 挡</td><td>下缘横向区可编排信息卡，配置依模式</td><td>主驾与乘客可见的横向空间承担不同任务</td><td>官方车型图</td></tr><tr><th scope="row"><a href="#case-m8">问界 M8</a><small>中国增程版 · 2026-09 手册</small></th><td>中国品牌<small>状态区＋道路关联 AR</small></td><td>车速 60 在固定信息群中央偏右，下方标单位</td><td>小地图和 150 m 转向提示在车速左边，蓝色箭头在上方</td><td>限速、道路提示集中在车速右侧，手册另列交通与摄像头图标</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-s07">深蓝 S07</a><small>2025 澳大利亚手册 · S07 系列</small></th><td>中国品牌<small>状态区＋道路关联 AR</small></td><td>车速 80 居近区中间，常用指示灯位于更下方</td><td>路口引导与车道图形对齐到道路场景，上下分层</td><td>前车、行人和盲区提示分布在场景内，接管类文字另有独立位置</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-e8">吉利银河 E8</a><small>中国首发代 · 2024 座舱团队访谈</small></th><td>中国品牌<small>座舱屏对照 · 配备 HUD</small></td><td>贯穿屏最左侧的仪表区，行驶示例显示 78。HUD 位置待核实</td><td>访谈图为座舱 HMI 多状态，HUD 导航位置待核实</td><td>贯穿屏的驾驶信息集中在左区，中部与右部可承担其他任务</td><td>座舱团队访谈配图</td></tr><tr><th scope="row"><a href="#case-seal">比亚迪海豹 SEAL</a><small>海外左舵产品图及手册 · HUD 依配置</small></th><td>中国品牌<small>座舱屏对照 · 配备 HUD</small></td><td>独立仪表保留驾驶信息。欧版手册另列 HUD 车速，具体位置待核实</td><td>座舱中部为可旋转中控屏，HUD 导航布局待核实</td><td>欧版左舵手册列出 HUD 限速、ACC、车道偏离和盲区提示</td><td>官方座舱图</td></tr><tr><th scope="row"><a href="#case-camry">丰田 Camry</a><small>2024 · 北美 HUD 配置</small></th><td>海外品牌<small>固定信息区 HUD</small></td><td>右侧，挡位和限速挨近车速</td><td>左侧共享导航与辅助驾驶区域</td><td>左侧图示有辅助信息，下方保留额外信息区域</td><td>官方快速指南 · 局部</td></tr><tr><th scope="row"><a href="#case-accord">本田 Accord Hybrid</a><small>2026 · 北美 HUD 配置</small></th><td>海外品牌<small>固定信息区 HUD</small></td><td>右下为当前车速，左下 50 mph 属辅助驾驶读数</td><td>手册列出逐向指引，示图为车道告警态</td><td>车道与跟车在左侧，交通标志在右上</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-ev9">起亚 EV9</a><small>2026 · 美国 MV1A 手册</small></th><td>海外品牌<small>固定信息区 HUD</small></td><td>下部中央，巡航设定速度在左侧</td><td>上部左侧为逐向箭头和距离</td><td>车道跟随、跟车、盲区和周边车辆占中部与右侧</td><td>官方手册图</td></tr><tr><th scope="row"><a href="#case-sclass">奔驰 S 级 W223</a><small>2020 代际发布 · 可选 AR-HUD</small></th><td>海外品牌<small>状态区＋道路关联 AR</small></td><td>图中车速位于下方状态群中偏右</td><td>上方多枚鱼骨箭头叠加在路口方向</td><td>下方聚合状态，品牌说明包含跟距辅助</td><td>经销商转载配图</td></tr><tr><th scope="row"><a href="#case-q6">奥迪 Q6 e-tron</a><small>2024 Audi 技术图 · 第二代 AR-HUD</small></th><td>海外品牌<small>状态区＋道路关联 AR</small></td><td>状态区内，位于上方道路关联图形之下</td><td>原图标注道路关联的增强区域</td><td>速度、交通标志、辅助驾驶与导航共享显示系统</td><td>官方技术示意</td></tr><tr><th scope="row"><a href="#case-id7">大众 ID.7</a><small>欧洲发布资料 · ID.7</small></th><td>海外品牌<small>状态区＋道路关联 AR</small></td><td>官方说明车速和限速属于 HUD 近区状态</td><td>远区负责转向与车道级提示，原图有绿色箭头</td><td>设备可呈现车道和跟距警告，小仪表还保留基础信息</td><td>官方技术资料 · 内嵌图</td></tr><tr><th scope="row"><a href="#case-ix3">宝马 iX3</a><small>新世代 iX3 · 2025 技术发布</small></th><td>海外品牌<small>下缘信息带＋独立 HUD</small></td><td>主驾前方的 Panoramic Vision 条带左侧</td><td>可选 3D HUD 在条带上方显示导航和辅助驾驶</td><td>条带中部及右侧可配置，和上方 HUD 协同</td><td>官方系统示意 · 媒体转载</td></tr><tr><th scope="row"><a href="#case-vistiq">凯迪拉克 VISTIQ</a><small>2026 Platinum · 北美媒体试驾</small></th><td>海外品牌<small>状态区＋道路关联 AR</small></td><td>画面下方可见固定读数，细字难以辨识</td><td>绿色转向箭头位于状态信息上方，与道路画面关联</td><td>该帧未充分显示警告态，仪表与 HUD 同框</td><td>媒体实车画面 · 视频帧</td></tr></tbody></table></div>
     </section>
     <section id="gallery" class="study-section">
       <h2>车型原图</h2>
-      <div class="study-controls"><label>品牌来源<select id="study-region"><option value="">全部</option><option>中国品牌</option><option>海外品牌</option></select></label><label>显示形态<select id="study-type"><option value="">全部</option><option value="fixed">固定信息区 HUD</option><option value="ar">状态区＋道路关联 AR</option><option value="strip">风挡下缘信息带</option><option value="hybrid">下缘信息带＋独立 HUD</option></select></label><p id="study-count" role="status">14 款车型</p></div>
+      <div class="study-controls"><label>品牌来源<select id="study-region"><option value="">全部</option><option>中国品牌</option><option>海外品牌</option></select></label><label>显示形态<select id="study-type"><option value="">全部</option><option value="fixed">固定信息区 HUD</option><option value="ar">状态区＋道路关联 AR</option><option value="strip">风挡下缘信息带</option><option value="hybrid">下缘信息带＋独立 HUD</option><option value="cockpit">座舱屏对照 · 配备 HUD</option></select></label><p id="study-count" role="status">18 款车型</p></div>
       <div class="study-grid" id="vehicle-gallery"><article class="vehicle-card" id="case-m9" data-region="中国品牌" data-type="ar">
     <header><p class="vehicle-meta">中国品牌 · 状态区＋道路关联 AR</p><h3>问界 M9</h3><p class="vehicle-meta">2026 款增程版 · 中国手册</p></header>
     <figure>
@@ -78,6 +614,11 @@
       <div><dt>导航</dt><dd>左侧地图和转向距离，上方另有绿色箭头示例</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>右侧编排限速和道路提示，图中保留原手册引线</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>双焦面 AR-HUD</span><span>近、远双焦面</span><span>未公开</span></li><li><span>主驾仪表</span><span>12.3 英寸</span><span>未公开</span></li><li><span>中控</span><span>17.2 英寸</span><span>未公开</span></li><li><span>副驾</span><span>17.2 英寸</span><span>未公开</span></li></ul>
+      <a href="#ratio-m9">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">在保留中央车速的同时，用两侧容纳常用信息。手册说明可开启 AR 增强，图示仅对应所选版本。</p>
     <p class="vehicle-sources"><a href="https://hima.auto/dam/hima-site/cn/wenjie/service/pdf/260930/问界M92026款增程版使用说明书.pdf" target="_blank" rel="noopener noreferrer">来源文档 ↗</a></p>
   </article><article class="vehicle-card" id="case-i8" data-region="中国品牌" data-type="fixed">
@@ -91,6 +632,11 @@
       <div><dt>导航</dt><dd>左侧，方向、距离、路线与预计到达时间</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>中央显示车道、车辆、辅助驾驶和告警</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>HUD 手册示意区</span><span>黑底布局框</span><span>2.67:1<small>图示估算</small></span></li><li><span>安全驾驶交互屏</span><span>方向盘交互屏</span><span>未公开</span></li><li><span>中控</span><span>座舱触控屏</span><span>未公开</span></li><li><span>副驾</span><span>座舱触控屏</span><span>未公开</span></li><li><span>后舱娱乐</span><span>产品页列 21.4 英寸，随配置</span><span>未公开</span></li></ul>
+      <a href="#ratio-i8">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">手册明确给出左导航、中辅助、右车速。中央车道场景属于 HUD 内的环境可视化，公开手册未给出它与真实车道的位置注册证据。</p>
     <p class="vehicle-sources"><a href="https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html" target="_blank" rel="noopener noreferrer">来源文档 ↗</a></p>
   </article><article class="vehicle-card" id="case-su7" data-region="中国品牌" data-type="fixed">
@@ -104,6 +650,11 @@
       <div><dt>导航</dt><dd>路线示意位于上部，转向和距离在右侧</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>左侧有续航，当前图未展示警告态</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>HUD</span><span>56 英寸</span><span>未公开</span></li><li><span>翻转仪表</span><span>7.1 英寸</span><span>未公开</span></li><li><span>中控</span><span>16.1 英寸 / 3K</span><span>未公开</span></li></ul>
+      <a href="#ratio-su7">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">信息围绕中心速度锚点排布，下方仪表重复关键速度。本文按可观察布局归类，未用此图判定道路注册能力。</p>
     <p class="vehicle-sources"><a href="https://www.electrive.com/2024/05/07/first-drive-xiaomi-su7-tracing-the-rise-of-xiaomi/" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.electrive.com/media/2024/05/xiaomi-su7-2024-03-min.jpg" target="_blank" rel="noopener noreferrer">原始图像 ↗</a> <a href="https://www.xiaomiev.com/xiaomi/car-config" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
   </article><article class="vehicle-card" id="case-g7" data-region="中国品牌" data-type="ar">
@@ -117,6 +668,11 @@
       <div><dt>导航</dt><dd>右转箭头在道路画面上方，车道动作提示位于下方</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>演示图有 NGP 和限速，发布文列出变道意图与场景告警</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>87 英寸等效 / 10 m</span><span>未公开</span></li><li><span>中控</span><span>15.6 英寸</span><span>未公开</span></li><li><span>后排娱乐</span><span>8 英寸</span><span>未公开</span></li></ul>
+      <a href="#ratio-g7">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">固定读数和场景提示可并存。比较重点是密集路口里贴路提示与信息带是否争抢注意力，发布会大屏无法验证实车效果。</p>
     <p class="vehicle-sources"><a href="https://www.xiaopeng.com/news/company_news/5473.html" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://xps01.xiaopeng.com/cms/content/pic/2025/06-05/16-37-560883-1528072277.jpg" target="_blank" rel="noopener noreferrer">原始图像 ↗</a></p>
   </article><article class="vehicle-card" id="case-007" data-region="中国品牌" data-type="ar">
@@ -130,6 +686,11 @@
       <div><dt>导航</dt><dd>画面右侧可见转向与 57 米提示</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>中央可见车辆图形，左侧 P 挡</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>35.5 英寸</span><span>未公开</span></li><li><span>中控</span><span>15.05 英寸 / 2.5K OLED</span><span>未公开</span></li></ul>
+      <a href="#ratio-007">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">产品页将其称为 AR-HUD。静态原图适合看横向分工，告警位置、实际贴路精度和国内 OTA 版本仍待核对。</p>
     <p class="vehicle-sources"><a href="https://www.zeekrlife.com/global/vehicles/007" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.datocms-assets.com/143770/1730445324-rectangle-46229014.jpg" target="_blank" rel="noopener noreferrer">原始图像 ↗</a></p>
   </article><article class="vehicle-card" id="case-yu7" data-region="中国品牌" data-type="strip">
@@ -143,8 +704,85 @@
       <div><dt>导航</dt><dd>下缘横向区可编排信息卡，配置依模式</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>主驾与乘客可见的横向空间承担不同任务</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>天际屏</span><span>全宽 1.1 m</span><span>未公开</span></li><li><span>中控</span><span>中控触屏</span><span>未公开</span></li><li><span>后排移动控制屏</span><span>随配置</span><span>未公开</span></li></ul>
+      <a href="#ratio-yu7">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">利用前风挡下黑区显示，横向空间增加后，主驾关键信息仍需要独立分组。品牌给出的 1.1m 是条带宽度口径。</p>
     <p class="vehicle-sources"><a href="https://www.xiaomiev.com/yu7" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://s1.xiaomiev.com/activity-outer-assets/0328/images/yu7_20250522/pc/11.jpg" target="_blank" rel="noopener noreferrer">原始图像 ↗</a></p>
+  </article><article class="vehicle-card" id="case-m8" data-region="中国品牌" data-type="ar">
+    <header><p class="vehicle-meta">中国品牌 · 状态区＋道路关联 AR</p><h3>问界 M8</h3><p class="vehicle-meta">中国增程版 · 2026-09 手册</p></header>
+    <figure>
+      <a class="vehicle-image" href="assets/layout-study/m8-manual.jpg" target="_blank" rel="noopener"><img src="assets/layout-study/m8-manual.jpg" loading="lazy" alt="问界 M8 官方手册图，车速 60 在固定信息群中央偏右，下方标单位"></a>
+      <figcaption><strong>官方手册图</strong> · 鸿蒙智行 · 使用说明书 PDF 第 28 页「抬头显示」</figcaption>
+    </figure>
+    <dl>
+      <div><dt>车速锚点</dt><dd>车速 60 在固定信息群中央偏右，下方标单位</dd></div>
+      <div><dt>导航</dt><dd>小地图和 150 m 转向提示在车速左边，蓝色箭头在上方</dd></div>
+      <div><dt>辅助驾驶与告警</dt><dd>限速、道路提示集中在车速右侧，手册另列交通与摄像头图标</dd></div>
+    </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>支持 AR 增强</span><span>未公开</span></li><li><span>主驾仪表</span><span>12.3 英寸</span><span>未公开</span></li><li><span>中控</span><span>15.6 英寸</span><span>未公开</span></li><li><span>副驾</span><span>16 英寸</span><span>未公开</span></li><li><span>后舱智能投影</span><span>按配置</span><span>未公开</span></li></ul>
+      <a href="#ratio-m8">定位屏幕参数表</a>
+    </details>
+    <p class="vehicle-note">与 M9 样例并看，可观察地图、车速与右侧提示如何横排。M8 的手册另列 AR 增强、转向灯激活影像和小地图开关。One Glass 下仍须分别建三个实体屏画板。</p>
+    <p class="vehicle-sources"><a href="https://hima.auto/dam/hima-site/cn/wenjie/service/pdf/260930/问界M8增程版使用说明书.pdf#page=28" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://hima.auto/wenjie/m8/configuration/" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
+  </article><article class="vehicle-card" id="case-s07" data-region="中国品牌" data-type="ar">
+    <header><p class="vehicle-meta">中国品牌 · 状态区＋道路关联 AR</p><h3>深蓝 S07</h3><p class="vehicle-meta">2025 澳大利亚手册 · S07 系列</p></header>
+    <figure>
+      <a class="vehicle-image" href="assets/layout-study/s07-manual.png" target="_blank" rel="noopener"><img src="assets/layout-study/s07-manual.png" loading="lazy" alt="深蓝 S07 官方手册图，车速 80 居近区中间，常用指示灯位于更下方"></a>
+      <figcaption><strong>官方手册图</strong> · DEEPAL Australia · 手册纸面第 122 页，PDF 第 134 页</figcaption>
+    </figure>
+    <dl>
+      <div><dt>车速锚点</dt><dd>车速 80 居近区中间，常用指示灯位于更下方</dd></div>
+      <div><dt>导航</dt><dd>路口引导与车道图形对齐到道路场景，上下分层</dd></div>
+      <div><dt>辅助驾驶与告警</dt><dd>前车、行人和盲区提示分布在场景内，接管类文字另有独立位置</dd></div>
+    </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>中国配置 55 英寸</span><span>未公开</span></li><li><span>中控</span><span>中国配置 15.6 英寸 / 2.5K</span><span>未公开</span></li></ul>
+      <a href="#ratio-s07">定位屏幕参数表</a>
+    </details>
+    <p class="vehicle-note">驾驶信息主要由 HUD 承担。做同类布局时，可优先验证 AR 提示与 HUD 底部持续读数是否互相遮挡。图示功能与国内配置以各市场手册为准。</p>
+    <p class="vehicle-sources"><a href="https://www.deepal.com.au/media/lemnpbqs/deepal_s07_owners_manual_211125.pdf#page=134" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.deepal.com.au/vehicles/deepal/s07/" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
+  </article><article class="vehicle-card" id="case-e8" data-region="中国品牌" data-type="cockpit">
+    <header><p class="vehicle-meta">中国品牌 · 座舱屏对照 · 配备 HUD</p><h3>吉利银河 E8</h3><p class="vehicle-meta">中国首发代 · 2024 座舱团队访谈</p></header>
+    <figure>
+      <a class="vehicle-image" href="assets/layout-study/e8-cockpit.png" target="_blank" rel="noopener"><img src="assets/layout-study/e8-cockpit.png" loading="lazy" alt="吉利银河 E8 座舱团队访谈配图，贯穿屏最左侧的仪表区，行驶示例显示 78。HUD 位置待核实"></a>
+      <figcaption><strong>座舱团队访谈配图</strong> · 我爱电车网 · 吉利汽车研究院座舱团队专访 · 车机界面原图</figcaption>
+    </figure>
+    <dl>
+      <div><dt>车速锚点</dt><dd>贯穿屏最左侧的仪表区，行驶示例显示 78。HUD 位置待核实</dd></div>
+      <div><dt>导航</dt><dd>访谈图为座舱 HMI 多状态，HUD 导航位置待核实</dd></div>
+      <div><dt>辅助驾驶与告警</dt><dd>贯穿屏的驾驶信息集中在左区，中部与右部可承担其他任务</dd></div>
+    </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>25.6 英寸</span><span>未公开</span></li><li><span>45 英寸贯穿屏</span><span>仪表／中控／副驾同屏</span><span>8.21:1<small>团队披露实车分辨率</small></span></li><li><span>贯穿屏有效显示区</span><span>45 英寸屏的有效显示区</span><span>8.19:1<small>公开有效尺寸</small></span></li></ul>
+      <a href="#ratio-e8">定位屏幕参数表</a>
+    </details>
+    <p class="vehicle-note">仪表、中控和副驾内容共享同一块贯穿屏。25.6 英寸 AR-HUD 出现在部分原代配置，图中观察的是贯穿屏布局。</p>
+    <p class="vehicle-sources"><a href="https://www.xevcar.com/gongsi/0GQ42F22024.html" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.itdcw.com/uploads/image/20240718/1721274519395576.png" target="_blank" rel="noopener noreferrer">原始图像 ↗</a> <a href="https://matrix.geely.com/mall-design/overview/1742742873907666945" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
+  </article><article class="vehicle-card" id="case-seal" data-region="中国品牌" data-type="cockpit">
+    <header><p class="vehicle-meta">中国品牌 · 座舱屏对照 · 配备 HUD</p><h3>比亚迪海豹 SEAL</h3><p class="vehicle-meta">海外左舵产品图及手册 · HUD 依配置</p></header>
+    <figure>
+      <a class="vehicle-image" href="assets/layout-study/seal-cockpit.jpg" target="_blank" rel="noopener"><img src="assets/layout-study/seal-cockpit.jpg" loading="lazy" alt="比亚迪海豹 SEAL 官方座舱图，独立仪表保留驾驶信息。欧版手册另列 HUD 车速，具体位置待核实"></a>
+      <figcaption><strong>官方座舱图</strong> · BYD · SEAL 海外车型页 · 座舱内饰图</figcaption>
+    </figure>
+    <dl>
+      <div><dt>车速锚点</dt><dd>独立仪表保留驾驶信息。欧版手册另列 HUD 车速，具体位置待核实</dd></div>
+      <div><dt>导航</dt><dd>座舱中部为可旋转中控屏，HUD 导航布局待核实</dd></div>
+      <div><dt>辅助驾驶与告警</dt><dd>欧版左舵手册列出 HUD 限速、ACC、车道偏离和盲区提示</dd></div>
+    </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>HUD</span><span>欧洲左舵手册，随配置</span><span>未公开</span></li><li><span>主驾仪表</span><span>欧洲版 10.25 英寸</span><span>未公开</span></li><li><span>中控 · 横置</span><span>15.6 英寸可旋转屏</span><span>1.78:1<small>公开分辨率</small></span></li><li><span>中控 · 竖置</span><span>同一块旋转屏</span><span>0.56:1<small>旋转换算</small></span></li></ul>
+      <a href="#ratio-seal">定位屏幕参数表</a>
+    </details>
+    <p class="vehicle-note">独立仪表与可旋转中控分工。中控框可按横置与竖置做两种原型。欧版手册用于核对 HUD 的功能范围。</p>
+    <p class="vehicle-sources"><a href="https://www.byd.com/bs/car/seal" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.byd.com/material/byd-site/mx/product/byd-seal/pc/interior.jpg" target="_blank" rel="noopener noreferrer">原始图像 ↗</a> <a href="https://www.byd.com/content/dam/byd-site/eu/support/service/manual/20250219/BYD%20SEAL%20Owner%27s%20Manual-Left-hand%20Drive-EN-241025.pdf" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
   </article><article class="vehicle-card" id="case-camry" data-region="海外品牌" data-type="fixed">
     <header><p class="vehicle-meta">海外品牌 · 固定信息区 HUD</p><h3>丰田 Camry</h3><p class="vehicle-meta">2024 · 北美 HUD 配置</p></header>
     <figure>
@@ -156,6 +794,11 @@
       <div><dt>导航</dt><dd>左侧共享导航与辅助驾驶区域</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>左侧图示有辅助信息，下方保留额外信息区域</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>HUD</span><span>10 英寸，依配置</span><span>未公开</span></li><li><span>仪表信息屏</span><span>4.2 或 7 英寸，依配置</span><span>未公开</span></li><li><span>中控</span><span>7 或 9 英寸，依配置</span><span>未公开</span></li></ul>
+      <a href="#ratio-camry">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">同一个固定区域可以按情境切换任务。作为传统 HUD 历史基线保留，图中布局对应 2024 北美版。</p>
     <p class="vehicle-sources"><a href="https://assets.sia.toyota.com/publications/en/om-s/OM24K1QRG/pdf/OM24K1QRG.pdf#page=19" target="_blank" rel="noopener noreferrer">来源文档 ↗</a></p>
   </article><article class="vehicle-card" id="case-accord" data-region="海外品牌" data-type="fixed">
@@ -169,6 +812,11 @@
       <div><dt>导航</dt><dd>手册列出逐向指引，示图为车道告警态</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>车道与跟车在左侧，交通标志在右上</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>HUD 手册示意区</span><span>Touring Hybrid</span><span>2.67:1<small>图示估算</small></span></li><li><span>主驾仪表</span><span>10.2 英寸</span><span>未公开</span></li><li><span>中控</span><span>12.3 英寸</span><span>未公开</span></li></ul>
+      <a href="#ratio-accord">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">两个速度值同时出现时，位置、尺寸、图标必须能区分当前车速与设定速度。</p>
     <p class="vehicle-sources"><a href="https://techinfo.honda.com/rjanisis/pubs/OM/AH/A30B2626IOM/enu/details/683838e7c795e9-04852150.html" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://techinfo.honda.com/rjanisis/pubs/OM/AH/A30B2626IOM/enu/img/30B1-ENG-317.png" target="_blank" rel="noopener noreferrer">原始图像 ↗</a></p>
   </article><article class="vehicle-card" id="case-ev9" data-region="海外品牌" data-type="fixed">
@@ -182,6 +830,11 @@
       <div><dt>导航</dt><dd>上部左侧为逐向箭头和距离</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>车道跟随、跟车、盲区和周边车辆占中部与右侧</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>HUD 手册示意区</span><span>Head Up Display Information</span><span>1.82:1<small>图示估算</small></span></li><li><span>主驾仪表</span><span>12.3 英寸</span><span>未公开</span></li><li><span>空调触控</span><span>5 英寸</span><span>未公开</span></li><li><span>中控</span><span>12.3 英寸</span><span>未公开</span></li></ul>
+      <a href="#ratio-ev9">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">手册用 11 个编号解释信息项。此图能对照模块位置，具体项目受配置、地区和辅助驾驶状态影响。</p>
     <p class="vehicle-sources"><a href="https://ownersmanual.kia.com/full_webhelp/MV1A/2026/en_US/topics/chapter5_21_1.html" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://ownersmanual.kia.com/full_webhelp/MV1A/2026/en_US/res/images/OMV034194N.png" target="_blank" rel="noopener noreferrer">原始图像 ↗</a></p>
   </article><article class="vehicle-card" id="case-sclass" data-region="海外品牌" data-type="ar">
@@ -195,6 +848,11 @@
       <div><dt>导航</dt><dd>上方多枚鱼骨箭头叠加在路口方向</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>下方聚合状态，品牌说明包含跟距辅助</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>77 英寸等效 / 10 m</span><span>2.00:1<small>公开视场角</small></span></li><li><span>主驾仪表</span><span>12.3 英寸</span><span>2.67:1<small>公开分辨率</small></span></li><li><span>中控 · 基础款</span><span>11.9 英寸</span><span>0.94:1<small>公开分辨率</small></span></li><li><span>中控 · OLED</span><span>12.8 英寸</span><span>1.09:1<small>公开分辨率</small></span></li><li><span>后排娱乐 × 2</span><span>11.6 英寸，选配</span><span>1.78:1<small>公开分辨率</small></span></li><li><span>后排平板</span><span>7 英寸，选配</span><span>1.60:1<small>公开分辨率</small></span></li></ul>
+      <a href="#ratio-sclass">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">用短时出现的鱼骨箭头回答「往哪走」。配图为经销商来源，实拍状态及具体配置未核实。</p>
     <p class="vehicle-sources"><a href="https://media.mbusa.com/news/meet-the-s-class-digital-my-mbux-mercedes-benz-user-experience" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.armstrongs.co.nz/content/uploads/2021/04/qqqqqqq-Augmented-1024x596.png" target="_blank" rel="noopener noreferrer">原始图像 ↗</a></p>
   </article><article class="vehicle-card" id="case-q6" data-region="海外品牌" data-type="ar">
@@ -208,6 +866,11 @@
       <div><dt>导航</dt><dd>原图标注道路关联的增强区域</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>速度、交通标志、辅助驾驶与导航共享显示系统</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>增强区等效约 88 英寸</span><span>未公开</span></li><li><span>主驾仪表</span><span>11.9 英寸 OLED</span><span>未公开</span></li><li><span>中控</span><span>14.5 英寸 OLED</span><span>未公开</span></li><li><span>副驾</span><span>10.9 英寸，选配</span><span>未公开</span></li></ul>
+      <a href="#ratio-q6">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">原图有状态区与增强区的引线。厂商表述的最远增强范围描述场景关联，光学虚像距离需另查技术规格。</p>
     <p class="vehicle-sources"><a href="https://www.audi-technology-portal.de/en/electrics-electronics/controls/audi-q6-e-tron-new-display-operating-concept-en" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.audi-mediacenter.com/en/press-releases/pure-driving-enjoyment-northern-spain-in-the-audi-q6-e-tron-16080/download" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
   </article><article class="vehicle-card" id="case-id7" data-region="海外品牌" data-type="ar">
@@ -221,6 +884,11 @@
       <div><dt>导航</dt><dd>远区负责转向与车道级提示，原图有绿色箭头</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>设备可呈现车道和跟距警告，小仪表还保留基础信息</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD 近区</span><span>虚像约 3.5 m</span><span>未公开</span></li><li><span>AR-HUD 远区</span><span>虚像约 10 m</span><span>未公开</span></li><li><span>ID. Display</span><span>紧凑型仪表</span><span>未公开</span></li><li><span>中控</span><span>15 英寸</span><span>未公开</span></li></ul>
+      <a href="#ratio-id7">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">状态近区和道路远区分工清晰，需关注 HUD 与小仪表出现同一信息时的一致性。</p>
     <p class="vehicle-sources"><a href="https://www.volkswagen-newsroom.com/en/publications/more/the-new-id-7-2562/download#page=17" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.volkswagen-newsroom.com/en/the-volkswagen-id7-17897/id7-interior-concept-and-technologies-17899" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
   </article><article class="vehicle-card" id="case-ix3" data-region="海外品牌" data-type="hybrid">
@@ -234,6 +902,11 @@
       <div><dt>导航</dt><dd>可选 3D HUD 在条带上方显示导航和辅助驾驶</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>条带中部及右侧可配置，和上方 HUD 协同</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>3D HUD</span><span>独立选配</span><span>未公开</span></li><li><span>Panoramic Vision</span><span>风挡 A 柱至 A 柱</span><span>未公开</span></li><li><span>中控</span><span>17.9 英寸异形</span><span>2.32:1<small>公开分辨率</small></span></li></ul>
+      <a href="#ratio-ix3">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">这张图是系统示意，车型应用以 iX3 资料为准。对比 YU7 时应逐层看信息归属和可见对象。</p>
     <p class="vehicle-sources"><a href="https://www.bmwgroup.com/en/news/general/2025/newidrive.html" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://www.thrustzone.com/wp-content/uploads/2025/03/idrive-en-four-elements-1280-854.jpeg" target="_blank" rel="noopener noreferrer">原始图像 ↗</a> <a href="https://newsroom.bmwgroup.com/americas/the-all-new-bmw-ix3" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
   </article><article class="vehicle-card" id="case-vistiq" data-region="海外品牌" data-type="ar">
@@ -247,6 +920,11 @@
       <div><dt>导航</dt><dd>绿色转向箭头位于状态信息上方，与道路画面关联</dd></div>
       <div><dt>辅助驾驶与告警</dt><dd>该帧未充分显示警告态，仪表与 HUD 同框</dd></div>
     </dl>
+    <details class="vehicle-displays">
+      <summary>显示比例与尺寸</summary>
+      <ul><li><span>AR-HUD</span><span>Platinum 配置</span><span>未公开</span></li><li><span>驾驶信息与中控</span><span>33 英寸曲面一体屏</span><span>未公开</span></li><li><span>前后排控制屏</span><span>前排与后排各一块</span><span>未公开</span></li></ul>
+      <a href="#ratio-vistiq">定位屏幕参数表</a>
+    </details>
     <p class="vehicle-note">实车帧可观察空间层级和道路背景，曝光、眼点与动态精度仍需受控实测。</p>
     <p class="vehicle-sources"><a href="https://www.tomsguide.com/vehicle-tech/evs/i-drove-the-2026-cadillac-vistiq-for-a-week-and-its-just-the-right-mix-of-luxury-and-value" target="_blank" rel="noopener noreferrer">来源文档 ↗</a> <a href="https://cdn.mos.cms.futurecdn.net/8KHdXMp9fMt66Yp7hE98eQ.gif" target="_blank" rel="noopener noreferrer">原始图像 ↗</a> <a href="https://www.cadillac.com/electric/preceding-year/vistiq" target="_blank" rel="noopener noreferrer">厂商技术说明 ↗</a></p>
   </article></div>
@@ -254,6 +932,7 @@
     <section id="findings" class="study-section">
       <h2>国内外车型的差异</h2>
       <div class="study-findings">
+        <article><h3>国产座舱也采用多种屏幕分工</h3><p>银河 E8 在约 8.21:1 的贯穿画板上协调仪表、中控和副驾。问界 M8 的三个实体屏各有任务，HUD 保留行车信息。深蓝 S07 把持续读数和道路提示集中到 HUD。海豹则要让中控内容适配横置和竖置两套布局，同时保持主驾仪表的位置稳定。</p><p><a href="#case-e8">吉利银河 E8</a> · <a href="#case-m8">问界 M8</a> · <a href="#case-s07">深蓝 S07</a> · <a href="#case-seal">比亚迪海豹 SEAL</a></p></article>
         <article><h3>固定信息区有多种速度锚点</h3><p>问界 M9、小米 SU7 与起亚 EV9 的样本把速度放在中部。理想 i8、丰田 Camry 和本田 Accord Hybrid 的样本允许车速靠右。车速是否容易找到，取决于位置是否稳定、数字是否突出，以及导航展开后是否挤占原位。</p><p><a href="#case-m9">问界 M9</a> · <a href="#case-i8">理想 i8</a> · <a href="#case-camry">丰田 Camry</a> · <a href="#case-accord">本田 Accord Hybrid</a> · <a href="#case-ev9">起亚 EV9</a></p></article>
         <article><h3>道路关联 AR 的区别在内容和触发时机</h3><p>小鹏公开演示覆盖车道引导、辅助驾驶意图和多场景提示。奔驰展示转弯鱼骨，大众提供车道级导航并保留近区状态，奥迪用原图清楚标示状态区与增强区。共同模式是速度等长期信息集中在固定区域，空间信息按场景呈现。功能丰富度与画面负担需要在同一路口任务下验证。</p><p><a href="#case-g7">小鹏 G7</a> · <a href="#case-sclass">奔驰 S 级 W223</a> · <a href="#case-id7">大众 ID.7</a> · <a href="#case-q6">奥迪 Q6 e-tron</a></p></article>
         <article><h3>条带显示是独立的座舱架构选择</h3><p>小米 YU7 通过风挡下缘卡片组织驾驶信息与其他内容。宝马 iX3 将主驾关键读数放在 Panoramic Vision 主驾侧，并把道路导航和部分辅助图形交给可选的上方 3D HUD。评估差距时要看信息是否重复、乘员能看见哪些内容，以及驾驶任务发生变化时信息如何交接。</p><p><a href="#case-yu7">小米 YU7</a> · <a href="#case-ix3">宝马 iX3</a></p></article>
