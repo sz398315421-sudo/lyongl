@@ -1,8 +1,8 @@
 # AR-HUD设计指南
 
-v1.2.0 · 资料核验日期 2026-11-07
+v1.3 · 基础资料核验日期 2026-11-07
 
-[打开在线指南](https://lyongl.xyz/arhud-guidelines/)
+[打开在线指南](https://lyongl.xyz/arhud-guidelines/) · [车型布局研究](vehicle-layout-study.html)
 
 本指南包括国内供应商与标准、HUD布局、字体与图标、状态和硬件适配。页面内提供光学换算、原图案例、来源索引及可下载的共享参数。
 
