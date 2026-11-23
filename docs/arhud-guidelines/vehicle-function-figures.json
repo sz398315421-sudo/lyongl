@@ -280,5 +280,141 @@
     "sha256": "2e5892014d094d963e72846da4ef2f2909f1b1e040d8b42f9597eb5cf8e51bc5",
     "use": "完整原图供研究读图；未叠加项目 HUD 图形",
     "copyright": "原出版方所有，仅作研究引用"
+  },
+  {
+    "id": "TERM-IMG-mini",
+    "file": "assets/glossary-study/mini-combiner.png",
+    "model": "MINI Countryman SE All4",
+    "kind": "媒体实车动图静帧",
+    "scope": "2025 车型；补充架构参考",
+    "refs": [
+      "MINI-I"
+    ],
+    "point": "观察仪表台中伸出的独立透明组合片，与直接借风挡反射的 SU7 对照。",
+    "boundary": "静帧只说明可见硬件形态，不用于比较亮度、视距或功能多少。",
+    "assetUrl": "https://cdn.mos.cms.futurecdn.net/w9WTxAf6bMYF4BoXdsma9M.gif",
+    "transformation": "原媒体实拍 GIF 第 21 帧提取，未裁切、加绘或改色",
+    "sourcePage": "https://www.tomsguide.com/vehicle-tech/evs/i-drove-the-mini-cooper-countryman-ev-for-a-week-and-its-the-most-thrilling-ride-ive-tested-this-year",
+    "sha256": "5ca1005cdcddd2c1327857020dcbf527ec188db544aa86818e6a15202a3c0542",
+    "copyright": "原出版方所有，仅作研究引用"
+  },
+  {
+    "id": "TERM-IMG-ev6-intent",
+    "file": "assets/glossary-study/ev6-ar-assist.png",
+    "model": "起亚 EV6",
+    "kind": "官方手册 AR 辅助图例",
+    "scope": "印度官方 OCV 版面",
+    "refs": [
+      "EV6"
+    ],
+    "point": "图例 13 为前车标记，14 为前车起步，15 为高速换道辅助提示，表现不同的辅助任务。",
+    "boundary": "提示显示、系统激活与车辆实际执行是不同状态；各项仍受配置和工作条件限制。",
+    "assetUrl": "https://www.kia.com/content/dam/kia2/in/en/content/ev6-manual/res/images/OCV041420L.png",
+    "transformation": "保留原图内容，未叠绘 HUD 图形",
+    "sourcePage": "https://www.kia.com/content/dam/kia2/in/en/content/ev6-manual/topics/chapter5_19_2.html",
+    "sha256": "cec59534c139bd6e599ad1b1bee3a1e7739c0c1b511c2d5c2e64cec76c0e28c6",
+    "copyright": "原出版方所有，仅作研究引用"
+  },
+  {
+    "id": "TERM-IMG-li-camera",
+    "file": "assets/glossary-study/li-camera.webp",
+    "model": "理想 i8",
+    "kind": "官方手册界面图",
+    "scope": "2026 Max；数字后视镜影像段",
+    "refs": [
+      "LI"
+    ],
+    "point": "右侧是一块摄像头画面，左侧仍保留导航和车速，说明视频与重建图形是不同的信息形式。",
+    "boundary": "该段说明开关开启后打转向灯显示侧后方影像；这张图不证明 HUD 还有倒车视频。",
+    "assetUrl": "https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/img/X01-OM-20240222-OTA6.5.webp",
+    "transformation": "保留原图内容，未叠绘 HUD 图形",
+    "sourcePage": "https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html",
+    "sha256": "4c44a3c73eab9513fa720d8211d52b7ecfb4115e78791dbd5e060e65f07555ff",
+    "copyright": "原出版方所有，仅作研究引用"
+  },
+  {
+    "id": "TERM-IMG-wey-modes",
+    "file": "assets/glossary-study/wey-modes.jpg",
+    "model": "魏牌蓝山",
+    "kind": "车主驻车设置实拍",
+    "scope": "2024-11 帖子，配置与软版未独立核验",
+    "refs": [
+      "WEY-U"
+    ],
+    "point": "左侧可见全部、环境、地图模式预览，右侧为地图与增强显示设置。",
+    "boundary": "只确认照片中的菜单；不把车主所述限制外推为所有蓝山版本的规则。",
+    "assetUrl": "https://club2.autoimg.cn/album/g32/M05/A2/81/userphotos/2024/11/26/18/500_Chtk2WdFqdmAMpS2AAr5KreW_fo335.jpg",
+    "transformation": "保留原图内容，未叠绘 HUD 图形",
+    "sourcePage": "https://club.autohome.com.cn/bbs/thread/886acfa1ce9a63eb/109895922-1.html",
+    "sha256": "33407c01ddd3f8ba983fc620094856b6871a8c55e2b6afa3fe245d2ce702e2bc",
+    "copyright": "原出版方所有，仅作研究引用"
+  },
+  {
+    "id": "TERM-IMG-li-modes",
+    "file": "assets/glossary-study/li-modes.webp",
+    "model": "理想 i8",
+    "kind": "官方设置界面图",
+    "scope": "2026 Max；HUD 模式设置",
+    "refs": [
+      "LI"
+    ],
+    "point": "可见车速、地图、环境、全部四个选项，与蓝山菜单对照可理解品牌命名差异。",
+    "boundary": "用户选择的模式并不覆盖全部场景优先级：辅助驾驶开启时仍可能加入地图或环境。",
+    "assetUrl": "https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/img/W02-UI-082.webp",
+    "transformation": "保留原图内容，未叠绘 HUD 图形",
+    "sourcePage": "https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html",
+    "sha256": "b30843ccf655d9d83cb1bb6e7459ac563826cd4e0b3d49e5636d8759987d1abb",
+    "copyright": "原出版方所有，仅作研究引用"
+  },
+  {
+    "id": "TERM-IMG-li-snow",
+    "file": "assets/glossary-study/li-snow.webp",
+    "model": "理想 i8",
+    "kind": "官方雪地模式界面图",
+    "scope": "2026 Max；雪地模式段",
+    "refs": [
+      "LI"
+    ],
+    "point": "文字、车道线和部分图标改为橙色；仍沿用原先的导航、环境和车速分区。",
+    "boundary": "配色增强不是新的 AR 导航能力；这不是现场雪天亮度实测。",
+    "assetUrl": "https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/img/W04-UI-174.webp",
+    "transformation": "保留原图内容，未叠绘 HUD 图形",
+    "sourcePage": "https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html",
+    "sha256": "037b1552fe5d1cf90bb880ad8603a4c49858fd6ffd8df2bb1bded21d0c6975a2",
+    "copyright": "原出版方所有，仅作研究引用"
+  },
+  {
+    "id": "TERM-IMG-ti",
+    "file": "assets/glossary-study/ti-eyebox.png",
+    "model": "HUD 光学几何",
+    "kind": "官方技术原图",
+    "scope": "TI DLPA073A，2016 修订，第 6 页图 5",
+    "refs": [
+      "TI-FOV"
+    ],
+    "point": "HFOV／VFOV 表示视场角，VID 表示虚像距离，Eyebox 表示可观看区域。",
+    "boundary": "用示意图理解术语；不把图中的几何比例当作某款量产车的实测规格。",
+    "assetUrl": "https://www.ti.com/lit/an/dlpa073a/dlpa073a.pdf#page=6",
+    "transformation": "原 PDF 第 6 页图 5 局部渲染；保留原图及全部标签，无重绘",
+    "sourcePage": "https://www.ti.com/lit/an/dlpa073a/dlpa073a.pdf",
+    "sha256": "20b736fee1816fddcfd9e8a81f3d799519fa618c2e908c357fa11febc628b34f",
+    "copyright": "原出版方所有，仅作研究引用"
+  },
+  {
+    "id": "TERM-IMG-wey-cinema",
+    "file": "assets/glossary-study/wey-cinema.jpg",
+    "model": "魏牌蓝山",
+    "kind": "车主车库驻车实拍",
+    "scope": "2024-11 帖子，配置与软版未独立核验",
+    "refs": [
+      "WEY-U"
+    ],
+    "point": "前方真实车辆仍可见，HUD 区出现影视画面，可直观区分驻车娱乐与行车导航。",
+    "boundary": "该图只作驻车显示参考；歌词、音乐与观影的可用条件须分开核验，不表示行车中可播放。",
+    "assetUrl": "https://club2.autoimg.cn/album/g32/M05/A2/81/userphotos/2024/11/26/18/500_Chtk2WdFqduAGm3XABAwBANOgiQ891.jpg",
+    "transformation": "保留原图内容，未叠绘 HUD 图形",
+    "sourcePage": "https://club.autohome.com.cn/bbs/thread/886acfa1ce9a63eb/109895922-1.html",
+    "sha256": "c4ac6247db40865fe1dc2843b4791f30b1b7c0ca9d9022f9f35c5c097f873773",
+    "copyright": "原出版方所有，仅作研究引用"
   }
 ]
