@@ -29,7 +29,9 @@
 .header-study-link:hover { background: #e0ebff; text-decoration: none; }
 .header-study-link:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 @media (max-width: 760px) {
-  .site-header { gap: 10px; padding-inline: 12px; }
+  .site-header { height: auto; min-height: 60px; flex-wrap: wrap; gap: 8px 10px; padding: 10px 12px; }
+  .site-header .brand { flex: 1; }
+  .header-research { order: 2; flex-basis: 100%; gap: 10px; padding-top: 2px; }
   .header-study-link { font-size: 12px; padding-inline: 8px; }
-  .site-header #print { white-space: nowrap; }
+  .site-header #print { white-space: nowrap; margin-left: 0; }
 }

@@ -9,3 +9,11 @@ v1.3 · 基础资料核验日期 2026-11-07
 离线使用时下载 docs/arhud-guidelines 内的文件，打开 index.html。保留同目录的样式、脚本及 assets。引用来源网页需要联网。
 
 第三方插图的发布方、版本和引用位置见[图片来源与使用说明](图片来源与使用说明.md)。Noto Sans SC 字体使用 [SIL OFL 1.1](assets/OFL-NotoSansSC.txt)。
+
+## 功能与模（2026-11-23 新增）
+
+[HUD 功能与模式研究](vehicle-function-study.html)：26 款车型，22 款附原图；含功能释义、7 类驾驶场景、双车对照、逐车矩阵及国内外差异。指南头部新增“功能与模”入口。
+
+[完整矩阵 CSV](vehicle-function-matrix.csv) · [证据与图源 JSON](vehicle-function-evidence.json) · [原图索引](vehicle-function-figures.json) · [研究正文](HUD功能与模式研究.md)
+
+离线可读；每车列明市场、版本、来源及待核验项。官方演示、手册图和媒体画面分开标注，未用绘制的 HUD 界面代替实际图源。
