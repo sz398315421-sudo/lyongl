@@ -7,12 +7,12 @@
   <title>市售车型 HUD 布局研究 · AR-HUD 设计指南</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="vehicle-layout-study.css">
-</head>
-<body class="vehicle-study">
-  <header class="study-top"><a href="index.html#vehicle-layout-study">← AR-HUD 设计指南</a><nav aria-label="研究目录"><a href="vehicle-function-study.html">功能与模 ↗</a><a href="#compare">双车对照</a><a href="#screen-ratios">屏幕比例</a><a href="#matrix">布局矩阵</a><a href="#gallery">车型原图</a><a href="#findings">国内外差异</a></nav></header>
-  <main class="study-main">
+<link rel="stylesheet" href="guide-shell.css"></head>
+<body class="guide-shell layout-page" data-page="layout">
+  <header class="site-header"><a class="brand" href="index.html">AR-HUD <span>设计指南</span></a><nav class="site-nav" aria-label="网站主导航"><a href="index.html">设计指南</a><a href="vehicle-layout-study.html" aria-current="page">布局研究</a><a href="vehicle-function-study.html">功能与模</a></nav><button class="header-print" id="print" type="button">打印／PDF</button></header><aside class="sidebar" aria-label="布局研究页内目录"><div class="edition">本页目录 <span>布局研究</span></div><nav aria-label="页内目录"><div class="nav-group"><h2>开始</h2><a href="#study-top">研究概览</a><a href="#method">样本与读图方法</a></div><div class="nav-group"><h2>对照与参数</h2><a href="#compare">双车对照</a><a href="#screen-ratios">屏幕比例</a><a href="#matrix">布局矩阵</a></div><div class="nav-group"><h2>案例与分析</h2><a href="#gallery">车型原图</a><a href="#findings">国内外差异</a></div></nav><div class="side-foot">AR-HUD 设计指南<br><a href="README.md">网站使用说明 ↗</a></div></aside>
+  <main class="study-main" id="study-top"><div class="guide-content">
     <header class="study-title">
-      <p class="vehicle-meta">AR-HUD 设计指南 v1.3 · 研究日期 2026-11-23</p>
+      <p class="vehicle-meta">设计指南 / 布局研究 · 研究日期 2026-11-23</p>
       <h1>市售车型 HUD 布局研究</h1>
       <p>对照 18 款量产车型的手册图、官方技术图和媒体实车画面，观察关键信息放在哪里，以及驾驶任务变化时如何调配显示空间。</p>
       <div class="downloads"><a href="vehicle-layout-matrix.csv" download>下载布局矩阵 CSV</a><a href="vehicle-display-ratios.csv" download>下载屏幕参数 CSV</a><a href="vehicle-layout-evidence.json" download>下载图源与版本 JSON</a></div>
@@ -942,6 +942,6 @@
       <ol><li>选 2 个车速锚点做同场对照，测试无导航、路口提示展开和紧急告警三种状态下的查找时间与误读率。</li><li>用同一段复杂路口素材，对比固定转向指引与道路关联提示。记录图形遮挡、注册漂移、提示撤销和降级状态。</li><li>在相同驾驶眼点、环境照度和相机曝光下补采实车。记录地区、配置、软件版本和模式，分别复测白天、夜间和眼盒边缘。</li></ol>
     </section>
     <footer class="study-footer"><a href="index.html#vehicle-layout-study">返回 AR-HUD 设计指南</a><span>图像版权归对应发布方，一图一来源。</span></footer>
-  </main>
+  </div></main>
   <script src="vehicle-layout-study.js"></script>
-</body></html>
+<script src="guide-shell.js"></script></body></html>

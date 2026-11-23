@@ -17,3 +17,7 @@ v1.3 · 基础资料核验日期 2026-11-07
 [完整矩阵 CSV](vehicle-function-matrix.csv) · [证据与图源 JSON](vehicle-function-evidence.json) · [原图索引](vehicle-function-figures.json) · [研究正文](HUD功能与模式研究.md)
 
 离线可读；每车列明市场、版本、来源及待核验项。官方演示、手册图和媒体画面分开标注，未用绘制的 HUD 界面代替实际图源。
+
+## 统一导航与版式
+
+设计指南、布局研究、功能与模共用 `guide-shell.css` 和 `guide-shell.js`：头部采用文字导航及当前栏目下划线，各页面左侧只列自身章节。三页统一字体、白底蓝灰配色、内容宽度和标题层级；手机端目录改为可横向滚动的页内导航。保留同目录共享文件即可离线使用。
