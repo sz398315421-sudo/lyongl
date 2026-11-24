@@ -34,7 +34,12 @@ html = replace(html, "localStorage.getItem('sr-screen-format')", "localStorage.g
 html = replace(html, "sessionStorage.getItem('drivescene-preview-v10')", "sessionStorage.getItem('hud:drivescene-preview-v10')");
 html = replace(html, '||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")', '||"dark"');
 const editorRedirect = hasEditor ? "const hudQuery=new URLSearchParams(location.search);if(hudQuery.has('projection')||hudQuery.has('preset'))location.replace('./studio.html'+location.search+location.hash);" : '';
+const restoreScript = (await build({
+  stdin: {contents: "import {restoreHudStartup} from './hud-storage.mjs';restoreHudStartup();", resolveDir: hud},
+  bundle: true, minify: true, format: 'iife', write: false
+})).outputFiles[0].text;
 html = replace(html, 'let saved;try', `${editorRedirect}
+${restoreScript}
 let saved;try`);
 html = replace(html, '["2","4","6"].includes(q.get("lanes"))', '["2","3","4","6"].includes(q.get("lanes"))');
 html = replace(html, 'known=["01","02","03","05","06","07","08","09","10","12","13","14","16","17","18","19"],scene=aliases[raw]||(known.includes(raw)?raw:"02")', 'known=["01","02","03","09","12"],mapped=aliases[raw]||raw,scene=known.includes(mapped)?mapped:"02"');
@@ -80,7 +85,16 @@ await build({
       let contents = await readFile(args.path, 'utf8');
       contents = contents.replaceAll('import.meta.url', `new URL(${JSON.stringify(relative)},import.meta.url).href`);
       if (args.path === path.join(adas, 'app.js')) {
-        contents = `import {hudPreferences as localStorage, hudSnapshots as sessionStorage} from '../hud/hud-storage.mjs';\nimport {transparentVideoFormat} from '../hud/hud-video.mjs';\nimport {renderPngSequence} from '../hud/hud-png-sequence.mjs';\n${contents}`;
+        contents = `import {hudPreferences as localStorage, hudSnapshots as sessionStorage, resetHudSettings, saveHudLastSettings} from '../hud/hud-storage.mjs';\nimport {transparentVideoFormat} from '../hud/hud-video.mjs';\nimport {renderPngSequence} from '../hud/hud-png-sequence.mjs';\n${contents}`;
+        contents = replace(contents, 'let vehicleSettings=readVehicleSettings(query);', 'let vehicleSettings=readVehicleSettings(query),lastHudQuery;');
+        contents = replace(contents, 'function updateURL(){', 'function updateURL(saveHud=false){');
+        contents = replace(contents, "if(roadGuidanceColor!==defaultGuidanceColor)q.set('guideColor',", "q.set('guideColor',");
+        contents = replace(contents, 'writeTrafficQuery(q,trafficFlow.settings);', `writeTrafficQuery(q,trafficFlow.settings);
+ if(scenePlayback.presetAnimation==='right-turn')q.set('animation','right-turn');
+ const hudQuery=q.toString();
+ if(saveHud||lastHudQuery!==undefined&&hudQuery!==lastHudQuery)saveHudLastSettings(hudQuery,world.hudSettings);
+ lastHudQuery=hudQuery;`);
+        contents = replace(contents, 'createScenePlayback(world,{onChange:snapshot=>{', "createScenePlayback(world,{initialPresetAnimation:query.get('animation'),onChange:snapshot=>{");
         contents = replace(contents, 'cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadmeForSize', 'cameraMetadata,perspectiveSvg,renderDepth,exportSize,exportReadmeForSize,captureTransparent,withTransparentOutput');
         contents = replace(contents, "['paint','material','lighting','intensity'].some", "['paint','paintOpacity','material','lighting','intensity'].some");
         contents = replace(contents, `||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')`, `||'dark'`);
@@ -106,6 +120,10 @@ roadGuidanceColor=world.roadGuidance.setColor(query.has('guideColor')?roadGuidan
         contents = replace(contents, 'states/${st.id}-${lanes}-${view}', 'states/${st.id}-${posterLanes}-${view}');
         contents = replace(contents, "'鸣谢与授权 · 自动驾驶道路场景':'自动驾驶道路场景'", "'鸣谢与授权 · HUD':'HUD'");
         contents = replace(contents, 'const sceneMotionControls=initScenePlaybackControls', `world.hudPlayback=scenePlayback;
+world.hudSaveScene=()=>updateURL(true);
+const resetHudButton=$('hud-reset-settings');
+resetHudButton.disabled=false;
+resetHudButton.addEventListener('click',resetHudSettings);
 world.hudRefreshStart=()=>{
  if(selected==='junction')preferences.get(selected).junctionPosition='approaching';
  render(false);rememberPreview();
@@ -125,7 +143,7 @@ const sceneMotionControls=initScenePlaybackControls`);
  world.finishLayoutTransition();world.finishCameraMotion();world.finishEnvironmentMotion();world.finishLayoutMotion();
  document.querySelectorAll('.frame-cover').forEach(element=>element.remove());activeCover=null;
  if(!scenePlayback.prepareRightTurnPreview()&&!world.suspended)world.renderFrame();
- syncScenePlayback();
+ updateURL();syncScenePlayback();
 },onToggle:()=>{`);
         contents = replace(contents, 'onReset:()=>scenePlayback.reset()', `onReset:()=>{
  scenePlayback.reset();
@@ -264,7 +282,8 @@ world.onLayoutFrame=moving=>`);
       }
       if (args.path === path.join(adas, 'scene-playback.js')) {
         contents = `import {applyRightPassFrame, canTurnAtJunction, createPresetLaneChange, createPresetRightTurn, junctionDuration, presetLaneDuration, presetLaneDirection} from '../hud/hud-right-pass.mjs';\n${contents}`;
-        contents = replace(contents, 'const snapshot=()=>({scene,status,', `let presetAnimation='lane-change';
+        contents = replace(contents, 'onChange=()=>{}}={})', "onChange=()=>{},initialPresetAnimation='lane-change'}={})");
+        contents = replace(contents, 'const snapshot=()=>({scene,status,', `let presetAnimation=initialPresetAnimation==='right-turn'?'right-turn':'lane-change';
  const turnAvailable=()=>canTurnAtJunction(world);
  const wantsRightTurn=()=>presetAnimation==='right-turn'&&turnAvailable();
  const presetDirection=()=>world.hudSettings?.preset&&!world.state?.roadworks?presetLaneDirection(world,roadLaneState(world)):null;
@@ -308,7 +327,7 @@ world.onLayoutFrame=moving=>`);
    button.disabled=!ready;
    button.setAttribute('aria-pressed',String(button.dataset.hudAnimation===state.presetAnimation));
   }`);
-        contents = replace(contents, 'seek,snapshot,get active()', `seek,snapshot,prepareRightTurnPreview,setPresetAnimation(animation){
+        contents = replace(contents, 'seek,snapshot,get active()', `seek,snapshot,prepareRightTurnPreview,get presetAnimation(){return presetAnimation;},setPresetAnimation(animation){
   if(!turnAvailable()||presetAnimation===animation||!['lane-change','right-turn'].includes(animation))return false;
   presetAnimation=animation;reset({render:false});return true;
  },get status(){return status;},get basePose(){return base;},get active()`);

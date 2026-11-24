@@ -39,7 +39,7 @@ export const World = {
       if (key === 'colors' || key === 'ego' && controls.settings.ego) controls.showSceneLayers();
       if (key === 'follow' || key === 'presetCamera') camera.reset();
       world.renderFrame();
-    });
+    }, () => world.hudSaveScene?.());
     world.hudSettings = controls.settings;
     world.hudApplyPreset = key => {
       if (key === controls.settings.preset) return null;

@@ -1,4 +1,4 @@
-import {hudPreferences} from './hud-storage.mjs';
+import {hudPreferences, readHudLastSettings} from './hud-storage.mjs';
 import {bindHexColor, normalizeOpacity} from './hud-hex.mjs';
 import {blueRoadColor} from './hud-blue-road.mjs';
 
@@ -22,8 +22,15 @@ const defaultMarking = {base: null, highlight: blueRoadColor, width: 100, baseOp
 const isHex = value => typeof value === 'string' && /^#[\da-f]{6}$/i.test(value);
 
 function readSettings() {
-  let saved;
-  try { saved = JSON.parse(hudPreferences.getItem('preview-controls')); } catch {}
+  const last = readHudLastSettings();
+  let saved = last?.controls;
+  if (!saved) {
+    try { saved = JSON.parse(hudPreferences.getItem('preview-controls')); } catch {}
+  }
+  const query = new URLSearchParams(location.search);
+  const lastQuery = new URLSearchParams(last?.query);
+  const linkedView = last && query.has('view') &&
+    (query.get('view') !== lastQuery.get('view') || query.has('scene') && query.get('scene') !== lastQuery.get('scene'));
   const view = {...defaultView};
   for (const [key, , min, max] of cameraFields) {
     const value = saved?.view?.[key];
@@ -58,7 +65,7 @@ function readSettings() {
     }
   }
   const preset = ['blueRoad', 'carpet'].includes(saved?.preset) ? saved.preset : saved?.carpet === true ? 'carpet' : null;
-  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true, preset, beamOnly: saved?.beamOnly === true, colors, laneOpacity, marking, view, guide, starts};
+  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true && !linkedView, preset, beamOnly: saved?.beamOnly === true, colors, laneOpacity, marking, view, guide, starts};
 }
 
 function slider([key, name, min, max, , unit, step = 1, labelText = name], values, prefix, change) {
@@ -91,7 +98,7 @@ function slider([key, name, min, max, , unit, step = 1, labelText = name], value
   return {label, sync};
 }
 
-export function createHudControls(onChange) {
+export function createHudControls(onChange, onSave) {
   const byId = id => document.getElementById(id);
   const settings = readSettings();
   const panel = byId('hud-camera-controls');
@@ -110,12 +117,9 @@ export function createHudControls(onChange) {
   let laneGroup;
   let startLayout;
 
-  function saveSettings() {
-    try { hudPreferences.setItem('preview-controls', JSON.stringify(settings)); } catch {}
-  }
   const change = key => {
     onChange(key);
-    saveSettings();
+    onSave();
   };
 
   function syncPreset() {
@@ -279,7 +283,6 @@ export function createHudControls(onChange) {
   showSceneLayers() {
     if (!settings.beamOnly || settings.preset !== 'carpet') return;
     byId('hud-beam-only').checked = settings.beamOnly = false;
-    try { hudPreferences.setItem('preview-controls', JSON.stringify(settings)); } catch {}
   },
   usePresetCamera(view) {
     Object.assign(settings.view, view);
@@ -292,14 +295,13 @@ export function createHudControls(onChange) {
     input.checked = false;
     settings.customCamera = false;
     panel.hidden = true;
-    try { hudPreferences.setItem('preview-controls', JSON.stringify(settings)); } catch {}
+    onSave();
   },
   applyRoadPreset(key, guide) {
     settings.preset = key;
     Object.assign(settings.guide, guide);
     syncGuide();
     syncPreset();
-    saveSettings();
   }, syncGuide(supported) { guidePanel.hidden = !supported; }, syncStart(layout) {
     if (layout?.key === startLayout?.key && layout?.count === startLayout?.count && layout?.max === startLayout?.max) return;
     startLayout = layout;

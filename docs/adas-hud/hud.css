@@ -109,6 +109,8 @@
 }
 
 .hud-settings { margin-top: 24px; font-size: var(--type-control); }
+.hud-settings-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.hud-settings-heading .settings-label { margin: 0; }
 .hud-animation-choices { margin-bottom: 12px; }
 .workspace :is(.hud-animation-choices, .hud-setting-actions) button { flex: 1 1 0; min-width: 0; }
 .workspace .hud-animation-choices button[aria-pressed="true"] {

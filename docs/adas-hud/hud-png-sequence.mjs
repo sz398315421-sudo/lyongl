@@ -1,4 +1,5 @@
 import {canvasPng, zipFiles} from '../adas/export-files.js';
+import {hudPreferences} from './hud-storage.mjs';
 
 const maxFrames = 1200;
 const maxFps = 60;
@@ -13,9 +14,19 @@ export function createSequenceFields() {
     <p>总帧数留空时按动画时长计算。手动设置时会重新采样整段动画，播放时长为总帧数 ÷ 帧率。</p>`;
   const fps = fields.querySelector('[name="sequence-fps"]');
   const count = fields.querySelector('[name="sequence-count"]');
+  const values = () => ({fps: fps.valueAsNumber, count: count.value === '' ? null : count.valueAsNumber});
+  try {
+    const saved = JSON.parse(hudPreferences.getItem('png-sequence'));
+    if (Number.isInteger(saved?.fps) && saved.fps >= 1 && saved.fps <= maxFps) fps.value = saved.fps;
+    if (Number.isInteger(saved?.count) && saved.count >= 1 && saved.count <= maxFrames) count.value = saved.count;
+  } catch {}
+  fields.addEventListener('input', () => {
+    if (!fps.validity.valid || !count.validity.valid) return;
+    try { hudPreferences.setItem('png-sequence', JSON.stringify(values())); } catch {}
+  });
   return {fields, read() {
     if (!fps.reportValidity() || !count.reportValidity()) return null;
-    return {fps: fps.valueAsNumber, count: count.value === '' ? null : count.valueAsNumber};
+    return values();
   }};
 }
 
