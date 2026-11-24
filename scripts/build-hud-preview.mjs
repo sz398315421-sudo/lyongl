@@ -44,7 +44,7 @@ let saved;try`);
 html = replace(html, '["2","4","6"].includes(q.get("lanes"))', '["2","3","4","6"].includes(q.get("lanes"))');
 html = replace(html, 'known=["01","02","03","05","06","07","08","09","10","12","13","14","16","17","18","19"],scene=aliases[raw]||(known.includes(raw)?raw:"02")', 'known=["01","02","03","09","12"],mapped=aliases[raw]||raw,scene=known.includes(mapped)?mapped:"02"');
 html = replace(html, 'scene==="09"?"2":"6"', 'scene==="09"?"2":"3"');
-html = replace(html, "road:'普通道路',elevated:'高架道路'", "road:'蓝色光轨',elevated:'HUD 光毯'");
+html = replace(html, "road:'普通道路',elevated:'高架道路'", "road:'ADAS',elevated:'HUD 光毯'");
 html = replace(html, /const available=\{[^\n]+\nconst defaultOn=\{[^\n]+\nconst mask=[^\n]+/g, "const posterMask=q.get('model')&&q.get('model')!=='x6'?0:8;");
 html = replace(html, '${posterScene}-${lanes}-${view}', '${posterScene}-${lanes==="3"?"4":lanes}-${view}');
 html = replace(html, '<button type="button" data-road="laneCount" data-value="4"', '<button type="button" data-road="laneCount" data-value="3" aria-label="3 车道" aria-pressed="false">3</button><button type="button" data-road="laneCount" data-value="4"');
@@ -100,7 +100,7 @@ await build({
         contents = replace(contents, `||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')`, `||'dark'`);
         contents = replace(contents, '`assets/', '`../adas/assets/');
         contents = replace(contents, "['2','4','6'].includes(query.get('lanes'))", "['2','3','4','6'].includes(query.get('lanes'))");
-        contents = replace(contents, 'const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures[0];', `const hudPresets={road:{key:'blueRoad',name:'蓝色光轨'},elevated:{key:'carpet',name:'HUD 光毯'}};
+        contents = replace(contents, 'const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures[0];', `const hudPresets={road:{key:'blueRoad',name:'ADAS'},elevated:{key:'carpet',name:'HUD 光毯'}};
 const hudScenes=structures.filter(s=>Object.hasOwn(hudPresets,s.key));
 const first=hudScenes.find(s=>s.layouts.some(([id])=>id===initial))||hudScenes[0];`);
         contents = replace(contents, "laneCount:initial==='09'?2:6", "laneCount:initial==='09'?2:3");
@@ -222,14 +222,13 @@ world.onLayoutFrame=moving=>`);
         contents = `import {bindHexColor} from '../hud/hud-hex.mjs';\nimport {sampleRightPassGuidance} from '../hud/hud-right-pass.mjs';\n${contents}`;
         contents = replace(contents, 'export function createRoadGuidance(){', 'export function createRoadGuidance(getEffect){');
         contents = replace(contents, "if(plan.kind==='ramp-exit')return sampleRampExit(plan,distance);", "if(plan.kind==='hud-right-pass')return sampleRightPassGuidance(plan,distance);\n  if(plan.kind==='ramp-exit')return sampleRampExit(plan,distance);");
-        contents = replace(contents, 'displayOpacity:{value:1}', 'displayOpacity:{value:1},guideFar:{value:new THREE.Vector3()},guideGradient:{value:0},guideOpacity:{value:new THREE.Vector2(1,1)}');
-        contents = replace(contents, 'uniform vec3 guideColor;uniform float displayOpacity;', 'uniform vec3 guideColor;uniform vec3 guideFar;uniform float guideGradient;uniform float displayOpacity;uniform vec2 guideOpacity;');
-        contents = replace(contents, 'vec3 color=mix(guideColor,mix(guideColor,vec3(1.),.12),.28*(1.-side));', 'vec3 hue=mix(guideColor,guideFar,smoothstep(0.,.80,vUv.y)*guideGradient);\n    vec3 color=mix(hue,mix(hue,vec3(1.),.12),.28*(1.-side));');
-        contents = replace(contents, 'gl_FragColor=vec4(color,alpha*displayOpacity);', `float gradientPosition=smoothstep(0.,.80,vUv.y);
-    if(displayOpacity>1.0){
-     gradientPosition=smoothstep(.06,1.,vUv.y);
-     vec3 tint=mix(guideColor,guideFar,smoothstep(.06,1.,vUv.y)*guideGradient);
-     color=mix(tint/12.92,pow((tint+.055)/1.055,vec3(2.4)),step(vec3(.04045),tint));
+        contents = replace(contents, 'displayOpacity:{value:1}', 'displayOpacity:{value:1},guideFar:{value:new THREE.Vector3()},guideGradient:{value:0},guideOpacity:{value:new THREE.Vector2(1,1)},guideStops:{value:new THREE.Vector2(0,1)}');
+        contents = replace(contents, 'uniform vec3 guideColor;uniform float displayOpacity;', 'uniform vec3 guideColor;uniform vec3 guideFar;uniform float guideGradient;uniform float displayOpacity;uniform vec2 guideOpacity,guideStops;');
+        contents = replace(contents, 'vec3 color=mix(guideColor,mix(guideColor,vec3(1.),.12),.28*(1.-side));', `float blend=smoothstep(guideStops.x,guideStops.y,vUv.y)*guideGradient;
+    vec3 hue=mix(guideColor,guideFar,blend);
+    vec3 color=mix(hue,mix(hue,vec3(1.),.12),.28*(1.-side));`);
+        contents = replace(contents, 'gl_FragColor=vec4(color,alpha*displayOpacity);', `if(displayOpacity>1.0){
+     color=mix(hue/12.92,pow((hue+.055)/1.055,vec3(2.4)),step(vec3(.04045),hue));
      if(displayOpacity>1.5){
       // Keep the mesh boundary sharp and antialias only the inner edge of the outline.
       float aa=min(fwidth(side)*.5,.012);
@@ -238,10 +237,11 @@ world.onLayoutFrame=moving=>`);
       alpha=smoothstep(0.,.032,vUv.y)*(1.-smoothstep(.30,1.,vUv.y));
      }else alpha=(1.-smoothstep(.90,.99,side))*smoothstep(0.,.014,vUv.y)*(1.-smoothstep(.74,1.,vUv.y));
     }
-    gl_FragColor=vec4(color,alpha*mix(guideOpacity.x,guideOpacity.y,gradientPosition*guideGradient));`);
+    gl_FragColor=vec4(color,alpha*mix(guideOpacity.x,guideOpacity.y,blend));`);
         contents = replace(contents, 'const near=(car.userData.vehicleSpec.length||4.85)*.40;let far=34;', `const effect=getEffect?.(),near=(car.userData.vehicleSpec.length||4.85)*.40;let far=effect?near+effect.length:34;
   material.uniforms.guideGradient.value=effect?.gradient?1:0;
   material.uniforms.guideOpacity.value.set((effect?.nearOpacity??100)/100,(effect?.farOpacity??100)/100);
+  material.uniforms.guideStops.value.set((effect?.nearPosition??0)/100,(effect?.farPosition??100)/100);
   if(effect?.gradient&&material.userData.far!==effect.far){material.uniforms.guideFar.value.copy(guidanceColorVector(effect.far));material.userData.far=effect.far;}`);
         contents = replace(contents, 'dz=-Math.sin(point.yaw),width=.70;', 'dz=-Math.sin(point.yaw),width=(effect?.width??1.4)*.5;');
         contents = replace(contents, / const colorRow=document\.createElement\('div'\);[^\n]+\r?\n colorRow\.innerHTML=[^\n]+\r?\n const colors=colorRow\.querySelector\('\.guidance-color-options'\);/g, ` const colors=document.getElementById('hud-guide-swatches');
@@ -314,7 +314,7 @@ world.onLayoutFrame=moving=>`);
         contents = replace(contents, 'initScenePlaybackControls({onToggle,onReset})', 'initScenePlaybackControls({onToggle,onReset,onAnimationChange})');
         contents = replace(contents, " document.querySelector('.vehicle-entry').before(block);", ` const animationChoices=document.createElement('div');
  animationChoices.className='scene-motion-buttons hud-animation-choices';
- animationChoices.setAttribute('role','group');animationChoices.setAttribute('aria-label','蓝色光轨动画');
+ animationChoices.setAttribute('role','group');animationChoices.setAttribute('aria-label','ADAS 动画');
  animationChoices.innerHTML='<button type="button" data-hud-animation="lane-change" aria-pressed="true">向右变道</button><button type="button" data-hud-animation="right-turn" aria-pressed="false">路口右转</button>';
  animationChoices.hidden=true;block.prepend(animationChoices);
  const note=document.createElement('p');note.id='hud-lane-demo-note';note.className='hud-control-note';note.hidden=true;block.append(note);

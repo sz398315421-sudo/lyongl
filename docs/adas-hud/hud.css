@@ -161,7 +161,8 @@
 .hud-hex[aria-invalid="true"] { border-color: #e97373; }
 .hud-control-note { margin: 6px 0 8px; color: var(--text-secondary); font-size: 12px; }
 #hud-guide-reset, #hud-marking-reset, #hud-lane-reset { margin: 7px 0 0; }
-#hud-preset-camera { margin: 0 0 8px; }
+.hud-camera-presets { flex-wrap: wrap; margin: 0 0 8px; }
+.workspace .hud-camera-presets button { flex-basis: 120px; }
 .workspace .hud-settings button:not(.scene-motion-buttons button, .guidance-color-swatch) {
   min-height: var(--control-height);
   padding: 10px 14px;
@@ -173,6 +174,8 @@
 .hud-settings button:disabled { opacity: .4; }
 .hud-camera-controls { display: grid; gap: 16px; padding: 4px 0; }
 .hud-camera-controls label, .hud-color-setting > .traffic-field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 8px; }
+.hud-color-setting > .hud-guide-stop { flex-basis: 100%; }
+.hud-color-setting > .hud-guide-stop[hidden] { display: none; }
 .hud-camera-controls output { color: var(--text-secondary); font-size: var(--type-caption); font-variant-numeric: tabular-nums; }
 .hud-camera-controls input, .hud-color-setting input[type="range"] { grid-column: 1 / -1; }
 .hud-camera-controls button { justify-self: start; }

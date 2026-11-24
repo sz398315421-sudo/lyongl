@@ -76,6 +76,7 @@
         <input id="hud-guide-gradient" type="checkbox" role="switch"><span class="track" aria-hidden="true"></span>
       </label>
     </div>
+    <p class="hud-control-note" id="hud-guide-position-note" hidden>0% 靠近本车，100% 是光带末端。两点越近，颜色和不透明度过渡越快。</p>
     <div id="hud-guide-near-row" class="hud-color-setting" role="group" aria-labelledby="hud-guide-near-label">
       <div class="hud-color-field">
         <label id="hud-guide-near-label" for="hud-guide-near-hex">引导线颜色</label>
@@ -104,7 +105,10 @@
         <input id="hud-camera" type="checkbox" role="switch"><span class="track" aria-hidden="true"></span>
       </label>
     </div>
-    <button type="button" id="hud-preset-camera">应用预设视角</button>
+    <div class="scene-motion-buttons hud-setting-actions hud-camera-presets" role="group" aria-label="预设视角">
+      <button type="button" id="hud-preset-camera">预设视角1(双焦面)</button>
+      <button type="button" id="hud-preset-camera-waveguide">预设视角2(光波导)</button>
+    </div>
     <div id="hud-camera-controls" class="hud-camera-controls" hidden>
       <button type="button" id="hud-camera-reset">重置相机参数</button>
     </div>

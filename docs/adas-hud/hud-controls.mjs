@@ -15,7 +15,7 @@ const guideFields = [
   ['length', '长度', 4, 110, 32, ' m', 1]
 ];
 const opacityField = (key, name) => [key, name, 0, 100, 100, '%', 1, '不透明度'];
-const defaultGuide = {width: 1.4, length: 32, gradient: false, far: '#72eaff', nearOpacity: 100, farOpacity: 100};
+const defaultGuide = {width: 1.4, length: 32, gradient: false, far: '#72eaff', nearOpacity: 100, farOpacity: 100, nearPosition: 6, farPosition: 55};
 const defaultLaneColor = '#48a9ff';
 const defaultLaneOpacity = 38;
 const defaultMarking = {base: null, highlight: blueRoadColor, width: 100, baseOpacity: 100, highlightOpacity: 100};
@@ -50,7 +50,9 @@ function readSettings() {
     baseOpacity: normalizeOpacity(saved?.marking?.baseOpacity),
     highlightOpacity: normalizeOpacity(saved?.marking?.highlightOpacity)
   };
-  const guide = {...defaultGuide, gradient: saved?.guide?.gradient === true,
+  const nearPosition = Math.min(99, normalizeOpacity(saved?.guide?.nearPosition, defaultGuide.nearPosition));
+  const farPosition = Math.max(nearPosition + 1, normalizeOpacity(saved?.guide?.farPosition, defaultGuide.farPosition));
+  const guide = {...defaultGuide, gradient: saved?.guide?.gradient === true, nearPosition, farPosition,
     nearOpacity: normalizeOpacity(saved?.guide?.nearOpacity), farOpacity: normalizeOpacity(saved?.guide?.farOpacity)};
   for (const [key, , min, max] of guideFields) {
     const value = saved?.guide?.[key];
@@ -117,8 +119,8 @@ export function createHudControls(onChange, onSave) {
   let laneGroup;
   let startLayout;
 
-  const change = key => {
-    onChange(key);
+  const change = (key, value) => {
+    onChange(key, value);
     onSave();
   };
 
@@ -152,7 +154,8 @@ export function createHudControls(onChange, onSave) {
 
   const cameraSliders = cameraFields.map(field => slider(field, settings.view, 'hud-camera', () => change('view')));
   cameraReset.before(...cameraSliders.map(control => control.label));
-  byId('hud-preset-camera').addEventListener('click', () => change('presetCamera'));
+  byId('hud-preset-camera').addEventListener('click', () => change('presetCamera', 'dualFocal'));
+  byId('hud-preset-camera-waveguide').addEventListener('click', () => change('presetCamera', 'waveguide'));
 
   cameraReset.addEventListener('click', () => {
     Object.assign(settings.view, defaultView);
@@ -219,11 +222,23 @@ export function createHudControls(onChange, onSave) {
 
   const guideSliders = guideFields.map(field => slider(field, settings.guide, 'hud-guide', () => change('guide')));
   byId('hud-guide-values').append(...guideSliders.map(control => control.label));
+  const stopSliders = [];
   for (const [end, title] of [['near', '近端'], ['far', '远端']]) {
-    const control = slider(opacityField(`${end}Opacity`, `${title}不透明度`), settings.guide, 'hud-guide', () => change('guide'));
+    const opacity = slider(opacityField(`${end}Opacity`, `${title}不透明度`), settings.guide, 'hud-guide', () => change('guide'));
+    const key = `${end}Position`;
+    const guide = settings.guide;
+    const stop = slider([key, `${title}渐变位置`, 0, 100, defaultGuide[key], '%'], guide, 'hud-guide', () => {
+      // Keep the endpoints ordered while leaving the other handle where it was.
+      if (end === 'near') guide.nearPosition = Math.min(guide.nearPosition, guide.farPosition - 1);
+      else guide.farPosition = Math.max(guide.farPosition, guide.nearPosition + 1);
+      stop.sync();
+      change('guide');
+    });
+    stop.label.classList.add('hud-guide-stop');
     const row = byId(`hud-guide-${end}-row`);
-    row.querySelector('.hud-color-field').after(control.label);
-    guideSliders.push(control);
+    row.querySelector('.hud-color-field').after(opacity.label, stop.label);
+    guideSliders.push(opacity, stop);
+    stopSliders.push(stop);
   }
   const updateFarColor = color => {
     settings.guide.far = color;
@@ -234,6 +249,8 @@ export function createHudControls(onChange, onSave) {
   const syncFarHex = bindHexColor(byId('hud-guide-far-hex'), updateFarColor);
   const syncGradient = () => {
     farRow.hidden = !settings.guide.gradient;
+    byId('hud-guide-position-note').hidden = !settings.guide.gradient;
+    stopSliders.forEach(control => { control.label.hidden = !settings.guide.gradient; });
     byId('hud-guide-near-label').textContent = settings.guide.gradient ? '近端颜色' : '引导线颜色';
     byId('hud-guide-nearOpacity').setAttribute('aria-label', settings.guide.gradient ? '近端不透明度' : '引导线不透明度');
   };
