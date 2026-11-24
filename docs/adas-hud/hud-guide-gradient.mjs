@@ -1,4 +1,5 @@
 import {BufferAttribute, DynamicDrawUsage, Matrix4, Vector2, Vector3, Vector4} from 'three';
+import {createHudDisplayUniforms, hudDisplayColorShader, setHudDisplayColor} from './hud-display-color.mjs';
 
 const vertexShader = `
   attribute float hudGuideProgress;
@@ -12,29 +13,13 @@ const vertexShader = `
   }`;
 
 const fragmentShader = `
-  uniform float dark, guideGradient, displayOpacity, guideExposure;
-  uniform bool hudTransparent;
+  uniform float dark, guideGradient, displayOpacity;
   uniform vec3 guideColor, guideFar;
   uniform vec2 guideOpacity, guideStops;
   varying vec2 vUv;
   varying float vGuideProgress;
 
-  vec3 toLinear(vec3 color) {
-    return mix(color / 12.92, pow((color + .055) / 1.055, vec3(2.4)), step(vec3(.04045), color));
-  }
-
-  // The scene's OutputPass applies the Three.js ACES fit. Encode display
-  // colors in that pass's input space so the HUD keeps the selected RGB.
-  vec3 toScene(vec3 color) {
-    const mat3 inputMatrix = mat3(.59719,.076,.0284, .35458,.90834,.13383, .04823,.01566,.83777);
-    const mat3 outputMatrix = mat3(1.60475,-.10208,-.00327, -.53108,1.10813,-.07276, -.07367,-.00605,1.07602);
-    vec3 mapped = clamp(inverse(outputMatrix) * toLinear(color), 0., 1.);
-    vec3 a = 1. - .983729 * mapped;
-    vec3 b = .0245786 - .432951 * mapped;
-    vec3 c = .000090537 + .238081 * mapped;
-    vec3 fitted = (sqrt(b * b + 4. * a * c) - b) / (2. * a);
-    return inverse(inputMatrix) * fitted * (.6 / guideExposure);
-  }
+  ${hudDisplayColorShader}
 
   void main() {
     float progress = clamp(vGuideProgress * gl_FragCoord.w, 0., 1.);
@@ -61,10 +46,7 @@ const fragmentShader = `
     alpha *= mix(guideOpacity.x, guideOpacity.y, blend);
     if (alpha < .001) discard;
 
-    // The opaque HUD preview blends into black before the output pass. For
-    // transparent exports, OutputPass instead maps unassociated RGB.
-    vec3 rgb = hudTransparent ? toScene(color) : toScene(color * alpha) / alpha;
-    gl_FragColor = vec4(rgb, alpha);
+    gl_FragColor = vec4(hudDisplayColor(color, alpha), alpha);
   }`;
 
 export function installHudGuideGradient(world) {
@@ -80,8 +62,7 @@ export function installHudGuideGradient(world) {
     guideGradient: {value: 0},
     guideOpacity: {value: new Vector2(1, 1)},
     guideStops: {value: new Vector2(0, 1)},
-    guideExposure: {value: 1},
-    hudTransparent: world.hudTransparency
+    ...createHudDisplayUniforms(world)
   });
   material.vertexShader = vertexShader;
   material.fragmentShader = fragmentShader;
@@ -95,13 +76,12 @@ export function installHudGuideGradient(world) {
     if (!mesh.visible) return;
     uniforms.guideGradient.value = guide.gradient ? 1 : 0;
     uniforms.displayOpacity.value = preset === 'carpet' ? 2 : preset === 'blueRoad' ? 1.13 : 1;
-    uniforms.guideExposure.value = world.renderer.toneMappingExposure;
+    uniforms.hudDisplayExposure.value = world.renderer.toneMappingExposure;
     uniforms.guideOpacity.value.set(guide.nearOpacity / 100, guide.farOpacity / 100);
     uniforms.guideStops.value.set(guide.nearPosition / 100, guide.farPosition / 100);
     if (farColor !== guide.far) {
       farColor = guide.far;
-      const rgb = Number.parseInt(farColor.slice(1), 16);
-      uniforms.guideFar.value.set((rgb >> 16 & 255) / 255, (rgb >> 8 & 255) / 255, (rgb & 255) / 255);
+      setHudDisplayColor(uniforms.guideFar.value, farColor);
     }
     if (!guide.gradient) return;
 

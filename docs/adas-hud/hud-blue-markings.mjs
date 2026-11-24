@@ -1,13 +1,13 @@
-import {Color, Matrix4, Vector2, Vector4, MathUtils} from 'three';
+import {Matrix4, Vector2, Vector3, Vector4, MathUtils} from 'three';
 import {laneWidth, roadLaneState} from '../adas/road-assist.js';
-import {blueRoadColor} from './hud-blue-road.mjs';
+import {createHudDisplayUniforms, hudDisplayColorShader, setHudDisplayColor} from './hud-display-color.mjs';
 
 export function createBlueRoadMarkings(world) {
   const enabled = {value: 0};
   const uniforms = {
     hudMarkingsEnabled: enabled,
-    hudMarkingsColor: {value: new Color(blueRoadColor)},
-    hudMarkingsBase: {value: new Color()},
+    hudMarkingsColor: {value: new Vector3()},
+    hudMarkingsBase: {value: new Vector3()},
     hudMarkingsBaseOverride: {value: 0},
     hudMarkingsOpacity: {value: new Vector2(1, 1)},
     hudMarkingsWidth: {value: 1},
@@ -15,7 +15,8 @@ export function createBlueRoadMarkings(world) {
     hudMarkingsLanes: {value: new Vector2()},
     hudMarkingsLaneBlend: {value: 0},
     hudMarkingsCrossing: {value: new Vector2()},
-    hudMarkingsTurn: {value: new Vector4()}
+    hudMarkingsTurn: {value: new Vector4()},
+    ...createHudDisplayUniforms(world)
   };
   const shaderCompilers = new WeakSet();
 
@@ -40,6 +41,7 @@ export function createBlueRoadMarkings(world) {
         uniform vec2 hudMarkingsLanes, hudMarkingsCrossing;
         uniform vec4 hudMarkingsTurn;
         varying vec2 vHudMarkingsPoint;
+        ${hudDisplayColorShader}
         float hudLaneEdge(float coord, float center) {
           return 1.0 - smoothstep(.32, .56, abs(abs(coord - center) - ${laneWidth / 2}));
         }
@@ -70,27 +72,35 @@ export function createBlueRoadMarkings(world) {
           approach *= step(halfWidth, abs(roadPoint.y - crossingZ));
         }
         float hudTint = ${canHighlight ? 'hudMarkingsEnabled * approach' : '0.0'};
-        diffuseColor.rgb = mix(diffuseColor.rgb, hudMarkingsBase, hudMarkingsBaseOverride);
-        diffuseColor.rgb = mix(diffuseColor.rgb, hudMarkingsColor, hudTint);
         diffuseColor.a *= mix(hudMarkingsOpacity.x, hudMarkingsOpacity.y, hudTint);
         #ifdef USE_FOG
           float hudRoadFade = smoothstep(10.5, 17.0, vFogDepth) * (1.0 - smoothstep(36.0, 90.0, vFogDepth));
           diffuseColor.a *= mix(1.0, hudRoadFade, ${canHighlight ? 'hudMarkingsEnabled' : '0.0'});
         #endif
         #include <alphatest_fragment>
-      `).replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-        totalEmissiveRadiance = mix(totalEmissiveRadiance, hudMarkingsColor * .45, hudTint);`);
+      `).replace('#include <premultiplied_alpha_fragment>', `
+        if (gl_FragColor.a >= .001) {
+          if (hudMarkingsBaseOverride > .5) {
+            vec3 displayColor = mix(hudMarkingsBase, hudMarkingsColor, hudTint);
+            gl_FragColor.rgb = hudDisplayColor(displayColor, gl_FragColor.a);
+          } else if (hudTint > 0.) {
+            vec3 displayHighlight = hudDisplayColor(hudMarkingsColor, gl_FragColor.a);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, displayHighlight, hudTint);
+          }
+        }
+        #include <premultiplied_alpha_fragment>`);
     };
     shaderCompilers.add(material.onBeforeCompile);
-    material.customProgramCacheKey = () => `${cacheKey}-hud-lane-highlight`;
+    material.customProgramCacheKey = () => `${cacheKey}-hud-lane-display-color`;
     material.needsUpdate = true;
   }
 
   function prepare(layout, style) {
     uniforms.hudMarkingsWidth.value = style.width / 100;
+    uniforms.hudDisplayExposure.value = world.renderer.toneMappingExposure;
     uniforms.hudMarkingsBaseOverride.value = style.base ? 1 : 0;
-    if (style.base) uniforms.hudMarkingsBase.value.set(style.base);
-    uniforms.hudMarkingsColor.value.set(style.highlight);
+    if (style.base) setHudDisplayColor(uniforms.hudMarkingsBase.value, style.base);
+    setHudDisplayColor(uniforms.hudMarkingsColor.value, style.highlight);
     uniforms.hudMarkingsOpacity.value.set(style.baseOpacity / 100, style.highlightOpacity / 100);
     const {centers, index} = roadLaneState(world);
     if (!centers.length) return false;
