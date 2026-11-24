@@ -1,6 +1,6 @@
 import {hudPreferences, readHudLastSettings} from './hud-storage.mjs';
 import {bindHexColor, normalizeOpacity} from './hud-hex.mjs';
-import {blueRoadColor} from './hud-blue-road.mjs';
+import {blueRoadColor, waveguideView} from './hud-blue-road.mjs';
 
 const cameraFields = [
   ['yaw', '水平角', -180, 180, 0, '°'],
@@ -10,12 +10,13 @@ const cameraFields = [
   ['ahead', '向前看', -10, 35, 7, ' m']
 ];
 const defaultView = Object.fromEntries(cameraFields.map(([key, , , , value]) => [key, value]));
+const previousWaveguideView = {yaw: 0, pitch: 22, distance: 14, fov: 36, ahead: 5.6};
 const guideFields = [
   ['width', '宽度', .2, 3.6, 1.4, ' m', .1],
   ['length', '长度', 4, 110, 32, ' m', 1]
 ];
 const opacityField = (key, name) => [key, name, 0, 100, 100, '%', 1, '不透明度'];
-const defaultGuide = {width: 1.4, length: 32, gradient: false, far: '#72eaff', nearOpacity: 100, farOpacity: 100, nearPosition: 6, farPosition: 55};
+const defaultGuide = {width: 1.4, length: 32, gradient: false, far: '#72eaff', nearOpacity: 100, farOpacity: 100, nearPosition: 0, farPosition: 100, gradientSpace: 'screen'};
 const defaultLaneColor = '#48a9ff';
 const defaultLaneOpacity = 38;
 const defaultMarking = {base: null, highlight: blueRoadColor, width: 100, baseOpacity: 100, highlightOpacity: 100};
@@ -36,6 +37,9 @@ function readSettings() {
     const value = saved?.view?.[key];
     if (Number.isFinite(value)) view[key] = Math.min(max, Math.max(min, value));
   }
+  if (saved?.customCamera === true && Object.entries(previousWaveguideView).every(([key, value]) => saved.view?.[key] === value)) {
+    Object.assign(view, waveguideView);
+  }
   const colors = {};
   const laneOpacity = {};
   for (const [key, value] of Object.entries(saved?.colors ?? {})) {
@@ -50,8 +54,10 @@ function readSettings() {
     baseOpacity: normalizeOpacity(saved?.marking?.baseOpacity),
     highlightOpacity: normalizeOpacity(saved?.marking?.highlightOpacity)
   };
-  const nearPosition = Math.min(99, normalizeOpacity(saved?.guide?.nearPosition, defaultGuide.nearPosition));
-  const farPosition = Math.max(nearPosition + 1, normalizeOpacity(saved?.guide?.farPosition, defaultGuide.farPosition));
+  const savedGuide = saved?.guide;
+  const oldDefaultStops = savedGuide?.gradientSpace !== 'screen' && savedGuide?.nearPosition === 6 && savedGuide.farPosition === 55;
+  const nearPosition = Math.min(99, normalizeOpacity(oldDefaultStops ? null : savedGuide?.nearPosition, defaultGuide.nearPosition));
+  const farPosition = Math.max(nearPosition + 1, normalizeOpacity(oldDefaultStops ? null : savedGuide?.farPosition, defaultGuide.farPosition));
   const guide = {...defaultGuide, gradient: saved?.guide?.gradient === true, nearPosition, farPosition,
     nearOpacity: normalizeOpacity(saved?.guide?.nearOpacity), farOpacity: normalizeOpacity(saved?.guide?.farOpacity)};
   for (const [key, , min, max] of guideFields) {

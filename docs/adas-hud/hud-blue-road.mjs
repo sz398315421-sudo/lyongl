@@ -15,7 +15,7 @@ export const carpetPreset = {
   color: blueRoadColor
 };
 
-export const waveguideView = {yaw: 0, pitch: 22, distance: 14, fov: 36, ahead: 5.6};
+export const waveguideView = {yaw: 0, pitch: 20, distance: 21, fov: 36, ahead: 9};
 
 export function createBlueRoadTraffic() {
   const truck = createHudClayTruck();

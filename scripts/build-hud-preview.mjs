@@ -222,27 +222,7 @@ world.onLayoutFrame=moving=>`);
         contents = `import {bindHexColor} from '../hud/hud-hex.mjs';\nimport {sampleRightPassGuidance} from '../hud/hud-right-pass.mjs';\n${contents}`;
         contents = replace(contents, 'export function createRoadGuidance(){', 'export function createRoadGuidance(getEffect){');
         contents = replace(contents, "if(plan.kind==='ramp-exit')return sampleRampExit(plan,distance);", "if(plan.kind==='hud-right-pass')return sampleRightPassGuidance(plan,distance);\n  if(plan.kind==='ramp-exit')return sampleRampExit(plan,distance);");
-        contents = replace(contents, 'displayOpacity:{value:1}', 'displayOpacity:{value:1},guideFar:{value:new THREE.Vector3()},guideGradient:{value:0},guideOpacity:{value:new THREE.Vector2(1,1)},guideStops:{value:new THREE.Vector2(0,1)}');
-        contents = replace(contents, 'uniform vec3 guideColor;uniform float displayOpacity;', 'uniform vec3 guideColor;uniform vec3 guideFar;uniform float guideGradient;uniform float displayOpacity;uniform vec2 guideOpacity,guideStops;');
-        contents = replace(contents, 'vec3 color=mix(guideColor,mix(guideColor,vec3(1.),.12),.28*(1.-side));', `float blend=smoothstep(guideStops.x,guideStops.y,vUv.y)*guideGradient;
-    vec3 hue=mix(guideColor,guideFar,blend);
-    vec3 color=mix(hue,mix(hue,vec3(1.),.12),.28*(1.-side));`);
-        contents = replace(contents, 'gl_FragColor=vec4(color,alpha*displayOpacity);', `if(displayOpacity>1.0){
-     color=mix(hue/12.92,pow((hue+.055)/1.055,vec3(2.4)),step(vec3(.04045),hue));
-     if(displayOpacity>1.5){
-      // Keep the mesh boundary sharp and antialias only the inner edge of the outline.
-      float aa=min(fwidth(side)*.5,.012);
-      float outline=smoothstep(.956-aa,.956+aa,side);
-      color=mix(color,mix(color,vec3(.56,.96,1.0),.53),outline);
-      alpha=smoothstep(0.,.032,vUv.y)*(1.-smoothstep(.30,1.,vUv.y));
-     }else alpha=(1.-smoothstep(.90,.99,side))*smoothstep(0.,.014,vUv.y)*(1.-smoothstep(.74,1.,vUv.y));
-    }
-    gl_FragColor=vec4(color,alpha*mix(guideOpacity.x,guideOpacity.y,blend));`);
-        contents = replace(contents, 'const near=(car.userData.vehicleSpec.length||4.85)*.40;let far=34;', `const effect=getEffect?.(),near=(car.userData.vehicleSpec.length||4.85)*.40;let far=effect?near+effect.length:34;
-  material.uniforms.guideGradient.value=effect?.gradient?1:0;
-  material.uniforms.guideOpacity.value.set((effect?.nearOpacity??100)/100,(effect?.farOpacity??100)/100);
-  material.uniforms.guideStops.value.set((effect?.nearPosition??0)/100,(effect?.farPosition??100)/100);
-  if(effect?.gradient&&material.userData.far!==effect.far){material.uniforms.guideFar.value.copy(guidanceColorVector(effect.far));material.userData.far=effect.far;}`);
+        contents = replace(contents, 'const near=(car.userData.vehicleSpec.length||4.85)*.40;let far=34;', 'const effect=getEffect?.(),near=(car.userData.vehicleSpec.length||4.85)*.40;let far=effect?near+effect.length:34;');
         contents = replace(contents, 'dz=-Math.sin(point.yaw),width=.70;', 'dz=-Math.sin(point.yaw),width=(effect?.width??1.4)*.5;');
         contents = replace(contents, / const colorRow=document\.createElement\('div'\);[^\n]+\r?\n colorRow\.innerHTML=[^\n]+\r?\n const colors=colorRow\.querySelector\('\.guidance-color-options'\);/g, ` const colors=document.getElementById('hud-guide-swatches');
  colors.classList.add('guidance-color-options');colors.setAttribute('role','group');colors.setAttribute('aria-label','引导线预设颜色');`);
@@ -254,7 +234,6 @@ world.onLayoutFrame=moving=>`);
         contents = replace(contents, 'const info=roadLaneState(world),busy=', "const turnPreview=snapshot.status==='planned'&&snapshot.presetRightTurn&&world.hudPlayback?.basePose;\n  const info=roadLaneState(world,turnPreview?.carPosition),busy=");
         contents = replace(contents, 'export function roadLaneState(world){', 'export function roadLaneState(world,position=world.car.position){');
         contents = replace(contents, / const index=centers\.reduce[^\r\n]+\r?\n const distanceAvailable=[^\r\n]+\r?\n const ended=[^\r\n]+\r?\n const blocked=target=>\{\r?\n  if\(target<0[^\r\n]+\r?\n  const zone=[^\r\n]+/g, source=>source.replaceAll('world.car.position','position'));
-        contents = replace(contents, "if(effect?.gradient&&material.userData.far!==effect.far)", "const preset=world.hudSettings?.preset;material.uniforms.displayOpacity.value=preset==='carpet'?2:preset==='blueRoad'?1.13:1;\n  if(effect?.gradient&&material.userData.far!==effect.far)");
       }
       if (args.path === path.join(adas, 'export-controls.js')) {
         contents = `import {supportsHudWebm} from '../hud/hud-video.mjs';\nimport {createSequenceFields} from '../hud/hud-png-sequence.mjs';\n${contents}`;

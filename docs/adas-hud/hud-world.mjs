@@ -8,6 +8,7 @@ import {vehicleFrame} from '../adas/framing.js';
 import {guidanceSceneIds} from '../adas/road-assist.js';
 import {startLayout} from './hud-start.mjs';
 import {prepareTransparentOutput} from './hud-export.mjs';
+import {installHudGuideGradient} from './hud-guide-gradient.mjs';
 import {blueRoadPreset, carpetPreset, createBlueRoadTraffic, waveguideView} from './hud-blue-road.mjs';
 import {createBlueRoadMarkings} from './hud-blue-markings.mjs';
 import {createHudPresetJunction} from './hud-preset-junction.mjs';
@@ -19,6 +20,7 @@ export const World = {
   async create(canvas, car, options) {
     const world = await AdasWorld.create(canvas, car, {...options, alpha: true});
     world.hudTransparency = prepareTransparentOutput(world);
+    const updateGuideGradient = installHudGuideGradient(world);
     const controls = createHudControls((key, value) => {
       if (!world.state || world.suspended) return;
       if (key === 'presetCamera') {
@@ -90,6 +92,7 @@ export const World = {
       camera.sync(['playing', 'paused', 'finished'].includes(status) || !!junctionLock, junctionLock ? null : playback?.basePose);
       const styleMarkings = supportsGuidance && blueMarkings.prepare(layout, controls.settings.marking);
       const draw = () => camera.withView(() => withHudLayers(world, () => {
+        updateGuideGradient(controls.settings.guide, controls.settings.preset);
         if (world.vehicleDetail.enabled) {
           const frame = controls.settings.customCamera || controls.settings.follow ? vehicleFrame(world.car, world.camera) : world.framing.vehicleFrame;
           world.vehicleDetail.setVehicleFrame(frame, world.car.visible);
