@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../adas/ui-refinements.css?v=20261017">
   <link rel="stylesheet" href="../adas/scene-playback.css?v=20261020-all-lanes-1">
   <link rel="stylesheet" href="./hud.css">
-  <link rel="stylesheet" href="./lane-departure.css">
+  <link rel="stylesheet" href="./lane-departure.css?v=3">
   <script>
     try {
       if (localStorage.getItem('hud:sr-theme') === 'light') document.documentElement.dataset.theme = 'light';
@@ -45,7 +45,10 @@
         </section>
         <section class="scene-group">
           <h2 class="structure-heading">车道线</h2>
-          <div class="structure-items"><a class="scene" aria-current="page" href="./lane-departure.html">压线提醒</a></div>
+          <div class="structure-items">
+            <a class="scene" id="departure-navigation" aria-current="page" href="./lane-departure.html">压线提醒</a>
+            <a class="scene" id="curve-navigation" href="./lane-departure.html?scene=curve">弯道模拟</a>
+          </div>
         </section>
       </nav>
     </aside>
@@ -77,7 +80,7 @@
           <span id="lane-remaining" aria-hidden="true" hidden></span>
           <progress id="lane-progress" aria-label="当前状态播放进度" value="0" max="1" hidden></progress>
         </div>
-        <div class="lane-controls">
+        <div id="departure-controls" class="lane-controls">
           <div class="lane-control">
             <div class="lane-duration"><label for="recognition-duration">识别车道线</label><input type="number" id="recognition-duration" value="3" min="0.5" max="60" step="0.1" required aria-label="识别车道线持续秒数"><span aria-hidden="true">秒</span></div>
             <div class="scene-motion-buttons"><button type="button" data-lane-state="recognition" data-duration="recognition-duration" aria-pressed="true">识别车道线</button></div>
@@ -85,17 +88,50 @@
           <div class="lane-control">
             <div class="lane-duration"><label for="departure-duration">车道偏离</label><input type="number" id="departure-duration" value="2" min="0.5" max="60" step="0.1" required aria-label="车道偏离持续秒数"><span aria-hidden="true">秒</span></div>
             <div class="scene-motion-buttons"><button type="button" data-lane-state="left" data-duration="departure-duration" aria-pressed="false">向左偏离</button><button type="button" data-lane-state="right" data-duration="departure-duration" aria-pressed="false">向右偏离</button></div>
+            <label class="lane-pause"><input type="checkbox" id="pause-on-departure">偏移后暂停</label>
+            <div class="scene-motion-buttons" id="lane-resume-control" hidden><button type="button" id="lane-resume">继续播放</button></div>
           </div>
           <div class="lane-control">
             <div class="lane-duration"><label for="lcc-duration">LCC</label><input type="number" id="lcc-duration" value="4" min="0.5" max="60" step="0.1" required aria-label="LCC 持续秒数"><span aria-hidden="true">秒</span></div>
             <div class="scene-motion-buttons"><button type="button" data-lane-state="lcc" data-duration="lcc-duration" aria-pressed="false">启动 LCC</button></div>
           </div>
         </div>
-        <p class="lane-note">压线变黄后开始倒计时。偏离和 LCC 结束后自动回到识别状态。</p>
+        <div id="curve-controls" class="lane-control lane-curve-controls" hidden>
+          <div class="scene-motion-buttons">
+            <button type="button" data-lane-state="curve-left" aria-pressed="false">进入左弯</button>
+            <button type="button" data-lane-state="curve-right" aria-pressed="false">进入右弯</button>
+          </div>
+          <div class="scene-motion-buttons"><button type="button" data-lane-state="straight" aria-pressed="false">出弯回正</button></div>
+        </div>
+        <p class="lane-note" id="departure-note">压线变色后开始倒计时。开启「偏移后暂停」可定格压线画面。</p>
+        <fieldset class="lane-colors">
+          <legend>车道线颜色</legend>
+          <div class="lane-color-row" data-lane-color="recognition">
+            <label for="lane-recognition-hex">常规车道线</label>
+            <div class="hud-color-inputs">
+              <input type="color" class="guidance-custom-color" value="#0787ff" aria-label="常规车道线取色">
+              <input type="text" class="hud-hex" id="lane-recognition-hex" value="#0787FF" maxlength="7" spellcheck="false" autocomplete="off">
+            </div>
+          </div>
+          <div class="lane-color-row" data-lane-color="warning" data-departure-only>
+            <label for="lane-warning-hex">压线提醒</label>
+            <div class="hud-color-inputs">
+              <input type="color" class="guidance-custom-color" value="#ffba2b" aria-label="压线提醒取色">
+              <input type="text" class="hud-hex" id="lane-warning-hex" value="#FFBA2B" maxlength="7" spellcheck="false" autocomplete="off">
+            </div>
+          </div>
+          <div class="lane-color-row" data-lane-color="lcc" data-departure-only>
+            <label for="lane-lcc-hex">LCC</label>
+            <div class="hud-color-inputs">
+              <input type="color" class="guidance-custom-color" value="#4ab1ff" aria-label="LCC 取色">
+              <input type="text" class="hud-hex" id="lane-lcc-hex" value="#4AB1FF" maxlength="7" spellcheck="false" autocomplete="off">
+            </div>
+          </div>
+        </fieldset>
       </section>
     </section>
   </main>
   <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
-  <script type="module" src="./lane-departure.mjs?v=2"></script>
+  <script type="module" src="./lane-departure.mjs?v=3"></script>
 </body>
 </html>
