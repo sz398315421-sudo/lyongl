@@ -2,7 +2,7 @@
   "description": "星际外勤微信小游戏 MVP",
   "compileType": "game",
   "libVersion": "3.5.7",
-  "appid": "wxd73c6b3f888ad0f1",
+  "appid": "touristappid",
   "projectname": "star-duty-mvp",
   "packOptions": {
     "ignore": [

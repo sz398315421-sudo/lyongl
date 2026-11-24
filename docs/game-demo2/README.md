@@ -33,7 +33,7 @@
 
 1. 打开微信开发者工具并导入当前目录。
 2. 项目类型选择“小游戏”。
-3. `project.config.json` 默认使用游客 AppID；正式调试时替换为自己的小游戏 AppID。
+3. `project.config.json` 默认使用游客 AppID。需要真机调试或上传时，在项目根目录的 `project.private.config.json` 中设置顶层 `appid` 为自己的小游戏 AppID。该文件由 Git 忽略。
 4. `game.json` 已将 `assets/game/` 配置为普通分包 `runtime_assets`；启动时会先下载分包，再加载图片和字体。
 5. 使用竖屏设备模拟器运行，首次冷启动可看到资源分包加载进度。
 
