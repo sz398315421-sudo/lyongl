@@ -70,7 +70,7 @@ function captureScene() {
         return {key: idle, shift: shift * amount, curve: curve * amount};
       }
       if (elapsed < endHold) return {key, shift, curve};
-      if (!exit) return {key, shift, curve};
+      if (!exit) return {key: idle, shift: 0, curve: 0};
       const amount = 1 - easeLaneMotion((elapsed - endHold) / exit);
       return {key: idle, shift: shift * amount, curve: curve * amount};
     }
