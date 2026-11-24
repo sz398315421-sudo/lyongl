@@ -10,7 +10,7 @@
 <script src="adas-view-study.js?v=1" defer></script>
 <link rel="stylesheet" href="guide-shell.css?v=20261124-1"></head>
 <body class="guide-shell adas-page" data-page="adas">
-<header class="site-header"><a class="brand" href="index.html">AR-HUD <span>设计指南</span></a><nav class="site-nav" aria-label="网站主导航"><a href="index.html">设计指南</a><a href="vehicle-layout-study.html">布局研究</a><a href="vehicle-function-study.html">功能与模式</a><a href="adas-view-study.html" aria-current="page">ADAS 视角</a></nav><button class="header-print" id="print" type="button">打印／PDF</button></header><aside class="sidebar" aria-label="ADAS 视角页内目录"><div class="edition">本页目录 <span>ADAS 视角</span></div><nav aria-label="页内目录"><div class="nav-group"><h2>研究</h2><a href="#overview">研究概览</a><a href="#view-types">视角类型</a><a href="#cases">车载界面原图</a><a href="#model-matrix">车型参数矩阵</a></div><div class="nav-group"><h2>参数与测量</h2><a href="#optics">HUD 光学视场</a><a href="#geometry">虚拟相机几何</a><a href="#view-lab">交互模拟</a><a href="#measure">原图读数与试车</a></div><div class="nav-group"><h2>设计应用</h2><a href="#applications">场景与设计取舍</a><a href="#sources">参考资料</a></div></nav><div class="side-foot">AR-HUD 设计指南<br><a href="README.md">网站使用说明 ↗</a></div></aside>
+<header class="site-header"><a class="brand" href="index.html">AR-HUD <span>设计指南</span></a><nav class="site-nav" aria-label="网站主导航"><a href="index.html">设计指南</a><a href="vehicle-layout-study.html">布局研究</a><a href="vehicle-function-study.html">功能与模式</a><a href="adas-view-study.html" aria-current="page">ADAS 视角</a></nav><button class="header-print" id="print" type="button">打印／PDF</button></header><aside class="sidebar" aria-label="ADAS 视角页内目录"><div class="edition">本页目录 <span>ADAS 视角</span></div><nav aria-label="页内目录"><div class="nav-group"><h2>研究</h2><a href="#overview">研究概览</a><a href="#view-types">视角类型</a><a href="#cases">车载界面原图</a><a href="#model-matrix">车型参数矩阵</a></div><div class="nav-group"><h2>参数与测量</h2><a href="#optics">HUD 光学视场</a><a href="#geometry">虚拟相机几何</a><a href="#view-lab">交互模拟</a><a href="#camera-3d">3D 软件相机参数</a><a href="#measure">原图读数与试车</a></div><div class="nav-group"><h2>设计应用</h2><a href="#applications">场景与设计取舍</a><a href="#sources">参考资料</a></div></nav><div class="side-foot">AR-HUD 设计指南<br><a href="README.md">网站使用说明 ↗</a></div></aside>
 <main>
 <div class="guide-content">
 <section class="study-title adas-intro" id="overview">
@@ -18,7 +18,7 @@
     <p class="vehicle-meta">设计指南 / ADAS 视角 · 2026 年 11 月</p>
     <h1>HUD-ADAS 视角</h1>
     <p>同一个前车或车道，在 HUD 上可以是一条贴近实车的标记，也可以是小画布里的模型。通过量产车型界面、试车图和几何模拟，拆解这些画面各用什么视角，以及能向前看到多远。</p>
-    <div class="adas-hero-links"><a href="#cases">浏览 13 个界面案例</a><a href="#view-lab">调整相机参数 ↓</a></div>
+    <div class="adas-hero-links"><a href="#cases">浏览 13 个界面案例</a><a href="#view-lab">调整相机参数 ↓</a><a href="#camera-3d">下载 3D 相机 ↓</a></div>
   </div>
   <figure class="adas-hero-photo"><a href="#case-vw"><img src="assets/adas-view/vw-assist.webp" width="1280" height="720" alt="大众 ID.4 官方增强现实抬头显示演示中的道路和辅助驾驶标记"></a>
     <figcaption>大众 ID.4 · 官方 AR-HUD 演示动画，00:32</figcaption></figure>
@@ -201,6 +201,27 @@
     <p>保持 HUD 预设的高度、后退和 VFOV，俯角从 17°、18° 增至 19°，几何远端依次约为 87.4、54.9、38.6 m。上边缘越接近地平线，每度俯角造成的距离变化越大。界面评审宜固定参考姿态，并另设绘制上限。</p>
     <p>原型评审可先测试一组 0° 正前视，再以 ±5° 比较中轴偏移。HUD 小窗可以试验 16°–22° 俯视、26°–34° VFOV；仪表或中控可以从 23°–37° 俯视、38°–60° VFOV 起步。成对调整俯角与 VFOV，保持所需的上沿俯角与前视范围；以自车是否完整、邻车是否可见、前方对象是否达到最小尺寸筛选组合。这些是原型扫描范围，处于同一范围的任意组合也会产生不同的可见距离。</p>
   </details>
+</section>
+
+<section class="study-section" id="camera-3d">
+  <h2>3D 软件相机参数</h2>
+  <p>这套透视相机复现上方「HUD · 小型 SR」预设。把自车模型底面的参考点放在原点，按下表设置，便可用它搭建三维辅助驾驶画面。</p>
+  <div class="adas-hero-links"><a href="assets/adas-view/hud-adas-sr-camera.usda" download>下载 USD 相机（.usda）</a><a href="assets/adas-view/hud-adas-sr-blender.py" download>下载 Blender 脚本（.py）</a><a href="assets/adas-view/hud-adas-sr-camera.json" download>下载参数（.json）</a></div>
+  <div class="adas-scroll" role="region" tabindex="0" aria-label="3D 相机预设参数">
+    <table><thead><tr><th scope="col">设置</th><th scope="col">推荐输入值</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">相机位置</th><td>自车中心线，后退 10.00 m，抬高 3.40 m。以 X 向右、Y 向上、Z 向车头为轴，坐标是 <code>(0, 3.40, −10.00) m</code>。</td></tr>
+      <tr><th scope="row">角度与观察点</th><td>水平偏角 0°，向下俯视 18°，横滚 0°。相机中心对准自车前方 0.464 m 处的地面点。</td></tr>
+      <tr><th scope="row">透视镜头</th><td>垂直 FOV 30.00°，水平 FOV 46.41°。36.00 mm 水平片门配 41.99 mm 焦距。镜头移轴 X／Y 为 0，关闭景深。</td></tr>
+      <tr><th scope="row">渲染画幅</th><td>1920 × 1200 px（8∶5），方形像素。更换宽高比后需再核对水平和垂直 FOV。</td></tr>
+      <tr><th scope="row">距离与裁切</th><td>相机近／远裁切面为 0.12／200 m。平路中心竖切面的远交点距自车 54.88 m，场景内容按自车前向坐标限到 60 m。</td></tr>
+    </tbody></table>
+  </div>
+  <div class="adas-two">
+    <article><h3>Blender</h3><p>在 Scripting 工作区打开下载的脚本并运行。脚本创建一份独立场景和相机。手工录入时，若 +Y 是车头、+Z 向上，相机位置设为 <code>(0, −10, 3.4) m</code>，XYZ 欧拉旋转设为 <code>(72°, 0°, 0°)</code>，Sensor Fit 选 Horizontal。</p><a href="https://docs.blender.org/manual/en/latest/render/cameras.html" target="_blank" rel="noopener">Blender 相机文档 ↗</a></article>
+    <article><h3>Cinema 4D 或其他支持 USD 相机的软件</h3><p>导入 .usda，启用 Cameras，选用 <code>SR_Camera</code>。若导入器只读取相机，在输出设置里填 1920 × 1200。Cinema 4D 手工设置可用 36 mm Film Gate、41.99 mm 焦距。如果 Y 向上、+Z 为车头且以厘米建模，相机放在 <code>(0, 340, −1000) cm</code>，正向指向 <code>(0, 0, 46.4) cm</code>。</p><a href="https://help.maxon.net/c4d/2026/en-us/Content/html/FUSDIMPORTER-USDIMPORTER_GROUP_SETTINGS.html" target="_blank" rel="noopener">Maxon USD 相机导入文档 ↗</a></article>
+  </div>
+  <p class="adas-note">该组数值用于 HUD 界面内的三维场景重构。导入后可在自车前方 10、30、50 m 各放一个标记，核对画面纵深。0.12／200 m 从相机量起，60 m 是从自车原点量起的前向内容上限，可在场景逻辑中单独控制。</p>
 </section>
 
 <section class="study-section" id="measure">

@@ -1,0 +1,34 @@
+#usda 1.0
+(
+    defaultPrim = "HUD_ADAS_SR"
+    metersPerUnit = 0.01
+    upAxis = "Z"
+    renderSettingsPrimPath = "/Render/Settings"
+)
+
+def Xform "HUD_ADAS_SR"
+{
+    def Camera "SR_Camera"
+    {
+        uniform token projection = "perspective"
+        float horizontalAperture = 36
+        float verticalAperture = 22.5
+        float horizontalApertureOffset = 0
+        float verticalApertureOffset = 0
+        float focalLength = 41.985571585
+        float2 clippingRange = (12, 20000)
+        double3 xformOp:translate = (0, -1000, 340)
+        float xformOp:rotateX = 72
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateX"]
+    }
+}
+
+def Scope "Render"
+{
+    def RenderSettings "Settings"
+    {
+        int2 resolution = (1920, 1200)
+        float pixelAspectRatio = 1
+        rel camera = </HUD_ADAS_SR/SR_Camera>
+    }
+}

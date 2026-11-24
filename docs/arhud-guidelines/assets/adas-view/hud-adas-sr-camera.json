@@ -1,0 +1,36 @@
+{
+  "name": "HUD-ADAS compact SR",
+  "purpose": "Prototype camera matching the guide's compact SR simulator",
+  "coordinate_system": {
+    "units": "m",
+    "x": "vehicle right",
+    "y": "up",
+    "z": "vehicle forward",
+    "origin": "ego model ground reference point"
+  },
+  "camera": {
+    "projection": "perspective",
+    "position_m": [0, 3.4, -10],
+    "look_at_ground_m": [0, 0, 0.4641240264],
+    "up": [0, 1, 0],
+    "yaw_right_deg": 0,
+    "pitch_down_deg": 18,
+    "roll_deg": 0,
+    "vertical_fov_deg": 30,
+    "horizontal_fov_deg": 46.411438394,
+    "horizontal_film_gate_mm": 36,
+    "effective_vertical_film_gate_mm": 22.5,
+    "focal_length_mm": 41.985571585,
+    "lens_shift": [0, 0],
+    "clip_planes_m": [0.12, 200]
+  },
+  "render": {
+    "resolution_px": [1920, 1200],
+    "pixel_aspect_ratio": 1,
+    "forward_content_limit_m_from_ego": 60
+  },
+  "flat_ground_center_slice_from_ego_m": {
+    "near": -4.764459123,
+    "far": 54.875864738
+  }
+}
