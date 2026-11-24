@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark" data-nav-design="1">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>压线提醒 · HUD</title>
+  <link rel="stylesheet" href="../adas/style.css?v=20261013-scene-polish-111">
+  <link rel="stylesheet" href="../adas/workspace.css?v=20261021-screen-format-3">
+  <link rel="stylesheet" href="../adas/corners.css?v=20261013-continuous-4">
+  <link rel="stylesheet" href="../adas/ui-typography.css?v=zh-CN-1">
+  <link rel="stylesheet" href="../adas/ui-refinements.css?v=20261017">
+  <link rel="stylesheet" href="../adas/scene-playback.css?v=20261020-all-lanes-1">
+  <link rel="stylesheet" href="./hud.css">
+  <link rel="stylesheet" href="./lane-departure.css">
+  <script>
+    try {
+      if (localStorage.getItem('hud:sr-theme') === 'light') document.documentElement.dataset.theme = 'light';
+    } catch {}
+  </script>
+</head>
+<body class="hud-workspace hud-lane-page">
+  <a class="skip-link" href="#main-content">跳转到预览与设置</a>
+  <header>
+    <button id="scene-picker" type="button" aria-label="选择场景" aria-expanded="false" aria-controls="mobile-scene-menu">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">
+        <path class="menu-line menu-line-top" d="M2.5 10h15"/><path class="menu-line menu-line-middle" d="M2.5 10h15"/><path class="menu-line menu-line-bottom" d="M2.5 10h15"/>
+      </svg>
+    </button>
+    <div class="brand"><a class="wordmark" href="./">HUD</a></div>
+    <div class="control-group appearance-control">
+      <a class="studio-tool-link" href="../adas/">返回 ADAS</a>
+    </div>
+  </header>
+  <main id="main-content" tabindex="-1">
+    <aside>
+      <div id="mobile-scene-menu" inert aria-hidden="true"><div class="mobile-menu-content"><div id="mobile-scene-nav"></div></div></div>
+      <nav aria-label="场景列表" id="scenes">
+        <section class="scene-group">
+          <h2 class="structure-heading">ADAS场景</h2>
+          <div class="structure-items"><a class="scene" href="./?scene=02">3车道变道</a><a class="scene" href="./?scene=05">直行过路口</a></div>
+        </section>
+        <section class="scene-group">
+          <h2 class="structure-heading">HUD光毯</h2>
+          <div class="structure-items"><a class="scene" href="./?scene=03">光毯变道</a></div>
+        </section>
+        <section class="scene-group">
+          <h2 class="structure-heading">车道线</h2>
+          <div class="structure-items"><a class="scene" aria-current="page" href="./lane-departure.html">压线提醒</a></div>
+        </section>
+      </nav>
+    </aside>
+    <section class="workspace" aria-labelledby="scene-title">
+      <div class="preview-shell">
+        <div class="lane-preview-heading">
+          <h1 id="scene-title">压线提醒</h1>
+          <div class="screen-format-toolbar">
+            <span id="screen-format-label">屏幕比例</span>
+            <div class="view-segments screen-format-options" role="group" aria-labelledby="screen-format-label">
+              <button type="button" data-screen-format="16:9" aria-pressed="true">1920 × 1080</button>
+              <button type="button" data-screen-format="21:9" aria-pressed="false">2560 × 1080</button>
+              <button type="button" data-screen-format="1920x720" aria-pressed="false">1920 × 720</button>
+            </div>
+          </div>
+        </div>
+        <div class="preview" id="preview">
+          <canvas id="scene-canvas" width="1920" height="1080" role="img" aria-label="识别车道线，两侧蓝色细线"></canvas>
+        </div>
+        <div class="scene-motion-buttons hud-preview-actions">
+          <button type="button" id="hud-immersive" aria-haspopup="dialog" aria-controls="hud-immersive-dialog">沉浸预览</button>
+        </div>
+      </div>
+      <section class="preview-settings lane-settings" aria-labelledby="lane-settings-title">
+        <h2 id="lane-settings-title">演示控制</h2>
+        <div class="lane-status" id="lane-status" data-state="recognition">
+          <span class="lane-status-dot" aria-hidden="true"></span>
+          <span id="lane-current-state" role="status">识别车道线</span>
+          <span id="lane-remaining" aria-hidden="true" hidden></span>
+          <progress id="lane-progress" aria-label="当前状态播放进度" value="0" max="1" hidden></progress>
+        </div>
+        <div class="lane-controls">
+          <div class="lane-control">
+            <div class="lane-duration"><label for="recognition-duration">识别车道线</label><input type="number" id="recognition-duration" value="3" min="0.5" max="60" step="0.1" required aria-label="识别车道线持续秒数"><span aria-hidden="true">秒</span></div>
+            <div class="scene-motion-buttons"><button type="button" data-lane-state="recognition" data-duration="recognition-duration" aria-pressed="true">识别车道线</button></div>
+          </div>
+          <div class="lane-control">
+            <div class="lane-duration"><label for="departure-duration">车道偏离</label><input type="number" id="departure-duration" value="2" min="0.5" max="60" step="0.1" required aria-label="车道偏离持续秒数"><span aria-hidden="true">秒</span></div>
+            <div class="scene-motion-buttons"><button type="button" data-lane-state="left" data-duration="departure-duration" aria-pressed="false">向左偏离</button><button type="button" data-lane-state="right" data-duration="departure-duration" aria-pressed="false">向右偏离</button></div>
+          </div>
+          <div class="lane-control">
+            <div class="lane-duration"><label for="lcc-duration">LCC</label><input type="number" id="lcc-duration" value="4" min="0.5" max="60" step="0.1" required aria-label="LCC 持续秒数"><span aria-hidden="true">秒</span></div>
+            <div class="scene-motion-buttons"><button type="button" data-lane-state="lcc" data-duration="lcc-duration" aria-pressed="false">启动 LCC</button></div>
+          </div>
+        </div>
+        <p class="lane-note">偏离和 LCC 播放结束后自动回到识别状态。</p>
+      </section>
+    </section>
+  </main>
+  <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
+  <script type="module" src="./lane-departure.mjs"></script>
+</body>
+</html>

@@ -2,6 +2,8 @@
   background: #000;
 }
 
+.hud-workspace #scenes a.scene { text-decoration: none; }
+
 .hud-workspace {
   --shell-width: 1920px;
   height: 100dvh;

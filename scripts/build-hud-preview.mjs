@@ -54,6 +54,8 @@ html = replace(html, '${posterScene}-${lanes}-${view}', '${junction?"02":posterS
 html = replace(html, 'if(snapshotSearch(cached?.search)===snapshotSearch(location.search)', 'if(!junction&&snapshotSearch(cached?.search)===snapshotSearch(location.search)');
 html = replace(html, '<button type="button" data-road="laneCount" data-value="4"', '<button type="button" data-road="laneCount" data-value="3" aria-label="3 车道" aria-pressed="false">3</button><button type="button" data-road="laneCount" data-value="4"');
 html = replace(html, '</head>', '<link rel="stylesheet" href="./hud.css"></head>');
+const laneNavigation = '<section class="scene-group" id="hud-lane-navigation"><h2 class="structure-heading">车道线</h2><div class="structure-items"><a class="scene" href="./lane-departure.html">压线提醒</a></div></section>';
+html = replace(html, '<nav aria-label="场景列表" id="scenes"></nav>', `<nav aria-label="场景列表" id="scenes">${laneNavigation}</nav>`);
 const controls = await readFile(path.join(hud, 'hud-controls.html'), 'utf8');
 html = replace(html, /<div class="environment-control" aria-label="场景元素">.*?<\/label><\/div><\/div>(?=<\/div><p id="status")/g, `\n${controls}`);
 html = replace(html, /^ const enabled=\{parkedCars:parking,.*\n/gm, '');
@@ -124,6 +126,7 @@ const first=hudScenes.find(s=>s.layouts.some(([id])=>id===initial))||hudScenes[0
         contents = replace(contents, "[['open','行驶'],['closed','泊车']]", "hudSceneGroups");
         contents = replace(contents, "[['open','行驶场景'],['closed','泊车场景']]", "hudSceneGroups");
         contents = replace(contents, 'structures.filter(scene=>scene.group===key)', 'hudScenes.filter(scene=>scene.group===key)');
+        contents = replace(contents, "$('scenes').append(section);", "$('scenes').insertBefore(section,$('hud-lane-navigation'));");
         contents = replace(contents, "const environmentIds=optionIds.filter(key=>key!=='vehicle');", "const environmentIds=optionIds.filter(key=>key!=='vehicle');\nfor(const preference of preferences.values())for(const key of environmentIds)preference[key]=false;");
         contents = replace(contents, /^ for\(const key of environmentIds\)\{const available=.*\r?\n.*\$\('buildings'\)\.closest\('\.environment-control'\).*\r?\n/gm, '');
         contents = replace(contents, /^for\(const key of environmentIds\)\$\(key\)\.addEventListener\('change'.*\r?\n/gm, '');
