@@ -16,6 +16,7 @@ export function createBlueRoadMarkings(world) {
     hudMarkingsLaneBlend: {value: 0},
     hudMarkingsCrossing: {value: new Vector2()},
     hudMarkingsTurn: {value: new Vector4()},
+    hudJunctionPaint: {value: new Vector3(1, 0, 0)},
     ...createHudDisplayUniforms(world)
   };
   const shaderCompilers = new WeakSet();
@@ -25,7 +26,9 @@ export function createBlueRoadMarkings(world) {
     // New lane materials inherit the lane paint's compiler when the lane count changes.
     if (shaderCompilers.has(compile)) return;
     const cacheKey = material.customProgramCacheKey();
-    const canHighlight = material !== world.mat.yellowPaint;
+    const yellow = material === world.mat.yellowPaint;
+    const crosswalk = material === world.mat.crosswalk;
+    const canHighlight = !yellow;
     material.onBeforeCompile = shader => {
       compile.call(material, shader);
       Object.assign(shader.uniforms, uniforms);
@@ -33,14 +36,29 @@ export function createBlueRoadMarkings(world) {
         shader.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
           vHudMarkingsPoint = (hudMarkingsRoadSpace * modelMatrix * vec4(transformed, 1.0)).xz;`);
       shader.fragmentShader = `
+        uniform vec2 hudMarkingsCrossing;
+        uniform vec3 hudJunctionPaint;
+        varying vec2 vHudMarkingsPoint;
+        float hudJunctionAlpha(vec2 point) {
+          if (hudJunctionPaint.z > .5 && point.x < 0. &&
+              abs(point.y - hudMarkingsCrossing.x) > hudMarkingsCrossing.y) return 0.;
+          return point.y < hudJunctionPaint.y ? hudJunctionPaint.x : 1.;
+        }
+      ` + shader.fragmentShader;
+      if (crosswalk) {
+        shader.fragmentShader = shader.fragmentShader.replace('#include <alphatest_fragment>', `
+          diffuseColor.a *= hudJunctionAlpha(vHudMarkingsPoint);
+          #include <alphatest_fragment>`);
+        return;
+      }
+      shader.fragmentShader = `
         uniform float hudMarkingsEnabled, hudMarkingsLaneBlend;
         uniform vec3 hudMarkingsColor;
         uniform vec3 hudMarkingsBase;
         uniform float hudMarkingsBaseOverride, hudMarkingsWidth;
         uniform vec2 hudMarkingsOpacity;
-        uniform vec2 hudMarkingsLanes, hudMarkingsCrossing;
+        uniform vec2 hudMarkingsLanes;
         uniform vec4 hudMarkingsTurn;
-        varying vec2 vHudMarkingsPoint;
         ${hudDisplayColorShader}
         float hudLaneEdge(float coord, float center) {
           return 1.0 - smoothstep(.32, .56, abs(abs(coord - center) - ${laneWidth / 2}));
@@ -73,6 +91,8 @@ export function createBlueRoadMarkings(world) {
         }
         float hudTint = ${canHighlight ? 'hudMarkingsEnabled * approach' : '0.0'};
         diffuseColor.a *= mix(hudMarkingsOpacity.x, hudMarkingsOpacity.y, hudTint);
+        diffuseColor.a *= hudJunctionAlpha(roadPoint);
+        ${yellow ? 'if (hudJunctionPaint.z > .5 && abs(roadPoint.x) < .30) diffuseColor.a = 0.;' : ''}
         #ifdef USE_FOG
           float hudRoadFade = smoothstep(10.5, 17.0, vFogDepth) * (1.0 - smoothstep(36.0, 90.0, vFogDepth));
           diffuseColor.a *= mix(1.0, hudRoadFade, ${canHighlight ? 'hudMarkingsEnabled' : '0.0'});
@@ -110,6 +130,9 @@ export function createBlueRoadMarkings(world) {
     // Both lanes contribute equally as the vehicle crosses the divider.
     const blend = .5 * MathUtils.smoothstep(Math.abs(x - center), laneWidth / 2 - .5, laneWidth / 2);
     const turn = world.roadGuidePath?.rightTurn;
+    const junction = world.state.id === '05' && world.junctionDimensions;
+    const reveal = junction ? 1 - MathUtils.smoothstep(world.car.position.z - junction.nearCrosswalk, 38, 78) : 1;
+    uniforms.hudJunctionPaint.value.set(reveal, junction?.markingEnd ?? 0, junction && world.hudSettings?.junction?.threeLanes ? 1 : 0);
     uniforms.hudMarkingsLanes.value.set(center, neighbor);
     uniforms.hudMarkingsLaneBlend.value = neighbor === center ? 0 : blend;
     uniforms.hudMarkingsCrossing.value.set(layout?.crossingZ ?? 0, (layout?.crossingWidth ?? 0) / 2);
@@ -117,6 +140,7 @@ export function createBlueRoadMarkings(world) {
     installHighlight(world.mat.whitePaint);
     installHighlight(world.mat.yellowPaint);
     installHighlight(world.mat.lanePaint);
+    installHighlight(world.mat.crosswalk);
     for (const material of world.laneMaterials.values()) installHighlight(material);
     return true;
   }

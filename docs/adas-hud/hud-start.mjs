@@ -1,5 +1,7 @@
 import {laneWidth} from '../adas/road-assist.js';
 
+export const straightJunctionRoute = {startZ: 65, endZ: -75, durationMs: 14000};
+
 export function startLayout(id, laneCount) {
   if (id === '02' || id === '09') {
     if (laneCount === 3) return {key: 'road', count: 3, first: -laneWidth, defaultLane: 1, min: -45, max: 130};

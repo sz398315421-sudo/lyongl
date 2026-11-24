@@ -44,6 +44,10 @@
   scroll-margin-block: 8px;
 }
 
+.hud-workspace .scene-options:has(> #road-controls[hidden]):has(> .toolbar[hidden]):has(> #scene-animation-control:not([hidden])) {
+  display: flex;
+}
+
 .hud-workspace .preview-settings:focus-visible {
   outline: 2px solid var(--muted);
   outline-offset: -2px;

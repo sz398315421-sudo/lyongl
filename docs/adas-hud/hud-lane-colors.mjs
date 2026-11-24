@@ -10,7 +10,8 @@ export function hudLaneLayout(world) {
     return {key: `${id}:${count}`, count, firstX, gap: 0, crossingZ: turn?.centerZ, crossingWidth: turn?.width};
   }
   if (id === '05' || id === '08') {
-    return {key: `${id}:6`, count: 6, firstX: -3 * laneWidth, gap: 0, crossingZ: -40, crossingWidth: 6 * laneWidth};
+    const threeLanes = id === '05' && world.hudSettings?.junction?.threeLanes;
+    return {key: `${id}:${threeLanes ? 3 : 6}`, count: threeLanes ? 3 : 6, firstX: threeLanes ? 0 : -3 * laneWidth, gap: 0, crossingZ: -40, crossingWidth: 6 * laneWidth};
   }
   if (world.dividedRoad && ['03', '06', '07'].includes(id)) {
     const {oppositeCenter, lanesPerDirection, medianWidth} = world.dividedRoad;

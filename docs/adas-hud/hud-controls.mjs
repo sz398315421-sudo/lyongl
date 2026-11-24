@@ -11,12 +11,15 @@ const cameraFields = [
 ];
 const defaultView = Object.fromEntries(cameraFields.map(([key, , , , value]) => [key, value]));
 const previousWaveguideView = {yaw: 0, pitch: 22, distance: 14, fov: 36, ahead: 5.6};
+const guideStartField = ['startOffset', '光带起点偏移', -1.5, 30, 0, ' m', .1];
 const guideFields = [
   ['width', '宽度', .2, 3.6, 1.4, ' m', .1],
-  ['length', '长度', 4, 110, 32, ' m', 1]
+  ['length', '长度', 4, 110, 32, ' m', 1],
+  guideStartField
 ];
 const opacityField = (key, name) => [key, name, 0, 100, 100, '%', 1, '不透明度'];
-const defaultGuide = {width: 1.4, length: 32, gradient: false, far: '#72eaff', nearOpacity: 100, farOpacity: 100, nearPosition: 0, farPosition: 100, gradientSpace: 'screen'};
+const defaultGuide = {width: 1.4, length: 32, startOffset: 0, gradient: false, far: '#72eaff', nearOpacity: 100, farOpacity: 100, nearPosition: 0, farPosition: 100, gradientSpace: 'screen'};
+const maxGuideStartOffset = guide => Math.min(guideStartField[3], guide.length - 1);
 const defaultLaneColor = '#48a9ff';
 const defaultLaneOpacity = 38;
 const defaultMarking = {base: null, highlight: blueRoadColor, width: 100, baseOpacity: 100, highlightOpacity: 100};
@@ -64,6 +67,7 @@ function readSettings() {
     const value = saved?.guide?.[key];
     if (Number.isFinite(value)) guide[key] = Math.min(max, Math.max(min, value));
   }
+  guide.startOffset = Math.min(guide.startOffset, maxGuideStartOffset(guide));
   if (typeof saved?.guide?.far === 'string' && /^#[\da-f]{6}$/i.test(saved.guide.far)) guide.far = saved.guide.far;
   const starts = {};
   for (const key of ['road', 'elevated', 'ramp', 'junction', 'parking']) {
@@ -73,7 +77,8 @@ function readSettings() {
     }
   }
   const preset = ['blueRoad', 'carpet'].includes(saved?.preset) ? saved.preset : saved?.carpet === true ? 'carpet' : null;
-  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true && !linkedView, preset, beamOnly: saved?.beamOnly === true, colors, laneOpacity, marking, view, guide, starts};
+  const junction = {threeLanes: saved?.junction?.threeLanes === true, truck: saved?.junction?.truck === true};
+  return {ego: saved?.ego !== false, follow: saved?.follow === true, customCamera: saved?.customCamera === true && !linkedView, preset, beamOnly: saved?.beamOnly === true, colors, laneOpacity, marking, view, guide, starts, junction};
 }
 
 function slider([key, name, min, max, , unit, step = 1, labelText = name], values, prefix, change) {
@@ -92,7 +97,7 @@ function slider([key, name, min, max, , unit, step = 1, labelText = name], value
   value.htmlFor = input.id;
   const sync = () => {
     input.value = values[key];
-    input.style.setProperty('--range-fill', `${(input.valueAsNumber - min) / (max - min) * 100}%`);
+    input.style.setProperty('--range-fill', `${(input.valueAsNumber - min) / (Number(input.max) - min) * 100}%`);
     value.value = `${values[key]}${unit}`;
     input.setAttribute('aria-valuetext', value.value);
   };
@@ -103,13 +108,14 @@ function slider([key, name, min, max, , unit, step = 1, labelText = name], value
   });
   label.append(title, value, input);
   sync();
-  return {label, sync};
+  return {label, input, sync};
 }
 
 export function createHudControls(onChange, onSave) {
   const byId = id => document.getElementById(id);
   const settings = readSettings();
   const panel = byId('hud-camera-controls');
+  const junctionPanel = byId('hud-junction-controls');
   const lanePanel = byId('hud-lane-controls');
   const laneSelect = byId('hud-lane');
   const laneColor = byId('hud-lane-color');
@@ -157,6 +163,14 @@ export function createHudControls(onChange, onSave) {
     });
   }
   panel.hidden = !settings.customCamera;
+  for (const [id, key] of [['hud-junction-three-lanes', 'threeLanes'], ['hud-junction-truck', 'truck']]) {
+    const input = byId(id);
+    input.checked = settings.junction[key];
+    input.addEventListener('change', () => {
+      settings.junction[key] = input.checked;
+      change('junction');
+    });
+  }
 
   const cameraSliders = cameraFields.map(field => slider(field, settings.view, 'hud-camera', () => change('view')));
   cameraReset.before(...cameraSliders.map(control => control.label));
@@ -226,8 +240,19 @@ export function createHudControls(onChange, onSave) {
     change('marking');
   });
 
-  const guideSliders = guideFields.map(field => slider(field, settings.guide, 'hud-guide', () => change('guide')));
-  byId('hud-guide-values').append(...guideSliders.map(control => control.label));
+  const [guideWidth, guideLength, guideStart] = guideFields.map(field => slider(field, settings.guide, 'hud-guide', () => {
+    if (field[0] === 'length') syncGuideStart();
+    change('guide');
+  }));
+  const guideSliders = [guideWidth, guideLength];
+  const syncGuideStart = () => {
+    const guide = settings.guide;
+    const max = maxGuideStartOffset(guide);
+    guideStart.input.max = max;
+    guide.startOffset = Math.min(guide.startOffset, max);
+    guideStart.sync();
+  };
+  byId('hud-guide-values').append(...guideSliders.map(control => control.label), guideStart.label);
   const stopSliders = [];
   for (const [end, title] of [['near', '近端'], ['far', '远端']]) {
     const opacity = slider(opacityField(`${end}Opacity`, `${title}不透明度`), settings.guide, 'hud-guide', () => change('guide'));
@@ -263,6 +288,7 @@ export function createHudControls(onChange, onSave) {
   const syncGuide = () => {
     gradient.checked = settings.guide.gradient;
     syncGradient();
+    syncGuideStart();
     farColor.value = settings.guide.far;
     syncFarHex(settings.guide.far);
     guideSliders.forEach(control => control.sync());
@@ -303,6 +329,9 @@ export function createHudControls(onChange, onSave) {
 
   syncPreset();
   return {settings, syncLaneDemo,
+  syncJunction(active) {
+    junctionPanel.hidden = !active;
+  },
   showSceneLayers() {
     if (!settings.beamOnly || settings.preset !== 'carpet') return;
     byId('hud-beam-only').checked = settings.beamOnly = false;

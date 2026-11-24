@@ -3,6 +3,19 @@
     <h2 class="settings-label" id="hud-settings-title">HUD 设置</h2>
     <button id="hud-reset-settings" type="button" disabled>恢复默认设置</button>
   </div>
+  <fieldset id="hud-junction-controls" class="hud-section" hidden>
+    <legend class="choice-label">路口显示</legend>
+    <div class="switches hud-switches">
+      <label class="toggle">
+        <span class="setting-title">只显示3车道</span>
+        <input id="hud-junction-three-lanes" type="checkbox" role="switch"><span class="track" aria-hidden="true"></span>
+      </label>
+      <label class="toggle">
+        <span class="setting-title">显示旁车</span>
+        <input id="hud-junction-truck" type="checkbox" role="switch"><span class="track" aria-hidden="true"></span>
+      </label>
+    </div>
+  </fieldset>
   <div class="switches hud-switches">
     <label class="toggle" hidden>
       <span class="setting-title">仅显示光毯</span>
@@ -70,6 +83,7 @@
   <details class="hud-section hud-effect" id="hud-guide-controls" hidden>
     <summary class="choice-label">引导线效果</summary>
     <div id="hud-guide-values" class="hud-camera-controls"></div>
+    <p class="hud-control-note">起点偏移为 0 时使用默认位置。负值拉近，正值推远。</p>
     <div class="switches hud-switches">
       <label class="toggle">
         <span class="setting-title">启用渐变</span>

@@ -67,13 +67,16 @@ export const World = {
     world.composer.render = (...frame) => {
       const supportsGuidance = guidanceSceneIds.includes(world.state.id);
       const blueRoad = controls.settings.preset === 'blueRoad';
-      traffic.visible = blueRoad && isBlueRoad(world) && !world.roadGuidePath?.rightTurn && !world.traffic?.settings.enabled;
+      const straightJunction = world.state.id === '05';
+      traffic.visible = straightJunction ? controls.settings.junction.truck :
+        blueRoad && isBlueRoad(world) && !world.roadGuidePath?.rightTurn && !world.traffic?.settings.enabled;
       if (traffic.visible) {
         if (!traffic.children.length) traffic.add(createBlueRoadTraffic());
         const origin = world.hudPlayback?.basePose?.carPosition ?? world.car.position;
-        traffic.position.set(0, 0, origin.z);
+        traffic.position.set(straightJunction ? origin.x : 0, 0, origin.z);
       }
       const layout = hudLaneLayout(world);
+      controls.syncJunction(straightJunction);
       controls.syncLanes(layout);
       controls.syncStart(startLayout(world.state.id, world.state.laneCount));
       controls.syncGuide(supportsGuidance);

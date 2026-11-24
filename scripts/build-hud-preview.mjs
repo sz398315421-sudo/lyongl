@@ -42,11 +42,16 @@ html = replace(html, 'let saved;try', `${editorRedirect}
 ${restoreScript}
 let saved;try`);
 html = replace(html, '["2","4","6"].includes(q.get("lanes"))', '["2","3","4","6"].includes(q.get("lanes"))');
-html = replace(html, 'known=["01","02","03","05","06","07","08","09","10","12","13","14","16","17","18","19"],scene=aliases[raw]||(known.includes(raw)?raw:"02")', 'known=["01","02","03","09","12"],mapped=aliases[raw]||raw,scene=known.includes(mapped)?mapped:"02"');
+html = replace(html, 'known=["01","02","03","05","06","07","08","09","10","12","13","14","16","17","18","19"],scene=aliases[raw]||(known.includes(raw)?raw:"02")', 'known=["01","02","03","05","09","12"],mapped=aliases[raw]||raw,scene=known.includes(mapped)?mapped:"02"');
 html = replace(html, 'scene==="09"?"2":"6"', 'scene==="09"?"2":"3"');
-html = replace(html, "road:'普通道路',elevated:'高架道路'", "road:'ADAS',elevated:'HUD 光毯'");
+html = replace(html, "road:'普通道路',elevated:'高架道路',junction:'交叉路口'", "road:'3车道变道',elevated:'光毯变道',junction:'直行过路口'");
+html = replace(html, 'view=junction?(q.get("position")==="approaching"?"low":q.get("position")==="near"?"high":q.get("view")==="low"?"low":"high"):', 'view=junction?"low":');
+html = replace(html, "layouts=junction?[['05','十字路口'],['08','丁字路口']]:ramp?", "layouts=ramp?");
+html = replace(html, "show('junction-position-control',junction);show('junction-lane-control',junction);", "show('junction-position-control',false);show('junction-lane-control',false);");
+html = replace(html, "show('camera-control',!road);document.querySelector('.toolbar').hidden=road;", "show('camera-control',!road&&!junction);document.querySelector('.toolbar').hidden=road||junction;");
 html = replace(html, /const available=\{[^\n]+\nconst defaultOn=\{[^\n]+\nconst mask=[^\n]+/g, "const posterMask=q.get('model')&&q.get('model')!=='x6'?0:8;");
-html = replace(html, '${posterScene}-${lanes}-${view}', '${posterScene}-${lanes==="3"?"4":lanes}-${view}');
+html = replace(html, '${posterScene}-${lanes}-${view}', '${junction?"02":posterScene}-${junction?"6":lanes==="3"?"4":lanes}-${view}');
+html = replace(html, 'if(snapshotSearch(cached?.search)===snapshotSearch(location.search)', 'if(!junction&&snapshotSearch(cached?.search)===snapshotSearch(location.search)');
 html = replace(html, '<button type="button" data-road="laneCount" data-value="4"', '<button type="button" data-road="laneCount" data-value="3" aria-label="3 车道" aria-pressed="false">3</button><button type="button" data-road="laneCount" data-value="4"');
 html = replace(html, '</head>', '<link rel="stylesheet" href="./hud.css"></head>');
 const controls = await readFile(path.join(hud, 'hud-controls.html'), 'utf8');
@@ -100,24 +105,32 @@ await build({
         contents = replace(contents, `||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')`, `||'dark'`);
         contents = replace(contents, '`assets/', '`../adas/assets/');
         contents = replace(contents, "['2','4','6'].includes(query.get('lanes'))", "['2','3','4','6'].includes(query.get('lanes'))");
-        contents = replace(contents, 'const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures[0];', `const hudPresets={road:{key:'blueRoad',name:'ADAS'},elevated:{key:'carpet',name:'HUD 光毯'}};
-const hudScenes=structures.filter(s=>Object.hasOwn(hudPresets,s.key));
+        contents = replace(contents, 'const first=structures.find(s=>s.layouts.some(([id])=>id===initial))||structures[0];', `const hudPresets={road:{key:'blueRoad',name:'3车道变道'},elevated:{key:'carpet',name:'光毯变道'},junction:{key:'blueRoad',name:'直行过路口'}};
+const hudSceneGroups=[['open','ADAS场景'],['carpet','HUD光毯']];
+const hudScenes=structures.filter(s=>Object.hasOwn(hudPresets,s.key)).map(s=>({
+ ...s,name:hudPresets[s.key].name,group:s.key==='elevated'?'carpet':s.group,layouts:s.key==='junction'?s.layouts.slice(0,1):s.layouts
+}));
 const first=hudScenes.find(s=>s.layouts.some(([id])=>id===initial))||hudScenes[0];`);
+        contents = replace(contents, 'function active(){return structures.find(s=>s.key===selected);}', 'function active(){return hudScenes.find(s=>s.key===selected);}');
+        contents = replace(contents, "preferences.get('junction').junctionPosition=query.get('position')==='approaching'||(first.key==='junction'&&query.get('view')==='low'&&!query.has('position'))?'approaching':'near';", "preferences.get('junction').junctionPosition='approaching';");
+        contents = replace(contents, "if(first.key==='junction')preferences.get('junction').junctionLanes[initial]=normalizeJunctionLane(initial,query.get('lane'));", '');
+        contents = replace(contents, "if(selected==='junction')st.junctionLane=normalizeJunctionLane(st.id,st.junctionLanes[st.id]);", "if(selected==='junction')st.junctionLane='middle';");
+        contents = replace(contents, "$('junction-position-control').hidden=!junction;", "$('junction-position-control').hidden=true;");
+        contents = replace(contents, "$('junction-lane-control').hidden=!junction;", "$('junction-lane-control').hidden=true;");
         contents = replace(contents, "laneCount:initial==='09'?2:6", "laneCount:initial==='09'?2:3");
         contents = replace(contents, "{id:'02',laneCount:6,cameraView:'low'}", "{id:'02',laneCount:3,cameraView:'low'}");
         contents = replace(contents, '&lanes=6&view=low', '&lanes=3&view=low');
-        contents = replace(contents, "[['open','行驶'],['closed','泊车']]", "[['open','行驶']]");
-        contents = replace(contents, "[['open','行驶场景'],['closed','泊车场景']]", "[['open','行驶场景']]");
-        contents = replace(contents, 'structures.filter(scene=>scene.group===key)', 'hudScenes');
-        contents = replace(contents, "label.textContent=scene.name;", "label.textContent=hudPresets[scene.key].name;");
-        contents = replace(contents, "isReference?'视觉参考':s.name", "isReference?'视觉参考':hudPresets[s.key].name");
+        contents = replace(contents, "['closed',first.group==='closed'?selected:'parking']", "['carpet','elevated']");
+        contents = replace(contents, "[['open','行驶'],['closed','泊车']]", "hudSceneGroups");
+        contents = replace(contents, "[['open','行驶场景'],['closed','泊车场景']]", "hudSceneGroups");
+        contents = replace(contents, 'structures.filter(scene=>scene.group===key)', 'hudScenes.filter(scene=>scene.group===key)');
         contents = replace(contents, "const environmentIds=optionIds.filter(key=>key!=='vehicle');", "const environmentIds=optionIds.filter(key=>key!=='vehicle');\nfor(const preference of preferences.values())for(const key of environmentIds)preference[key]=false;");
         contents = replace(contents, /^ for\(const key of environmentIds\)\{const available=.*\r?\n.*\$\('buildings'\)\.closest\('\.environment-control'\).*\r?\n/gm, '');
         contents = replace(contents, /^for\(const key of environmentIds\)\$\(key\)\.addEventListener\('change'.*\r?\n/gm, '');
         contents = replace(contents, 'world.roadGuidance.setColor(roadGuidanceColor);', `const presetColor=world.hudApplyPreset(hudPresets[selected].key);
 roadGuidanceColor=world.roadGuidance.setColor(query.has('guideColor')?roadGuidanceColor:presetColor??normalizeGuidanceColor(savedGuidanceColor,'#01cff3'));`);
-        contents = replace(contents, "const posterMask=selectedVehicle==='x6'", "const posterLanes=lanes===3?4:lanes;const posterMask=selectedVehicle==='x6'");
-        contents = replace(contents, 'states/${st.id}-${lanes}-${view}', 'states/${st.id}-${posterLanes}-${view}');
+        contents = replace(contents, "const posterMask=selectedVehicle==='x6'", "const posterJunction=selected==='junction',posterLanes=posterJunction?6:lanes===3?4:lanes;const posterMask=selectedVehicle==='x6'");
+        contents = replace(contents, 'states/${st.id}-${lanes}-${view}', 'states/${posterJunction?"02":st.id}-${posterLanes}-${view}');
         contents = replace(contents, "'鸣谢与授权 · 自动驾驶道路场景':'自动驾驶道路场景'", "'鸣谢与授权 · HUD':'HUD'");
         contents = replace(contents, 'const sceneMotionControls=initScenePlaybackControls', `world.hudPlayback=scenePlayback;
 world.hudSaveScene=()=>updateURL(true);
@@ -173,6 +186,9 @@ world.onLayoutFrame=moving=>`);
         contents = replace(contents, 'if(!videoFormat())throw', 'if(!transparent&&!videoFormat())throw');
         contents = replace(contents, "const context=canvas.getContext('2d',{alpha:false});", "const context=canvas.getContext('2d',{alpha:transparent});");
         contents = replace(contents, /  world\.setResolution\(exportSize\.width,exportSize\.height\);\r?\n  let durationMs,sample;/g, '  const recordingFormat=transparent&&!sequence?await transparentVideoFormat(controller.signal):undefined;\n  world.setResolution(exportSize.width,exportSize.height);\n  let durationMs,sample;');
+        contents = replace(contents, /  if\(selected==='junction'\)\{\r?\n   \/\/ Reuse the exact approach\/lift choreography[^\n]+\r?\n[\s\S]+?\r?\n  \}else\{\r?\n([\s\S]+?)\r?\n  \}/g, (_, body) => body.replace(/^ /gm, ''));
+        contents = replace(contents, 'const preference=preferences.get(selected),originalPreference={...preference},controller=new AbortController();', 'const controller=new AbortController();');
+        contents = replace(contents, "  if(selected==='junction'){world.stopCameraMotion();Object.assign(preference,originalPreference);world.update(state());}", '');
         contents = replace(contents, 'const result=await recordCanvasVideo({canvas,durationMs,signal:', 'const renderAnimation=sequence?renderPngSequence:recordCanvasVideo;\n  const result=await renderAnimation({canvas,durationMs,options:sequence,format:recordingFormat,signal:');
         contents = replace(contents, 'sample(elapsed);context.drawImage(currentFrame(),0,0,canvas.width,canvas.height);', `if(transparent){
     withTransparentOutput(world,()=>{
@@ -189,32 +205,40 @@ world.onLayoutFrame=moving=>`);
         contents = replace(contents, "offset=cached?.viewOffset;if(previewSnapshotSearch", "offset=cached?.viewOffset;if(!world.hudHasStartOverride(requested.id)&&previewSnapshotSearch");
       }
       if (args.path === path.join(adas, 'world.js')) {
-        contents = `import {applyStartPose, hasStartOverride, resetStartPose} from '../hud/hud-start.mjs';\n${contents}`;
+        contents = `import {applyStartPose, hasStartOverride, resetStartPose, straightJunctionRoute} from '../hud/hud-start.mjs';\n${contents}`;
         contents = replace(contents, ' configureCamera(id,options){', ` hudHasStartOverride(id){return hasStartOverride(this,id);}
  configureCamera(id,options){
   if(this.hudSettings)resetStartPose(this,id,options.laneCount);`);
         contents = replace(contents, 'const cached=road&&this.roadCameraCache.get(key);', 'const cached=road&&!this.hudSettings&&this.roadCameraCache.get(key);');
         contents = replace(contents, '  this.framing=anchorVehicle(this.car,this.camera,', '  if(this.hudSettings)applyStartPose(this,id,options);\n  this.framing=anchorVehicle(this.car,this.camera,');
         contents = replace(contents, 'if(road)this.roadCameraCache.set(key,this.captureCamera());', 'if(road&&!this.hudSettings)this.roadCameraCache.set(key,this.captureCamera());');
+        contents = replace(contents, "this.car.position.z=options.junctionPosition==='approaching'?14:-20.5;", "this.car.position.z=options.junctionPosition==='approaching'?(id==='05'?straightJunctionRoute.startZ:14):-20.5;");
         contents = replace(contents, 'createRoadGuidance();this.scene.add(this.roadGuidance.mesh)', 'createRoadGuidance(()=>this.hudSettings?.guide);this.scene.add(this.roadGuidance.mesh)');
         contents = replace(contents, "id==='02'||id==='04'||id==='09',id!=='03'", "options.laneCount!==3&&(id==='02'||id==='04'||id==='09'),id!=='03'");
         contents = replace(contents, "if(edges)for(const side of [-1,1]){this.line(side*(w/2-.25),z0,z1,y);", "const blueRoad=this.hudSettings&&this.current==='02'&&Math.round(w/lane)===3;\n  if(edges)for(const side of [-1,1]){this.line(side*(w/2-.25),z0,z1,y,'white',blueRoad?.17:.13);");
-        contents = replace(contents, "this.line(x,z,end,y);this.root.children.at(-1).userData.laneDash", "this.line(x,z,end,y,'white',this.hudSettings&&this.current==='02'&&this.options.laneCount===3?.24:.13);this.root.children.at(-1).userData.laneDash");
+        contents = replace(contents, "this.line(x,z,end,y);this.root.children.at(-1).userData.laneDash", "this.line(x,z,end,y,'white',this.hudSettings&&(this.current==='05'||this.current==='02'&&this.options.laneCount===3)?.24:.13);this.root.children.at(-1).userData.laneDash");
+        contents = replace(contents, '!o.userData.buildingOwned&&!o.userData.construction&&o.geometry.index', '!o.userData.buildingOwned&&!o.userData.construction&&!o.userData.hudJunctionThreeLaneEdge&&o.geometry.index');
         contents = replace(contents, / junction\(id,w\)\{[\s\S]*?(?=\n dividedCarriageway)/g, (source) => {
           return source
             .replace('junction(id,w){', 'junction(id,w,{centerZ=-40,curbRadius=2.4,rightTurnLane=false}={}){')
             .replaceAll('-40', 'centerZ').replace('centerZ=centerZ', 'centerZ=-40')
             .replace('r=2.4,crossroad', 'r=curbRadius,crossroad')
-            .replace('70,-22.55,0,true,false', '70,near+6.35,0,true,false')
+            .replace("crossroad=id==='05';", "crossroad=id==='05',straight=this.current==='05'&&!rightTurnLane;\n  const approachZ=straight?straightJunctionRoute.startZ+80:70,edgeWidth=straight?.17:.13;")
+            .replace('this.road(0,w,70,near)', 'this.road(0,w,approachZ,near)')
+            .replace('70,-22.55,0,true,false', 'approachZ,near+6.35,0,true,false')
             .replace('-57.45,-260,0,true,false', 'far-6.35,-260,0,true,false')
-            .replace('if(crossroad)this.line(side*(half-.25),far-r,-260);', "this.root.children.at(-1).userData.roadEdge=true;if(crossroad){this.line(side*(half-.25),far-r,-260);this.root.children.at(-1).userData.roadEdge=true;}")
-            .replace("this.pathRibbon(paint,.13,.028,'white');", "if(!(rightTurnLane&&side===1&&edge===1))this.pathRibbon(paint,.13,.028,'white');")
+            .replace('this.line(side*(half-.25),70,near+r);if(crossroad)this.line(side*(half-.25),far-r,-260);', "this.line(side*(half-.25),approachZ,near+r,0,'white',edgeWidth);this.root.children.at(-1).userData.roadEdge=true;if(crossroad){this.line(side*(half-.25),far-r,-260,0,'white',edgeWidth);this.root.children.at(-1).userData.roadEdge=true;}")
+            .replace("this.plane(150-start,.13,", "this.plane(150-start,edgeWidth,")
+            .replace("this.pathRibbon(paint,.13,.028,'white');", "if(!(rightTurnLane&&side===1&&edge===1))this.pathRibbon(paint,edgeWidth,.028,'white');")
+            .replace("  for(let x=-140;", "  if(straight){\n   this.line(.25,approachZ,near+r,0,'white',edgeWidth);this.root.children.at(-1).userData.hudJunctionThreeLaneEdge=true;\n   this.line(.25,far-r,-260,0,'white',edgeWidth);this.root.children.at(-1).userData.hudJunctionThreeLaneEdge=true;\n  }\n  for(let x=-140;")
             .replace('Math.abs(x)<19', 'Math.abs(x)<half+8')
             .replace('[-7.4,-3.7,3.7,7.4]', 'Array.from({length:Math.round(w/3.7)-1},(_,i)=>-half+(i+1)*3.7).filter(offset=>Math.abs(offset)>.01)')
+            .replace('this.plane(3.8,.13,x,', 'this.plane(3.8,straight?.24:.13,x,')
             .replace("for(const off of [-.105,.105])this.plane(5,.10,x,centerZ+off,.031,'yellow');}", "if(!rightTurnLane)for(const off of [-.105,.105])this.plane(5,.10,x,centerZ+off,.031,'yellow');}\n  if(rightTurnLane){const length=150-half-3.2;for(const side of [-1,1])for(const off of [-.105,.105])this.plane(length,.10,side*(150-length/2),centerZ+off,.031,'yellow');}")
             .replace('crosswalkCount=14', 'crosswalkCount=Math.floor(w/1.5)')
             .replace('crossroad?[-27,-53]:[-27]', 'crossroad?[near+1.9,far-1.9]:[near+1.9]')
             .replace('[-12.8,12.8]', '[-half-1.7,half+1.7]')
+            .replace('this.curbs(w,70,near+r)', 'this.curbs(w,approachZ,near+r)')
             .replace('nearCrosswalk:-27,markingEnd:-22.55', 'nearCrosswalk:near+1.9,markingEnd:near+6.35');
         });
       }
@@ -222,7 +246,9 @@ world.onLayoutFrame=moving=>`);
         contents = `import {bindHexColor} from '../hud/hud-hex.mjs';\nimport {sampleRightPassGuidance} from '../hud/hud-right-pass.mjs';\n${contents}`;
         contents = replace(contents, 'export function createRoadGuidance(){', 'export function createRoadGuidance(getEffect){');
         contents = replace(contents, "if(plan.kind==='ramp-exit')return sampleRampExit(plan,distance);", "if(plan.kind==='hud-right-pass')return sampleRightPassGuidance(plan,distance);\n  if(plan.kind==='ramp-exit')return sampleRampExit(plan,distance);");
-        contents = replace(contents, 'const near=(car.userData.vehicleSpec.length||4.85)*.40;let far=34;', 'const effect=getEffect?.(),near=(car.userData.vehicleSpec.length||4.85)*.40;let far=effect?near+effect.length:34;');
+        contents = replace(contents, 'const near=(car.userData.vehicleSpec.length||4.85)*.40;let far=34;', `const effect=getEffect?.(),defaultNear=(car.userData.vehicleSpec.length||4.85)*.40;
+  const near=Math.max(0,defaultNear+(effect?.startOffset??0));
+  let far=effect?defaultNear+effect.length:34;`);
         contents = replace(contents, 'dz=-Math.sin(point.yaw),width=.70;', 'dz=-Math.sin(point.yaw),width=(effect?.width??1.4)*.5;');
         contents = replace(contents, / const colorRow=document\.createElement\('div'\);[^\n]+\r?\n colorRow\.innerHTML=[^\n]+\r?\n const colors=colorRow\.querySelector\('\.guidance-color-options'\);/g, ` const colors=document.getElementById('hud-guide-swatches');
  colors.classList.add('guidance-color-options');colors.setAttribute('role','group');colors.setAttribute('aria-label','引导线预设颜色');`);
@@ -260,7 +286,13 @@ world.onLayoutFrame=moving=>`);
         contents = replace(contents, 'renderFrame(0);recorder.start();started=true;capture(0);', 'recorder.start();started=true;capture(0);');
       }
       if (args.path === path.join(adas, 'scene-playback.js')) {
-        contents = `import {applyRightPassFrame, canTurnAtJunction, createPresetLaneChange, createPresetRightTurn, junctionDuration, presetLaneDuration, presetLaneDirection} from '../hud/hud-right-pass.mjs';\n${contents}`;
+        contents = `import {applyRightPassFrame, canTurnAtJunction, createPresetLaneChange, createPresetRightTurn, junctionDuration, presetLaneDuration, presetLaneDirection} from '../hud/hud-right-pass.mjs';\nimport {straightJunctionRoute} from '../hud/hud-start.mjs';\n${contents}`;
+        contents = replace(contents, 'junction:{distance:24,durationMs:sceneTripDurationMs}', 'junction:{distance:straightJunctionRoute.startZ-straightJunctionRoute.endZ,durationMs:straightJunctionRoute.durationMs}');
+        contents = replace(contents, 'sampleLanePath,junctionLaneEndZ', 'sampleLanePath');
+        contents = replace(contents, "if(key==='junction'&&['05','08'].includes(world.state?.id))trip.distance=Math.max(0,Math.min(trip.distance,world.car.position.z-junctionLaneEndZ));", `if(key==='junction'){
+    // Finish beyond the far crosswalk at the end of the same straight lane.
+    trip.distance=Math.max(0,base.carPosition.z-straightJunctionRoute.endZ);
+   }`);
         contents = replace(contents, 'onChange=()=>{}}={})', "onChange=()=>{},initialPresetAnimation='lane-change'}={})");
         contents = replace(contents, 'const snapshot=()=>({scene,status,', `let presetAnimation=initialPresetAnimation==='right-turn'?'right-turn':'lane-change';
  const turnAvailable=()=>canTurnAtJunction(world);
@@ -269,7 +301,7 @@ world.onLayoutFrame=moving=>`);
  const snapshot=()=>{const rightTurn=trip?!!trip.rightTurn:wantsRightTurn();
   const direction=trip?.hudRightPass?trip.laneChange?.direction:!trip&&!rightTurn?presetDirection():null;
   return {scene,status,presetDirection:direction,presetRightTurn:rightTurn,turnAvailable:turnAvailable(),presetAnimation,`);
-        contents = replace(contents, 'durationMs:trip?.durationMs||sceneTripDurationMs', 'durationMs:trip?.durationMs||(rightTurn?junctionDuration:direction?presetLaneDuration(direction):sceneTripDurationMs)');
+        contents = replace(contents, 'durationMs:trip?.durationMs||sceneTripDurationMs', "durationMs:trip?.durationMs||(rightTurn?junctionDuration:direction?presetLaneDuration(direction):world.state?.id==='05'?sceneTrips.junction.durationMs:sceneTripDurationMs)");
         contents = replace(contents, 'toLane:trip.laneChange.toLane}:null});', 'toLane:trip.laneChange.toLane}:null};};');
         contents = replace(contents, 'function apply(){', 'function apply(){\n  if(trip.hudRightPass){applyRightPassFrame(world,base,trip,elapsedMs);return;}');
         contents = replace(contents, '(trip.laneChange||trip.rampExit)', '(trip.laneChange||trip.rampExit||trip.rightTurn)');
@@ -300,7 +332,8 @@ world.onLayoutFrame=moving=>`);
  const animationButtons=[...animationChoices.querySelectorAll('button')];
  for(const button of animationButtons)button.addEventListener('click',()=>onAnimationChange(button.dataset.hudAnimation));
  document.querySelector('.vehicle-entry').before(block);`);
-        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", `heading.textContent=parking?'自动泊车动画':state.presetRightTurn?'路口右转演示':state.presetDirection==='left'?'左变道演示':state.presetDirection==='right'?'右变道演示':'场景动画';
+        contents = replace(contents, "block.hidden=scene==='junction'||!sceneTrips[scene]", 'block.hidden=!sceneTrips[scene]');
+        contents = replace(contents, "heading.textContent=parking?'自动泊车动画':'场景动画';", `heading.textContent=parking?'自动泊车动画':scene==='junction'?'直行过路口动画':state.presetRightTurn?'路口右转演示':state.presetDirection==='left'?'左变道演示':state.presetDirection==='right'?'右变道演示':'场景动画';
   animationChoices.hidden=scene!=='road'||!state.turnAvailable;
   for(const button of animationButtons){
    button.disabled=!ready;

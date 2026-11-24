@@ -41,7 +41,8 @@ export function withHudLayers(world, draw, background) {
       if (!object.isLight && !sceneObjects.includes(object)) hide(object);
     }
     for (const object of root.children) {
-      if (!object.userData.hudLaneColor && !isMarking(object)) hide(object);
+      if (object.userData.hudJunctionThreeLaneEdge && !settings?.junction?.threeLanes ||
+          !object.userData.hudLaneColor && !isMarking(object)) hide(object);
     }
     return draw();
   } finally {
