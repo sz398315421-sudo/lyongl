@@ -1,12 +1,16 @@
 import {screenFormat} from '../adas/screen-format.js';
 
 const states = {
-  recognition: {label: '识别车道线', description: '两侧蓝色细线', shift: 0, leftGlow: 0, rightGlow: 0, leftYellow: 0, rightYellow: 0},
-  left: {label: '向左偏离', description: '左侧车道线靠近中央并变黄', shift: 1, leftGlow: 1, rightGlow: 0, leftYellow: 1, rightYellow: 0},
-  right: {label: '向右偏离', description: '右侧车道线靠近中央并变黄', shift: -1, leftGlow: 0, rightGlow: 1, leftYellow: 0, rightYellow: 1},
-  lcc: {label: 'LCC 已启动', description: '两侧车道线泛蓝光', shift: 0, leftGlow: 1, rightGlow: 1, leftYellow: 0, rightYellow: 0}
+  recognition: {label: '识别车道线', description: '两侧蓝色细线', shift: 0},
+  left: {label: '左侧压线', description: '左侧车道线变黄', approachLabel: '正在向左偏移', shift: 1},
+  right: {label: '右侧压线', description: '右侧车道线变黄', approachLabel: '正在向右偏移', shift: -1},
+  lcc: {label: 'LCC 已启动', description: '两侧车道线变为亮蓝色', shift: 0}
 };
-const visualKeys = ['shift', 'leftGlow', 'rightGlow', 'leftYellow', 'rightYellow'];
+const blue = '7, 135, 255';
+const brightBlue = '74, 177, 255';
+const yellow = '255, 186, 43';
+const departureMs = 1200;
+const recenterMs = 350;
 const get = id => document.getElementById(id);
 const canvas = get('scene-canvas');
 const context = canvas.getContext('2d', {alpha: false});
@@ -16,15 +20,11 @@ const remaining = get('lane-remaining');
 const progress = get('lane-progress');
 const buttons = [...document.querySelectorAll('[data-lane-state]')];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const transitionMs = 300;
-let visual = states.recognition;
-let target = visual;
-let transition;
-let endTime = 0;
-let duration = 0;
+let visual = {key: 'recognition', shift: 0};
+let playback;
 let frameRequest = 0;
 
-function drawLane(side, shift, glow, yellow) {
+function drawLane(side, shift, rgb) {
   // The near end moves farther on screen, keeping the distant vanishing point stable.
   const farX = side * 59 + shift * 19;
   const nearX = side * 246 + shift * 72;
@@ -33,29 +33,11 @@ function drawLane(side, shift, glow, yellow) {
   const dx = nearX - farX;
   const dy = nearY - farY;
   const length = Math.hypot(dx, dy);
-  const red = 7 + 248 * yellow;
-  const green = 135 + 51 * yellow;
-  const blue = 255 - 212 * yellow;
-  const color = alpha => `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+  const color = alpha => `rgba(${rgb}, ${alpha})`;
 
   context.save();
   context.translate(farX, farY);
   context.rotate(Math.atan2(dy, dx));
-  context.scale(1, side);
-
-  if (glow > 0) {
-    context.save();
-    context.translate(length * .58, 17);
-    context.scale(length * .47, 46);
-    const halo = context.createRadialGradient(0, 0, 0, 0, 0, 1);
-    halo.addColorStop(0, color(.56 * glow));
-    halo.addColorStop(.38, color(.36 * glow));
-    halo.addColorStop(.69, color(.11 * glow));
-    halo.addColorStop(1, color(0));
-    context.fillStyle = halo;
-    context.fillRect(-1, -1, 2, 2);
-    context.restore();
-  }
 
   const line = context.createLinearGradient(0, 0, length, 0);
   line.addColorStop(0, color(0));
@@ -82,47 +64,54 @@ function draw() {
   context.save();
   context.translate(width / 2, height / 2);
   context.scale(scale, scale);
-  drawLane(-1, visual.shift, visual.leftGlow, visual.leftYellow);
-  drawLane(1, visual.shift, visual.rightGlow, visual.rightYellow);
+  const laneBlue = visual.key === 'lcc' ? brightBlue : blue;
+  drawLane(-1, visual.shift, visual.key === 'left' ? yellow : laneBlue);
+  drawLane(1, visual.shift, visual.key === 'right' ? yellow : laneBlue);
   context.restore();
 }
 
-function activate(key, seconds, now) {
-  target = states[key];
-  endTime = seconds ? now + seconds * 1000 : 0;
-  duration = seconds * 1000;
-  transition = !reducedMotion.matches && visual !== target ? {from: visual, start: now} : null;
-  if (!transition) {
-    visual = target;
-    draw();
-  }
-  status.dataset.state = key;
-  stateLabel.textContent = target.label;
-  canvas.setAttribute('aria-label', `${target.label}，${target.description}`);
+function startPlayback(key, seconds, now) {
+  const {shift} = states[key];
+  const movement = shift ? departureMs : recenterMs;
+  const moveMs = reducedMotion.matches || visual.shift === shift ? 0 : movement;
+  const holdMs = seconds * 1000;
+  // Hold the warning color for the configured time after the lateral movement.
+  const holdStart = now + (shift ? moveMs : 0);
+  playback = {key, from: visual.shift, start: now, moveMs, holdStart, holdMs};
   for (const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.laneState === key));
-  remaining.hidden = progress.hidden = !endTime;
 }
 
 function frame(now) {
   frameRequest = 0;
-  if (endTime && now >= endTime) activate('recognition', 0, now);
-  if (transition) {
-    const fraction = Math.max(0, Math.min(1, (now - transition.start) / transitionMs));
-    const eased = fraction * fraction * (3 - 2 * fraction);
-    visual = Object.fromEntries(visualKeys.map(key => [key, transition.from[key] + (target[key] - transition.from[key]) * eased]));
-    if (fraction === 1) {
-      visual = target;
-      transition = null;
-    }
+  if (playback.holdMs && now >= playback.holdStart + playback.holdMs) startPlayback('recognition', 0, now);
+  const {key, from, start, moveMs, holdStart, holdMs} = playback;
+  const target = states[key];
+  const fraction = moveMs ? Math.min(1, Math.max(0, (now - start) / moveMs)) : 1;
+  const eased = fraction * fraction * (3 - 2 * fraction);
+  const shift = from + (target.shift - from) * eased;
+  const approaching = target.shift !== 0 && now < holdStart;
+  const lineState = approaching ? 'recognition' : key;
+  if (visual.key !== lineState || visual.shift !== shift) {
+    visual = {key: lineState, shift};
     draw();
   }
-  if (endTime) {
-    const left = Math.min(duration, endTime - now);
+  const displayState = approaching ? `${key}-approach` : key;
+  if (status.dataset.state !== displayState) {
+    const label = approaching ? target.approachLabel : target.label;
+    const description = approaching ? states.recognition.description : target.description;
+    status.dataset.state = displayState;
+    stateLabel.textContent = label;
+    canvas.setAttribute('aria-label', `${label}，${description}`);
+  }
+  const countingDown = holdMs > 0 && !approaching;
+  remaining.hidden = progress.hidden = !countingDown;
+  if (countingDown) {
+    const left = Math.min(holdMs, holdStart + holdMs - now);
     const label = `${(Math.ceil(left / 100) / 10).toFixed(1)} 秒`;
     if (remaining.textContent !== label) remaining.textContent = label;
-    progress.value = 1 - left / duration;
+    progress.value = 1 - left / holdMs;
   }
-  if (endTime || transition) frameRequest = requestAnimationFrame(frame);
+  if (holdMs || fraction < 1) frameRequest = requestAnimationFrame(frame);
 }
 
 for (const button of buttons) {
@@ -131,7 +120,7 @@ for (const button of buttons) {
     if (!input.reportValidity()) return;
     cancelAnimationFrame(frameRequest);
     const now = performance.now();
-    activate(button.dataset.laneState, input.valueAsNumber, now);
+    startPlayback(button.dataset.laneState, input.valueAsNumber, now);
     frame(now);
   });
 }
