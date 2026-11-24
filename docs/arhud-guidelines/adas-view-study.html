@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="HUD、AR-HUD、仪表与中控的辅助驾驶视角研究，含量产车型图例、光学视场与可调相机模型。">
+<title>HUD-ADAS 视角｜AR-HUD 设计指南</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="adas-view-study.css?v=1">
+<script src="adas-view-study.js?v=1" defer></script>
+<link rel="stylesheet" href="guide-shell.css?v=20261124-1"></head>
+<body class="guide-shell adas-page" data-page="adas">
+<header class="site-header"><a class="brand" href="index.html">AR-HUD <span>设计指南</span></a><nav class="site-nav" aria-label="网站主导航"><a href="index.html">设计指南</a><a href="vehicle-layout-study.html">布局研究</a><a href="vehicle-function-study.html">功能与模式</a><a href="adas-view-study.html" aria-current="page">ADAS 视角</a></nav><button class="header-print" id="print" type="button">打印／PDF</button></header><aside class="sidebar" aria-label="ADAS 视角页内目录"><div class="edition">本页目录 <span>ADAS 视角</span></div><nav aria-label="页内目录"><div class="nav-group"><h2>研究</h2><a href="#overview">研究概览</a><a href="#view-types">视角类型</a><a href="#cases">车载界面原图</a><a href="#model-matrix">车型参数矩阵</a></div><div class="nav-group"><h2>参数与测量</h2><a href="#optics">HUD 光学视场</a><a href="#geometry">虚拟相机几何</a><a href="#view-lab">交互模拟</a><a href="#measure">原图读数与试车</a></div><div class="nav-group"><h2>设计应用</h2><a href="#applications">场景与设计取舍</a><a href="#sources">参考资料</a></div></nav><div class="side-foot">AR-HUD 设计指南<br><a href="README.md">网站使用说明 ↗</a></div></aside>
+<main>
+<div class="guide-content">
+<section class="study-title adas-intro" id="overview">
+  <div>
+    <p class="vehicle-meta">设计指南 / ADAS 视角 · 2026 年 11 月</p>
+    <h1>HUD-ADAS 视角</h1>
+    <p>同一个前车或车道，在 HUD 上可以是一条贴近实车的标记，也可以是小画布里的模型。通过量产车型界面、试车图和几何模拟，拆解这些画面各用什么视角，以及能向前看到多远。</p>
+    <div class="adas-hero-links"><a href="#cases">浏览 13 个界面案例</a><a href="#view-lab">调整相机参数 ↓</a></div>
+  </div>
+  <figure class="adas-hero-photo"><a href="#case-vw"><img src="assets/adas-view/vw-assist.webp" width="1280" height="720" alt="大众 ID.4 官方增强现实抬头显示演示中的道路和辅助驾驶标记"></a>
+    <figcaption>大众 ID.4 · 官方 AR-HUD 演示动画，00:32</figcaption></figure>
+</section>
+
+<section class="study-section" id="view-types">
+  <h2>量产界面里的四种视角</h2>
+  <div class="adas-type-grid">
+    <article><h3>固定提示</h3><p>ACC、LKA、碰撞预警等可以用图标、车距格数或简化透视车道表达。元素锚定在 HUD 信息区，适合常驻状态和快速确认。此类布局通常没有可定义的三维相机距离。</p><a href="#case-cx90">马自达 CX-90 图例</a></article>
+    <article><h3>驾驶者第一人称 AR</h3><p>保留实际道路。用驾驶者眼点、风挡标定和环境坐标把少量高亮放到目标附近。水平轴随车辆及系统补偿，俯仰参考光轴和道路姿态。典型样本里的跟车高亮下只有实景车，没有虚拟自车。</p><a href="#case-vw">大众 ID.4 图例</a></article>
+    <article><h3>HUD 小型 SR</h3><p>SR（场景重构）把自车、前车与车道画在独立区域。常见正后上方、居中朝前，保留车顶和少量近侧车道。小窗可与车速和地图 TBT 并排。</p><a href="#case-li">理想 i8 图例</a></article>
+    <article><h3>仪表和中控扩展 SR</h3><p>同样多用自车后上方。较大的画布容纳路口、信号灯、邻车道和变道过程。中控还可以跟随面板宽度换构图或缩放，画面观察范围会跟着状态改变。</p><a href="#case-nio">蔚来 ET7 图例</a> · <a href="#case-tesla">特斯拉测试画面</a></article>
+  </div>
+  <p class="adas-note">研究口径覆盖中国、欧洲、美国和澳洲的公开发布、试车与车主手册。比较以具体年款、市场和图示状态为准。可观察构图支持视角分类，精确的量产渲染相机外参仍需原始遥测或实车标定。</p>
+</section>
+
+<section class="study-section" id="cases">
+  <h2>车载界面原图</h2>
+  <p>点开图片可看原尺寸研究素材。每张图都标明是试驾实拍、演示截帧、官方效果图还是手册图例。图中可直接观察的空间线索与配置证据一并列出。</p>
+  <div class="adas-case-grid"><article class="adas-case" id="case-vw">
+        <div class="case-body"><p class="vehicle-meta">欧洲首发 · AR-HUD 选装</p><h3>大众 ID.3／ID.4</h3><p class="adas-type">驾驶者视点叠加</p></div>
+        <figure><a href="assets/adas-view/vw-assist.webp" target="_blank" rel="noopener" aria-label="打开 大众 ID.3／ID.4 大图"><img src="assets/adas-view/vw-assist.webp" loading="lazy" alt="大众 ID.3／ID.4 · 厂商演示动画截帧 · ID.4 · 00:32"></a>
+        <figcaption>厂商演示动画截帧 · ID.4 · 00:32 · <a href="https://www.volkswagen-newsroom.com/en/videos-and-footage/footage-augmented-reality-head-up-display-5518" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>前车下方的绿色跟车横条位于道路视角内。车道边界朝道路远端收拢，底部状态带另保留固定的蓝色车辆图标。这两个层分别使用道路坐标和屏幕坐标。</p><p>官方说明开启 Travel Assist 时可显示两条绿线，ACC 或 Travel Assist 跟车时可标记前车。</p></div></article>
+<article class="adas-case" id="case-sclass">
+        <div class="case-body"><p class="vehicle-meta">首发公开规格 · AR 选装</p><h3>奔驰 S 级 W/V223</h3><p class="adas-type">驾驶者视点叠加</p></div>
+        <figure><a href="assets/layout-study/sclass.png" target="_blank" rel="noopener" aria-label="打开 奔驰 S 级 W/V223 大图"><img src="assets/layout-study/sclass.png" loading="lazy" alt="奔驰 S 级 W/V223 · 奔驰官方发布图 · 夜间导航"></a>
+        <figcaption>奔驰官方发布图 · 夜间导航 · <a href="https://media.mbusa.com/news/meet-the-s-class-digital-my-mbux-mercedes-benz-user-experience" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>并列转向箭头叠在夜间道路上，底部状态带保留速度与辅助状态。读图可见前视实景及远近信息分工。</p><p>本图演示导航。手册另列驾驶辅助显示；这帧可用来判断信息层级。</p></div></article>
+<article class="adas-case" id="case-r7">
+        <div class="case-body"><p class="vehicle-meta">中国 · 2022 首发公开配置</p><h3>飞凡 R7</h3><p class="adas-type">驾驶者视点叠加</p></div>
+        <figure><a href="assets/adas-view/r7.webp" target="_blank" rel="noopener" aria-label="打开 飞凡 R7 大图"><img src="assets/adas-view/r7.webp" loading="lazy" alt="飞凡 R7 · 华为／飞凡官方效果图 · AR 导航"></a>
+        <figcaption>华为／飞凡官方效果图 · AR 导航 · <a href="https://www.huawei.com/cn/news/2022/5/huawei-ar-hud" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>彩色叠加沿真实车道展开，两侧车辆仍属于实景。该帧可读驾驶者视点和贴路构图。</p><p>联合发布披露投影区域承载安全辅助和多车道 AR 导航。本图主证据为导航叠加。</p></div></article>
+<article class="adas-case" id="case-q6">
+        <div class="case-body"><p class="vehicle-meta">第二代 · AR-HUD 选装</p><h3>奥迪 Q6 e-tron</h3><p class="adas-type">驾驶者视点叠加</p></div>
+        <figure><a href="assets/references/audi-q6-official.png" target="_blank" rel="noopener" aria-label="打开 奥迪 Q6 e-tron 大图"><img src="assets/references/audi-q6-official.png" loading="lazy" alt="奥迪 Q6 e-tron · 奥迪集团报告 · 光学与叠加范围示意"></a>
+        <figcaption>奥迪集团报告 · 光学与叠加范围示意 · <a href="https://www.volkswagen-group.com/en/publications/more/audi-ag-annual-and-sustainability-report-2024-2950/download?disposition=attachment" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>原图把底部状态区与沿道路向前的增强区分开。奥迪同时描述倾斜成像面，适合研究为何平直状态带和远场标记能同时出现。</p><p>厂商标注最远 200 m 的可增强区域。增强范围描述涉及虚实叠加，公开文字未给每类 ADAS 目标的显示截断条件。</p></div></article>
+<article class="adas-case" id="case-g7">
+        <div class="case-body"><p class="vehicle-meta">中国 · 首发 AR-HUD</p><h3>小鹏 G7</h3><p class="adas-type">实景叠加与事件提示</p></div>
+        <figure><a href="assets/adas-view/g7-launch.webp" target="_blank" rel="noopener" aria-label="打开 小鹏 G7 大图"><img src="assets/adas-view/g7-launch.webp" loading="lazy" alt="小鹏 G7 · 小鹏官方发布会图片 · 辅助驾驶场景组"></a>
+        <figcaption>小鹏官方发布会图片 · 辅助驾驶场景组 · <a href="https://www.xiaopeng.com/news/company_news/5473.html" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>发布会画面并列多个辅助驾驶事件。适合比较对象附近标记、道路提示和固定提示各占多少视觉注意力。</p><p>公开发布资料可确认这些场景被展示。通过静态舞台图无法判定量产车每个场景的定位误差或启动距离。</p></div></article>
+<article class="adas-case" id="case-s07">
+        <div class="case-body"><p class="vehicle-meta">澳洲 · 2025 车主手册</p><h3>深蓝 S07</h3><p class="adas-type">实景组合与场景重构</p></div>
+        <figure><a href="assets/layout-study/s07-manual.png" target="_blank" rel="noopener" aria-label="打开 深蓝 S07 大图"><img src="assets/layout-study/s07-manual.png" loading="lazy" alt="深蓝 S07 · 车主手册 PDF 第 134 页 · 编号示意"></a>
+        <figcaption>车主手册 PDF 第 134 页 · 编号示意 · <a href="https://www.deepal.com.au/media/lemnpbqs/deepal_s07_owners_manual_211125.pdf#page=134" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>图中同时有真实道路式底图、车道线、前车和行人标记。注意中心信息区的透视由背景与多个图层共同组成。</p><p>手册把第 10 项定义为场景重构车道线与车辆，并描述 ACC／IACC 在指定状态下可标记前车或行人。单帧无法验证道路配准。</p></div></article>
+<article class="adas-case" id="case-li">
+        <div class="case-body"><p class="vehicle-meta">中国 · Max 车主手册</p><h3>理想 i8</h3><p class="adas-type">独立小型 SR</p></div>
+        <figure><a href="assets/references/li-overview.png" target="_blank" rel="noopener" aria-label="打开 理想 i8 大图"><img src="assets/references/li-overview.png" loading="lazy" alt="理想 i8 · 理想车主手册 · 导航与环境布局"></a>
+        <figcaption>理想车主手册 · 导航与环境布局 · <a href="https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>中央是一块独立道路画布。自车在底部、前车依次缩小，左侧地图和右侧车速各自保持稳定。可直接观察到居中跟车构图和向下看车顶的视觉线索。</p><p>在该图里 HUD 承载的是多任务组合。中央环境画面的可见车道几何可供构图对照，数值外参未披露。</p></div></article>
+<article class="adas-case" id="case-ev6-standard">
+        <div class="case-body"><p class="vehicle-meta">印度市场英文车主手册</p><h3>起亚 EV6 · 标准</h3><p class="adas-type">独立小型 SR</p></div>
+        <figure><a href="assets/function-study/ev6-standard.png" target="_blank" rel="noopener" aria-label="打开 起亚 EV6 · 标准 大图"><img src="assets/function-study/ev6-standard.png" loading="lazy" alt="起亚 EV6 · 标准 · 起亚车主手册 · Standard mode"></a>
+        <figcaption>起亚车主手册 · Standard mode · <a href="https://www.kia.com/content/dam/kia2/in/en/content/ev6-manual/topics/chapter5_19_2.html" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>中间路型和车辆组成一个局部模型，导航条与车速采用屏幕固定坐标。前方的道路元素集中在画布中心，旁侧信息在边缘。</p><p>该车型手册同时列有 AR 模式，可以在同一款车上对照屏幕固定构图与道路增强提示。</p></div></article>
+<article class="adas-case" id="case-ev6-ar">
+        <div class="case-body"><p class="vehicle-meta">印度市场英文车主手册</p><h3>起亚 EV6 · AR</h3><p class="adas-type">事件式 AR</p></div>
+        <figure><a href="assets/glossary-study/ev6-ar-assist.png" target="_blank" rel="noopener" aria-label="打开 起亚 EV6 · AR 大图"><img src="assets/glossary-study/ev6-ar-assist.png" loading="lazy" alt="起亚 EV6 · AR · 起亚车主手册 · AR mode 辅助图例"></a>
+        <figcaption>起亚车主手册 · AR mode 辅助图例 · <a href="https://www.kia.com/content/dam/kia2/in/en/content/ev6-manual/topics/chapter5_19_2.html" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>手册拆解 AR 车道、目标与提示符号。道路相关标记被单独列出，便于和标准模式里的环境小窗比较。</p><p>图为功能图例。实际配准位置须结合驾驶者眼点和场景实测。</p></div></article>
+<article class="adas-case" id="case-cx90">
+        <div class="case-body"><p class="vehicle-meta">美国 · 2025 车主手册</p><h3>马自达 CX-90</h3><p class="adas-type">图标与固定透视符号</p></div>
+        <figure><a href="assets/function-study/cx90.png" target="_blank" rel="noopener" aria-label="打开 马自达 CX-90 大图"><img src="assets/function-study/cx90.png" loading="lazy" alt="马自达 CX-90 · 马自达车主手册 · Active Driving Display"></a>
+        <figcaption>马自达车主手册 · Active Driving Display · <a href="https://www.mazdausa.com/static/manuals/2025/cx-90/contents/65060100.html" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>车道／跟车符号集中在固定信息区，车速与两侧告警常驻不同位置。线条有透视造型，图中可识别的是符号组合和分区。</p><p>HUD 在较小区域也能交代驾驶辅助状态。图例未给可用于求解虚拟相机的道路测量基准。</p></div></article>
+<article class="adas-case" id="case-vistiq">
+        <div class="case-body"><p class="vehicle-meta">北美 · 2026 车型</p><h3>凯迪拉克 VISTIQ</h3><p class="adas-type">驾驶员方向实景叠加</p></div>
+        <figure><a href="assets/layout-study/vistiq.png" target="_blank" rel="noopener" aria-label="打开 凯迪拉克 VISTIQ 大图"><img src="assets/layout-study/vistiq.png" loading="lazy" alt="凯迪拉克 VISTIQ · Tom’s Guide 试驾实拍 · 高速 AR 导航"></a>
+        <figcaption>Tom’s Guide 试驾实拍 · 高速 AR 导航 · <a href="https://www.tomsguide.com/vehicle-tech/evs/i-drove-the-2026-cadillac-vistiq-for-a-week-and-its-just-the-right-mix-of-luxury-and-value" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>风挡内可见沿高速道路方向的绿色箭头和下方状态信息。保留 A 柱和路面，适合观察实际相机视点与 HUD 图形的尺度关系。</p><p>这帧用于观察实车 HUD 外观。它演示导航，车机功能规格应结合车型配置。</p></div></article>
+<article class="adas-case" id="case-nio">
+        <div class="case-body"><p class="vehicle-meta">欧洲 · 车主手册</p><h3>蔚来 ET7</h3><p class="adas-type">仪表扩展 SR</p></div>
+        <figure><a href="assets/adas-view/nio.webp" target="_blank" rel="noopener" aria-label="打开 蔚来 ET7 大图"><img src="assets/adas-view/nio.webp" loading="lazy" alt="蔚来 ET7 · 蔚来 ESD 手册 · 数字仪表"></a>
+        <figcaption>蔚来 ESD 手册 · 数字仪表 · <a href="https://cdn-udp-public.eu.nio.com/www-nio/user-instructions/ET7/index.html" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>画面下部是自车，上方包括多车道、斑马线及信号灯。比 HUD 小型 SR 有更完整的道路语义，也保留固定车速位置。</p><p>官方辅助变道附图使用侧向目标车道高亮。它适合比较事件主导的高亮变化和稳定的视角。</p></div></article>
+<article class="adas-case" id="case-tesla">
+        <div class="case-body"><p class="vehicle-meta">2025 Q2 欧洲测试（巴黎、伦敦） · 中控</p><h3>特斯拉 FSD（Supervised）</h3><p class="adas-type">可变版式 SR</p></div>
+        <figure><a href="assets/adas-view/tesla.webp" target="_blank" rel="noopener" aria-label="打开 特斯拉 FSD（Supervised） 大图"><img src="assets/adas-view/tesla.webp" loading="lazy" alt="特斯拉 FSD（Supervised） · 特斯拉季度报告 PDF 第 15 页 · 巴黎与伦敦道路测试"></a>
+        <figcaption>特斯拉季度报告 PDF 第 15 页 · 巴黎与伦敦道路测试 · <a href="https://ir.tesla.com/_flysystem/s3/sec/000162828025035738/tsla-20250723-gen.pdf#page=15" target="_blank" rel="noopener">图源 ↗</a></figcaption></figure>
+        <div class="case-body"><p>中控以独立三维场景呈现道路和交通对象，画面旁有真实道路供辨认。车型和软件版本以报告公开信息为限。</p><p>Model 3 手册另外描述视觉化面板可展开至中控、更改宽度和双指缩放。测试画面可作构图参考，横向覆盖需跟随具体视口。</p></div></article></div>
+</section>
+
+<section class="study-section" id="model-matrix">
+  <h2>车型参数矩阵</h2>
+  <div class="adas-scroll" role="region" aria-label="车型参数矩阵，可横向滚动" tabindex="0">
+    <table><thead><tr><th scope="col">案例</th><th scope="col">显示视角</th><th scope="col">公开光学规格或数据状态</th><th scope="col">前向显示距离</th></tr></thead><tbody><tr><th scope="row"><a href="#case-vw">大众 ID.3／ID.4</a></th><td>驾驶者视点叠加</td><td>光学近场约 3 m／远场约 10 m。远场对角 1.8 m，按简化几何推算对角约 10.3°。 <a href="https://www.volkswagen-newsroom.com/en/press-releases/from-the-luxury-class-to-the-compact-segment-the-augmented-reality-head-up-display-6730" target="_blank" rel="noopener">资料 ↗</a></td><td>前向道路米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-sclass">奔驰 S 级 W/V223</a></th><td>驾驶者视点叠加</td><td>光学 10° × 5°，VID 约 10 m。 <a href="https://media.mercedes-benz.com/en/article/d47ce37f-e597-470b-9a32-fb49902d7ab0" target="_blank" rel="noopener">资料 ↗</a></td><td>前向道路米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-r7">飞凡 R7</a></th><td>驾驶者视点叠加</td><td>光学 13° × 5°，VID 7.5 m。 <a href="https://www.huawei.com/cn/news/2022/5/huawei-ar-hud" target="_blank" rel="noopener">资料 ↗</a></td><td>前向道路米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-q6">奥迪 Q6 e-tron</a></th><td>驾驶者视点叠加</td><td>公开资料给出 88 英寸等效区域。引用资料未披露 H/V FOV 和 VID。 <a href="https://www.audi.com/en/the-audi-q6-e-tron-electric-mobility-on-a-new-level-15929/experience-digitalization-new-display-and-operating-concept-15941" target="_blank" rel="noopener">资料 ↗</a></td><td>厂商标注可增强区域最远 200 m</td></tr>
+<tr><th scope="row"><a href="#case-g7">小鹏 G7</a></th><td>实景叠加与事件提示</td><td>小鹏官方公告给出 87 英寸等效画幅、10 m VID。H/V FOV 未核得。 <a href="https://www.xiaopeng.com/news/company_news/5473.html" target="_blank" rel="noopener">资料 ↗</a></td><td>分场景道路米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-s07">深蓝 S07</a></th><td>实景组合与场景重构</td><td>H/V FOV 与 VID 未核得。 <a href="https://www.deepal.com.au/media/lemnpbqs/deepal_s07_owners_manual_211125.pdf#page=134" target="_blank" rel="noopener">资料 ↗</a></td><td>前向道路米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-li">理想 i8</a></th><td>独立小型 SR</td><td>来源未给可用于本图的 H/V 光学 FOV。 <a href="https://manuals.lixiang.com/zh-cn/W022026MAX/20260805185610/topic-2025-B9EDF622.html" target="_blank" rel="noopener">资料 ↗</a></td><td>SR 前向米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-ev6-standard">起亚 EV6 · 标准</a></th><td>独立小型 SR</td><td>图中光学 FOV 与焦面未核得。 <a href="https://www.kia.com/content/dam/kia2/in/en/content/ev6-manual/topics/chapter5_19_2.html" target="_blank" rel="noopener">资料 ↗</a></td><td>SR 前向米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-ev6-ar">起亚 EV6 · AR</a></th><td>事件式 AR</td><td>图中光学 FOV 与焦面未核得。 <a href="https://www.kia.com/content/dam/kia2/in/en/content/ev6-manual/topics/chapter5_19_2.html" target="_blank" rel="noopener">资料 ↗</a></td><td>分事件道路米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-cx90">马自达 CX-90</a></th><td>图标与固定透视符号</td><td>此手册图例未给光学 FOV 和 VID。 <a href="https://www.mazdausa.com/static/manuals/2025/cx-90/contents/65060100.html" target="_blank" rel="noopener">资料 ↗</a></td><td>固定符号无需定义道路米数</td></tr>
+<tr><th scope="row"><a href="#case-vistiq">凯迪拉克 VISTIQ</a></th><td>驾驶员方向实景叠加</td><td>本样本未核得该配置 H/V FOV 和 VID。 <a href="https://news.cadillac.com/newsroom.detail.html/Pages/news/us/en/2024/nov/1112-vistiq.html" target="_blank" rel="noopener">资料 ↗</a></td><td>前向道路米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-nio">蔚来 ET7</a></th><td>仪表扩展 SR</td><td>实体仪表屏。虚拟相机 HFOV/VFOV 未公开。 <a href="https://cdn-udp-public.eu.nio.com/www-nio/user-instructions/ET7/index.html" target="_blank" rel="noopener">资料 ↗</a></td><td>SR 前向米数未公开</td></tr>
+<tr><th scope="row"><a href="#case-tesla">特斯拉 FSD（Supervised）</a></th><td>可变版式 SR</td><td>实体中控屏。虚拟相机 HFOV/VFOV 未公开。 <a href="https://www.tesla.com/ownersmanual/model3/en_au/GUID-518C51C1-E9AC-4A68-AE12-07F4FF8C881E.html" target="_blank" rel="noopener">资料 ↗</a></td><td>测试帧无道路真值</td></tr></tbody></table>
+  </div>
+  <p class="adas-small">SR 样本的水平偏角、俯视角、相机高与后退量、渲染 FOV 均无可核对的原厂设定。实景 AR 的前视构图需用驾驶者眼点和配准描述；具体光轴中心相对地平线的俯角仍需光机资料。矩阵中「未核得」指当前引用资料未提供。</p>
+  <p>中国样本中，飞凡 R7 采用贴实景 AR，理想 i8 在 HUD 上保留局部 SR，深蓝 S07 的手册展示了道路重构与目标提示。海外样本中，大众、奔驰、奥迪以实景增强为主，起亚同时提供标准与 AR 两种呈现，特斯拉把更丰富的 SR 放在中控。最明显的差异来自<strong>屏幕载体、版本与任务</strong>，同地区也会并存多种做法。</p>
+</section>
+
+<section class="study-section" id="optics">
+  <h2>HUD 光学视场与道路实际覆盖</h2>
+  <div class="adas-two">
+    <article><h3>光学 FOV 与光轴</h3><p>HFOV／VFOV 是设计眼点处，虚像左右／上下边缘所张开的全角。中心俯角是视场中心低于水平线的角度。光机规格给出 10° × 5° 时，仍需要中心俯角与眼点高度才能推算落地范围。</p></article>
+    <article><h3>虚像距离 VID</h3><p>VID 是眼睛感知清晰虚像的焦面距离，单位为米。多焦面 HUD 可把车速与道路增强放在不同焦面。图形显示在 40 m 处的车辆附近时，光学焦面仍可能只有约 10 m。</p></article>
+    <article><h3>横向覆盖</h3><p>假设居中、同一深度平面且忽略挡风玻璃边缘裁切，距离 d 处横向可用宽度为 <code>W = 2d·tan(HFOV/2)</code>。如要覆盖右邻道，还要从此宽度扣掉眼点偏置、目标偏航和安全留边。</p></article>
+    <article><h3>AR 路面交点</h3><p>假设平路，眼高 e、光轴向下 α，则纵向近端约为 <code>e / tan(α+VFOV/2)</code>。上边缘朝下时，远端约为 <code>e / tan(α−VFOV/2)</code>。上沿看向地平线或天空时，几何远端无上界。</p></article>
+  </div>
+  <div class="adas-scroll" role="region" tabindex="0" aria-label="HUD 水平覆盖计算">
+    <table><thead><tr><th scope="col">光学水平全角</th><th scope="col">20 m 处</th><th scope="col">40 m 处</th><th scope="col">80 m 处</th><th scope="col">应用</th></tr></thead>
+    <tbody><tr><th scope="row">10°</th><td>3.50 m</td><td>7.00 m</td><td>14.00 m</td><td>奔驰 W/V223 的公开全角示例</td></tr>
+    <tr><th scope="row">13°</th><td>4.56 m</td><td>9.11 m</td><td>18.23 m</td><td>飞凡 R7 的公开全角示例</td></tr></tbody></table>
+  </div>
+  <p class="adas-note">按眼高 1.2 m、中心向下 3°、VFOV 5° 建立示例，平路交点约为 12.5–137.5 m。中心向下 2.5° 时上边缘正对地平线。实际图形还需要通过眼盒、风挡裁切、道路坡度、俯仰姿态、遮挡、目标置信度和事件窗口检查。</p>
+  <p>两个容易混用的数字来自大众与奥迪。大众约 10 m 指其首发远场虚像距离；奥迪的 200 m 来自可增强区域描述。若仅已知对角尺寸 L 和同一平面 VID d，可用 <code>2·atan(L/2d)</code> 求近似对角角度。大众示例可算约 10.3°，小鹏 87 英寸、10 m 可条件性算约 12.6°；H/V 仍要源画幅比例或原厂标定。</p>
+</section>
+
+<section class="study-section" id="geometry">
+  <h2>SR 虚拟相机几何</h2>
+  <p>虚拟自车的地面参考点设为原点，X 横向向右，Y 竖直向上，Z 沿车头。无横向平移的相机位于 (0, h, −D)，地面为 Y = 0。</p>
+  <div class="adas-scroll" role="region" tabindex="0" aria-label="虚拟相机参数定义">
+    <table><thead><tr><th scope="col">参数</th><th scope="col">定义</th><th scope="col">调参时观察</th></tr></thead><tbody>
+      <tr><th scope="row">水平偏角 ψ（yaw）</th><td>相机朝向相对自车车头的平面旋转。0° 朝正前，正角向右。水平偏角和水平视野角是两个独立参数。</td><td>道路汇聚点是否偏离中央、左右邻道是否对称。偏移视点位置也会造成不对称，需同步记录相机横移。</td></tr>
+      <tr><th scope="row">向下俯视 θ（pitch）</th><td>相机中心射线向下倾斜的角度。正值越大越俯视。roll 为绕相机视轴旋转，前进巡航样机通常先设 0°。</td><td>车顶可见面积、近侧车道、地平线与远处目标。保持 FOV 不变时，增加俯角一般会缩短可见纵深。</td></tr>
+      <tr><th scope="row">相机后退 D／高度 h</th><td>两者相对自车地面参考点。直线距离为 <code>√(D²+h²)</code>。三维相机也可通过位置与 look-at 点定义。</td><td>后退决定自车在视域中的位置，高度改变道路截取范围。改变一项后复核自车底部安全留白。</td></tr>
+      <tr><th scope="row">渲染 VFOV／HFOV</th><td>虚拟镜头角度。对称针孔模型、有效视口宽高比 A 时，<code>HFOV = 2·atan(A·tan(VFOV/2))</code>。</td><td>横向目标和远处目标大小。保留 VFOV 增宽视口会增加 HFOV；固定 HFOV 则会改变纵向可见范围。</td></tr>
+      <tr><th scope="row">前向显示距离</th><td>区分中心竖切面地面交点、图形渲染截断 Z<sub>cap</sub>，以及目标达到可辨尺寸的最远点。</td><td>记录道路边界、规划路径、前车、行人各自的可见距离。优先显示对象和有效数据会随状态改变。</td></tr>
+    </tbody></table>
+  </div>
+  <h3>用平路交点估算前视范围</h3>
+  <p>对于 0° 水平偏角，先从相机在地面上的投影点出发。视轴命中点 <code>Z₀ = h/tan(θ) − D</code>，近、远边界分别为 <code>Znear = h/tan(θ+VFOV/2) − D</code> 和 <code>Zfar = h/tan(θ−VFOV/2) − D</code>。若上边缘角 ≤ 0°，由渲染截断、场景数据与读图能力确定远处可见内容。负的近端表示下缘跨到自车地面参考点后方。</p>
+  <p>水平偏角不为 0° 时，中心竖切面射线的水平地面距离 ρ 取 <code>h/tan(该射线俯角)</code>，可得 <code>X = ρ·sinψ</code>、<code>Z = ρ·cosψ − D</code>。这仍是中心竖切面的结果。求斜侧画面全部地面范围时，需要对四角射线与路面分别求交；地形变化时换成三维道路面。</p>
+  <p>独立 SR 可能使用非线性距离压缩、不同缩放的车模、曲面车道或动态裁切。只有在道路标定与固定 FOV 有依据时，才把图中像素换算成米。针孔模型里，宽度为 w 的正面目标约占 <code>fₓ·w/zcam</code> 像素，<code>zcam</code> 为相机深度。举例，同样的 46.4° HFOV 下，320 px 宽的画布具有约 373 px 的水平焦距，宽 1.8 m 的目标在 50 m 相机深度约占 13 px，宽 0.6 m 的目标约占 4.5 px。采用符号放大和高亮后，可辨距离还要考虑其它图层遮挡和观看条件。</p>
+</section>
+
+<section class="study-section" id="view-lab">
+  <h2>交互模拟</h2>
+  <p>以下为平路针孔模型。预设只是设计起点，用于试验 HUD 小窗、仪表和中控的构图差异。车间距、相机角和绘制上限都可独立调节。</p>
+  <div class="adas-lab">
+    <form class="adas-controls" aria-label="虚拟相机设置">
+      <label for="camera-preset">场景预设</label>
+      <select id="camera-preset"><option value="hud">HUD · 小型 SR</option><option value="cluster">仪表 · 巡航与邻车道</option><option value="center">中控 · 城市道路</option><option value="branch">中控 · 偏角验证</option></select>
+      <label for="yaw">水平偏角 <output id="yaw-value">0°</output></label><input id="yaw" type="range" min="-35" max="35" step="1" value="0">
+      <label for="pitch">向下俯视 <output id="pitch-value">18°</output></label><input id="pitch" type="range" min="5" max="65" step="1" value="18">
+      <label for="height">相机高度 <output id="height-value">3.4 m</output></label><input id="height" type="range" min="1.5" max="20" step="0.1" value="3.4">
+      <label for="back">相机后退 <output id="back-value">10.0 m</output></label><input id="back" type="range" min="2" max="24" step="0.1" value="10">
+      <label for="vfov">渲染 VFOV <output id="vfov-value">30°</output></label><input id="vfov" type="range" min="14" max="75" step="1" value="30">
+      <label for="cap"><span>绘制上限 Z<sub>cap</sub></span> <output id="cap-value">60 m</output></label><input id="cap" type="range" min="15" max="180" step="5" value="60">
+      <label for="aspect">有效视口比例</label>
+      <select id="aspect"><option value="1.25">5∶4</option><option value="1.6" selected>8∶5</option><option value="1.7777777778">16∶9</option><option value="2.3333333333">21∶9</option></select>
+    </form>
+    <div class="adas-stage">
+      <div class="adas-screen"><canvas id="camera-scene" width="800" height="500" role="img" aria-label="虚拟相机投影，自车、车道和标距线">二维平路相机模拟。各项计算见下方。</canvas></div>
+      <p class="adas-legend"><span><i class="ego-key"></i>自车</span><span><i class="lead-key"></i>模拟交通对象</span><span><i class="range-key"></i>距自车纵向刻度</span></p>
+      <dl class="adas-metrics">
+        <div><dt>渲染 HFOV</dt><dd id="metric-hfov">46.4°</dd></div>
+        <div><dt>相机直线距离</dt><dd id="metric-distance">10.6 m</dd></div>
+        <div><dt>视轴落点 Z</dt><dd id="metric-look">0.5 m</dd></div>
+        <div><dt>近侧交点 Z</dt><dd id="metric-near">−4.8 m</dd></div>
+        <div><dt>几何远端 Z</dt><dd id="metric-far">54.9 m</dd></div>
+        <div><dt>可绘制前向 Z</dt><dd id="metric-visible">54.9 m</dd></div>
+      </dl>
+      <p class="adas-small" id="camera-note">读数取中心竖切面，并受绘制上限约束。侧边区域和抬高的目标可能越过中心地面交点。</p>
+    </div>
+  </div>
+  <details class="adas-detail"><summary>三组数值示例与灵敏度</summary>
+    <div class="adas-scroll" role="region" tabindex="0" aria-label="模拟预设值">
+      <table><thead><tr><th scope="col">方案</th><th scope="col">ψ</th><th scope="col">θ</th><th scope="col">h／D</th><th scope="col">VFOV（比例）</th><th scope="col">几何远端</th></tr></thead>
+      <tbody><tr><th scope="row">HUD 小型 SR</th><td>0°</td><td>18°</td><td>3.4／10.0 m</td><td>30°（8∶5）</td><td>约 54.9 m</td></tr>
+      <tr><th scope="row">仪表巡航</th><td>0°</td><td>24°</td><td>6.0／7.5 m</td><td>40°（16∶9）</td><td>约 78.3 m</td></tr>
+      <tr><th scope="row">中控城市</th><td>0°</td><td>32°</td><td>9.0／9.0 m</td><td>54°（16∶9）</td><td>约 93.9 m</td></tr></tbody></table>
+    </div>
+    <p>保持 HUD 预设的高度、后退和 VFOV，俯角从 17°、18° 增至 19°，几何远端依次约为 87.4、54.9、38.6 m。上边缘越接近地平线，每度俯角造成的距离变化越大。界面评审宜固定参考姿态，并另设绘制上限。</p>
+    <p>原型评审可先测试一组 0° 正前视，再以 ±5° 比较中轴偏移。HUD 小窗可以试验 16°–22° 俯视、26°–34° VFOV；仪表或中控可以从 23°–37° 俯视、38°–60° VFOV 起步。成对调整俯角与 VFOV，保持所需的上沿俯角与前视范围；以自车是否完整、邻车是否可见、前方对象是否达到最小尺寸筛选组合。这些是原型扫描范围，处于同一范围的任意组合也会产生不同的可见距离。</p>
+  </details>
+</section>
+
+<section class="study-section" id="measure">
+  <h2>原图读数与实车验证</h2>
+  <p>以下归一化读数以原图外边界为基准，左上角为 (0,0)，右下角为 (1,1)。下图标出自车与参考区域的读图点。图例、裁切和画布边界的选择都会改变读数。</p>
+  <div class="adas-read-grid">
+    <figure><div class="adas-annotated"><img src="assets/references/li-overview.png" width="800" height="385" loading="lazy" alt="理想 i8 官方 HUD 图例，标注自车与车道线延长交点"><i class="adas-dot" style="--x:51%;--y:81%">1</i><i class="adas-dot" style="--x:51%;--y:33%">2</i></div><figcaption><strong>理想 i8 · HUD</strong><br>① 自车约在整图 (0.51, 0.81)。② 自车两侧车道线的延长交点约在 (0.51, 0.33)，落在上方方向标记附近。</figcaption></figure>
+    <figure><div class="adas-annotated"><img src="assets/adas-view/nio.webp" width="1500" height="416" loading="lazy" alt="蔚来 ET7 官方数字仪表图，标注自车与路口"><i class="adas-dot" style="--x:50%;--y:66%">1</i><i class="adas-dot" style="--x:45%;--y:42%">2</i></div><figcaption><strong>蔚来 ET7 · 仪表</strong><br>① 自车约在 (0.50, 0.66)。② 行人过街线约在整图纵向 0.42 处。图中无米制地标，纵深、俯角和车道数量应分别记录。</figcaption></figure>
+    <figure><div class="adas-annotated"><img src="assets/adas-view/nio-lane.webp" loading="lazy" alt="蔚来 ET7 官方辅助变道图例，目标车道高亮"></div><figcaption><strong>蔚来 ET7 · 仪表辅助变道</strong><br>目标车道变蓝，自车仍位于主视图中间附近。可验证稳定视角下如何用加亮表达变道意图。<a href="https://cdn-udp-public.eu.nio.com/www-nio/user-instructions/ET7/index.html" target="_blank" rel="noopener">手册图源 ↗</a></figcaption></figure>
+    <figure><div class="adas-annotated"><img src="assets/adas-view/vw-warning.webp" width="1280" height="720" loading="lazy" alt="大众 ID.4 演示动画，前车下方红色警示横条"></div><figcaption><strong>大众 ID.4 · AR 风险状态</strong><br>00:37 的红色横条随目标位置显示，同时保留下方提示。画面可定位图层和目标锚点。<a href="https://www.volkswagen-newsroom.com/en/videos-and-footage/footage-augmented-reality-head-up-display-5518" target="_blank" rel="noopener">大众官方动画 ↗</a></figcaption></figure>
+  </div>
+  <p class="adas-note">理想 i8 读数可复核。800 × 385 px 图片上取左侧线段近点 (327, 362)、远点 (391, 172)，右侧取 (475, 361)、(420, 171)。两条延长线交于约 (407, 125) px。这个交点说明样本沿中轴汇聚；上方有原图标注边、方向牌及裁切，角度反解仍需实际渲染视口和 FOV。自车位置和交点坐标均取屏幕比例。</p>
+  <h3>从像素估角的方法与误差</h3>
+  <ol class="adas-steps">
+    <li><strong>先定有效视口。</strong>裁到真正参与透视投影的区域，保留原图备查。记录源分辨率、时间戳、模式、屏幕裁切、主点假设。固定车速、地图和快门画幅不参与反推。</li>
+    <li><strong>找同方向直线的交点。</strong>选至少两条直道边界，多帧求交并报告离散度。单条弯道、渐隐装饰、带人造 taper 的界面线无法给稳定消失点。用实车照片时要记录拍摄设备内参和安装姿态。</li>
+    <li><strong>条件性估俯视角。</strong>水平姿态、无 roll、直路与中心主点的简化针孔模型下，设视口高 H、主点 cᵧ、消失点 vᵧ，<code>fᵧ = H / [2·tan(VFOV/2)]</code>，<code>θ ≈ atan((cᵧ−vᵧ)/fᵧ)</code>。示例：消失点在视口 0.20H，cᵧ=0.50H，VFOV 取 25°／35°／45°，则 θ 分别约为 7.6°／10.7°／14.0°。这些是输入假设的数值，车型图例不具备完整输入。</li>
+    <li><strong>求水平偏角与尺度。</strong>直线方向的消失点给水平偏移；针孔、无 roll 下 <code>ψ ≈ −atan[(vₓ−cₓ)·cosθ/fₓ]</code>。要反求相机后退和高度，至少需要标定内参、已知尺度的共面点与实际自车参考点。可用多组车道宽、纵向标记和同一时刻的目标真值约束，报告误差或置信区间。</li>
+    <li><strong>测「出现」和「可辨」两条距离。</strong>固定眼点与记录设备，按巡航、跟车、压线、辅助变道、弯道、坡顶分别采集。对道路、规划路径、机动车和行人记录首次出现、基准可辨、最后可辨、离屏的时点；有条件用同步定位或场地标定给米数，保留条件与失败样本。</li>
+  </ol>
+</section>
+
+<section class="study-section" id="applications">
+  <h2>场景与设计取舍</h2>
+  <div class="adas-scroll" role="region" tabindex="0" aria-label="辅助驾驶场景和视角选型">
+    <table><thead><tr><th scope="col">场景</th><th scope="col">HUD 优先表达</th><th scope="col">仪表／中控可以补充</th><th scope="col">试车关注</th></tr></thead>
+      <tbody>
+      <tr><th scope="row">直路巡航／ACC 跟车</th><td>固定设定车速、跟车状态；有可靠定位时提示主目标。小型 SR 保持自车水平居中。</td><td>完整显示当前车道、侧向目标和反复切入切出。</td><td>有无主目标、邻车并行、短时丢目标、自车附近的符号是否跳动。</td></tr>
+      <tr><th scope="row">车道维持／偏离</th><td>以两侧路沿或单侧标记为主；弱定位下可用固定侧向告警。</td><td>标出弱识别车道、接管原因或车道边界变化。</td><td>单边缺线、弯道、坡道、雨夜；确认状态变化前后的画面不误导。</td></tr>
+      <tr><th scope="row">辅助变道／高速匝道</th><td>提示方向和关键冲突；保留稳定正前视角，目标不在 HUD 内时保留状态提示。</td><td>按任务留更多横向视野，明确目标车道、后侧来车和规划路径。</td><td>确认何时预告、执行和取消，检查左右可见性、自车锚点、缩放与变道状态时间线。</td></tr>
+      <tr><th scope="row">复杂路口／低速</th><td>保留少量高优先级风险、转向或即将到达提示。</td><td>提高俯视角、加强近侧可见性，显示路口几何与弱势交通参与者；停车阶段可进入独立环视。</td><td>横穿、遮挡、狭窄道路，核对每类目标的绘制范围与风险高亮。</td></tr>
+      <tr><th scope="row">碰撞或接管告警</th><td>有可靠空间锚点时在目标附近表达；固定告警区提供稳定位置，优先级高于路线装饰。</td><td>复用明确的状态语言，必要时用音频、方向盘或座椅触觉同步。</td><td>告警出现、确认、消退的完整流程；强光、弱光、眼高、配准下降与图层遮挡。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>用时间窗口校核前视范围。</strong>时速 v 换成 m/s 后，目标距离约为速度乘预告秒数。3 s 在 60／100／120 km/h 时分别约为 50／83／100 m。若任务希望在高速提前 3 秒告知下一步，交互预设几何远端约 55 m 的小 SR 在 100 km/h 只对应约 2 秒的静态道路纵深。可用固定 TBT 或预告提示提供更早通知，并让 HUD 小窗保留近场关系。</p>
+  <p><strong>交付规格建议。</strong>每种载体明确投影坐标系、基准姿态、相机与有效视口、裁切规则、各类目标的出现和可辨范围、状态锁定与降级方式。用模拟定视角，用实车复核眼盒与配准，用逐帧记录核对高速、分合流、坡顶、遮挡和日夜条件。</p>
+</section>
+
+<section class="study-section" id="sources">
+  <h2>参考资料</h2>
+  <ul class="adas-source-list">
+    <li>投影几何与术语。<a href="https://www.ti.com/lit/an/dlpa073a/dlpa073a.pdf" target="_blank" rel="noopener">Texas Instruments HUD 光学应用报告 ↗</a></li>
+    <li>视点、畸变与动态标定。<a href="https://doi.org/10.1016/j.displa.2023.102453" target="_blank" rel="noopener">HUDNet 研究 ↗</a></li>
+    <li>同版车型 AR 光学与首发应用。<a href="https://www.huawei.com/cn/news/2022/5/huawei-ar-hud" target="_blank" rel="noopener">飞凡 R7／华为 ↗</a> · <a href="https://media.mercedes-benz.com/en/article/d47ce37f-e597-470b-9a32-fb49902d7ab0" target="_blank" rel="noopener">奔驰 S 级 ↗</a> · <a href="https://www.volkswagen-newsroom.com/en/press-releases/from-the-luxury-class-to-the-compact-segment-the-augmented-reality-head-up-display-6730" target="_blank" rel="noopener">大众 ID.3／ID.4 ↗</a></li>
+    <li>其它配置的显示与状态细节，见车型原图、矩阵与原始链接。更广的功能释义、AR 导航、SR 与地图 TBT 切换案例见 <a href="vehicle-function-study.html#scenes">功能与模式</a>。</li>
+  </ul>
+</section>
+<footer class="study-footer"><p>AR-HUD 设计指南 · HUD-ADAS 视角</p></footer>
+</div>
+</main>
+<script src="guide-shell.js"></script></body>
+</html>

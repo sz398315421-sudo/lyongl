@@ -1,0 +1,62 @@
+/* The research content uses the same type and grid as the guide shell. */
+.adas-page .adas-intro{display:grid;grid-template-columns:1.06fr 1fr;gap:32px;align-items:center;padding:18px 0 36px}
+.adas-intro p{max-width:43em}
+.adas-hero-links{display:flex;gap:20px;flex-wrap:wrap;margin-top:22px;font-size:13px;font-weight:600}
+.adas-page figure{margin:0}
+.adas-hero-photo img,.adas-annotated img{display:block;width:100%;height:auto;border-radius:6px}
+.adas-page figcaption{margin-top:7px;color:var(--muted);font-size:12px;line-height:1.65}
+.adas-page .study-section h3{margin:20px 0 7px;font-size:17px;line-height:1.55}
+.adas-page p{margin:0 0 14px}
+.adas-page .study-section>p,.adas-page .study-section li{font-size:14px}
+.adas-page .study-section p.adas-small,.adas-page .adas-small{color:var(--muted);font-size:12px}
+.adas-type-grid,.adas-two,.adas-case-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.adas-type-grid article,.adas-two article{border-top:1px solid var(--line);padding:0 10px 8px 0}
+.adas-type-grid a{font-size:12px}
+.adas-page .adas-note{margin:20px 0 6px;padding:13px 16px;background:#f5f8ff;border-left:3px solid #98b8ff;border-radius:0 5px 5px 0}
+.adas-case{min-width:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff}
+.adas-page .adas-case h3{margin:3px 0;font-size:19px}
+.adas-case .case-body{padding:13px 16px}
+.adas-page .adas-case .case-body p:last-child{margin-bottom:0}
+.adas-case .case-body p{font-size:13px;margin:0 0 7px}
+.adas-case p.vehicle-meta{font-size:11px}
+.adas-case .adas-type{color:var(--blue);font-size:12px}
+.adas-case figure a:first-child{display:block}
+.adas-case figure>a{display:grid;place-items:center;background:#f5f6f8;border-block:1px solid var(--line);aspect-ratio:16/9}
+.adas-case img{display:block;width:100%;height:100%;aspect-ratio:16/9;object-fit:contain}
+.adas-case figcaption{padding:0 16px}
+.adas-case figcaption a{display:inline!important}
+.adas-scroll{max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:6px;margin:16px 0}
+.adas-page .adas-scroll table{width:100%;min-width:600px;border-collapse:collapse;font-size:13px;line-height:1.65}
+.adas-page .adas-scroll th,.adas-page .adas-scroll td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.adas-page .adas-scroll th[scope=row]{min-width:125px}
+.adas-page .adas-scroll tbody tr:last-child>*{border-bottom:0}
+.adas-page code{font:inherit;background:#f0f4f9;color:#183c71;padding:0 3px;border-radius:3px;overflow-wrap:break-word}
+.adas-page .adas-lab{display:grid;grid-template-columns:minmax(170px,.42fr) minmax(0,1fr);gap:18px;margin-top:16px;align-items:start}
+.adas-controls{display:grid;min-width:0;gap:4px;padding:14px 16px;border:1px solid var(--line);background:#f8fafc;border-radius:6px}
+.adas-page .adas-controls label{display:flex;justify-content:space-between;gap:8px;color:var(--ink);font-size:12px;line-height:1.6;margin:5px 0 0}
+.adas-controls output{flex:none;color:#214d9c;font-variant-numeric:tabular-nums}
+.adas-page .adas-controls select{width:100%;min-height:34px;padding:4px 7px;margin:0 0 4px}
+.adas-page .adas-controls input{width:100%;padding:0;margin:0;min-height:20px;accent-color:#1258df}
+.adas-stage{min-width:0}
+.adas-screen{display:flex;align-items:center;justify-content:center;min-height:215px;background:#121c2b;border-radius:6px;overflow:hidden}
+.adas-screen canvas{display:block;width:auto;max-width:100%;height:auto;max-height:494px;object-fit:contain}
+.adas-page .adas-legend{display:flex;flex-wrap:wrap;gap:7px 20px;margin:8px 0;color:var(--muted);font-size:11px}
+.adas-legend span{display:flex;align-items:center;gap:5px}
+.adas-legend i{width:9px;height:9px;border-radius:2px}
+.ego-key{background:#3b83f5}.lead-key{background:#b9c7da}.range-key{background:#657f9e}
+.adas-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin:0 0 8px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.adas-metrics div{min-width:0;background:#f8fafc;padding:9px 11px}
+.adas-metrics dt{font-size:11px;color:var(--muted)}
+.adas-metrics dd{margin:0;color:#164588;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.adas-detail{border:1px solid var(--line);border-radius:6px;margin:16px 0 0;padding:10px 14px}
+.adas-detail summary{cursor:pointer;font-weight:600}
+.adas-detail p{margin:12px 0 3px}
+.adas-read-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:18px 0}
+.adas-annotated{position:relative}
+.adas-dot{position:absolute;left:var(--x);top:var(--y);display:grid;place-items:center;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);background:#1461f2;color:white;border:1px solid white;font:600 11px/1 sans-serif}
+.adas-steps,.adas-source-list{padding-left:22px}
+.adas-steps li,.adas-source-list li{margin-bottom:10px}
+.adas-page .study-footer{padding-top:18px;color:var(--muted)}
+@media(max-width:1100px){.adas-page .adas-intro{gap:20px}.adas-page .adas-lab{grid-template-columns:minmax(160px,.4fr) minmax(0,1fr)}.adas-read-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.adas-page .adas-intro{padding:0 0 26px}.adas-page .adas-intro,.adas-page .adas-lab{grid-template-columns:minmax(0,1fr)}.adas-type-grid,.adas-two,.adas-case-grid,.adas-read-grid{grid-template-columns:minmax(0,1fr)}.adas-controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:7px 13px}.adas-page .adas-controls label{margin:0}.adas-screen{min-height:130px}.adas-metrics dd{font-size:14px}}
+@media print{.adas-page .adas-case,.adas-read-grid figure,.adas-stage{break-inside:avoid}.adas-page .adas-intro{display:block}.adas-hero-photo{max-width:320px}.adas-page .adas-controls,.adas-hero-links{display:none}.adas-page .adas-lab{display:block}.adas-page .adas-scroll{overflow:visible}.adas-page .adas-scroll table{min-width:0}.adas-page .adas-scroll th[scope=row]{min-width:0}}
