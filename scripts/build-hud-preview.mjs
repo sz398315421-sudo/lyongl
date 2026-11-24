@@ -282,12 +282,6 @@ world.onLayoutFrame=moving=>`);
         contents = replace(contents, '  const local=new Uint8Array(30+filename.length)', "  if(offset+30+filename.length+data.length>0xffffffff)throw new Error('ZIP 超过容量上限，请减少帧数。');\n  const local=new Uint8Array(30+filename.length)");
         contents = replace(contents, ' const end=new Uint8Array(22)', " if(offset+centralSize+22>0xffffffff)throw new Error('ZIP 超过容量上限，请减少帧数。');\n const end=new Uint8Array(22)");
       }
-      if (args.path === path.join(adas, 'video-export.js')) {
-        contents = replace(contents, 'onProgress=()=>{},signal}){', 'onProgress=()=>{},signal,format=videoFormat()}){');
-        contents = replace(contents, ' const format=videoFormat();if(!format)', ' if(!format)');
-        contents = replace(contents, / signal\?\.throwIfAborted\(\);\r?\n const stream=/g, ' signal?.throwIfAborted();\n renderFrame(0);\n const stream=');
-        contents = replace(contents, 'renderFrame(0);recorder.start();started=true;capture(0);', 'recorder.start();started=true;capture(0);');
-      }
       if (args.path === path.join(adas, 'scene-playback.js')) {
         contents = `import {applyRightPassFrame, canTurnAtJunction, createPresetLaneChange, createPresetRightTurn, junctionDuration, presetLaneDuration, presetLaneDirection} from '../hud/hud-right-pass.mjs';\nimport {straightJunctionRoute} from '../hud/hud-start.mjs';\n${contents}`;
         contents = replace(contents, 'junction:{distance:24,durationMs:sceneTripDurationMs}', 'junction:{distance:straightJunctionRoute.startZ-straightJunctionRoute.endZ,durationMs:straightJunctionRoute.durationMs}');

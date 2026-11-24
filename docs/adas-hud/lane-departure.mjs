@@ -1,6 +1,9 @@
-import {screenFormat} from '../adas/screen-format.js';
+import {setScreenFormat, sizeLabel} from '../adas/screen-format.js';
 import {bindHexColor} from './hud-hex.mjs';
 import {hudPreferences} from './hud-storage.mjs';
+import {initLaneCamera} from './lane-camera.mjs';
+import {initLaneExport} from './lane-export.mjs';
+import {easeLaneMotion, renderLanes} from './lane-render.mjs';
 
 const states = {
   recognition: {label: '识别车道线', description: '两侧显示常规车道线颜色'},
@@ -36,60 +39,43 @@ const resumeButton = get('lane-resume');
 const resumeControl = get('lane-resume-control');
 const buttons = [...document.querySelectorAll('[data-lane-state]')];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const getCamera = initLaneCamera(get('lane-camera-controls'), curveMode ? 'curve' : 'departure', draw);
 let visual = {key: 'recognition', shift: 0, curve: 0};
 let playback;
 let frameRequest = 0;
-
-function drawLane(side, shift, curve, color) {
-  const farX = side * 59 + shift * 19;
-  const lateral = side * 187 + shift * 53;
-  const bend = curve * 92;
-  const line = context.createLinearGradient(0, -85, 0, 85);
-  line.addColorStop(0, color + '00');
-  line.addColorStop(.27, color + 'e8');
-  line.addColorStop(.66, color + 'ff');
-  line.addColorStop(.86, color + '5c');
-  line.addColorStop(1, color + '00');
-  context.fillStyle = line;
-
-  const leftEdge = [];
-  const rightEdge = [];
-  const segments = curve ? 24 : 1;
-  for (let segment = 0; segment <= segments; segment++) {
-    const fraction = segment / segments;
-    const depth = 1 - fraction;
-    // Lead into the corner at the far end, keeping the near edge under the car.
-    const x = farX + lateral * fraction + bend * depth * depth;
-    const y = -85 + 170 * fraction;
-    const tangentX = lateral - 2 * bend * depth;
-    const width = (.6 + 3.1 * fraction) / Math.hypot(tangentX, 170);
-    const offsetX = -170 * width;
-    const offsetY = tangentX * width;
-    leftEdge.push([x + offsetX, y + offsetY]);
-    rightEdge.push([x - offsetX, y - offsetY]);
-  }
-  context.beginPath();
-  context.moveTo(...leftEdge[0]);
-  for (const point of leftEdge.slice(1)) context.lineTo(...point);
-  for (const point of rightEdge.reverse()) context.lineTo(...point);
-  context.closePath();
-  context.fill();
-}
+let lastAnimation = curveMode ? 'curve-left' : 'right';
 
 function draw() {
-  const {width, height} = canvas;
-  context.fillStyle = '#000';
-  context.fillRect(0, 0, width, height);
-  const scale = Math.min(width / 700, height / 330);
-  context.save();
-  context.translate(width / 2, height / 2);
-  context.scale(scale, scale);
-  const {key, shift, curve} = visual;
-  const regularColor = key === 'lcc' ? colors.lcc : colors.recognition;
-  drawLane(-1, shift, curve, key === 'left' ? colors.warning : regularColor);
-  drawLane(1, shift, curve, key === 'right' ? colors.warning : regularColor);
-  context.restore();
-  status.style.setProperty('--lane-accent', states[key].shift ? colors.warning : regularColor);
+  renderLanes(context, getCamera(), visual, colors);
+  const {key} = visual;
+  status.style.setProperty('--lane-accent', states[key].shift ? colors.warning : key === 'lcc' ? colors.lcc : colors.recognition);
+}
+
+function captureScene() {
+  const key = lastAnimation;
+  const {shift = 0, curve = 0, label} = states[key];
+  const activeButton = buttons.find(button => button.dataset.laneState === key);
+  const duration = get(activeButton?.dataset.duration);
+  const hold = curve ? 1000 : (duration.validity.valid ? duration.valueAsNumber : Number(duration.defaultValue)) * 1000;
+  const enter = curve ? curveMs : shift ? departureMs : 0;
+  const exit = curve ? curveMs : shift ? recenterMs : 0;
+  const endHold = enter + hold;
+  const idle = curveMode ? 'straight' : 'recognition';
+  const clip = {
+    key, label: curve ? `${label} · 进弯至出弯` : `${label} · 完整演示`,
+    durationMs: endHold + exit,
+    sample(elapsed) {
+      if (elapsed < enter) {
+        const amount = easeLaneMotion(elapsed / enter);
+        return {key: idle, shift: shift * amount, curve: curve * amount};
+      }
+      if (elapsed < endHold) return {key, shift, curve};
+      if (!exit) return {key, shift, curve};
+      const amount = 1 - easeLaneMotion((elapsed - endHold) / exit);
+      return {key: idle, shift: shift * amount, curve: curve * amount};
+    }
+  };
+  return {clip, visual, view: getCamera(), colors: {...colors}, width: canvas.width, height: canvas.height, name: curveMode ? 'hud-lane-curve' : 'hud-lane-departure'};
 }
 
 function startPlayback(key, seconds, now) {
@@ -115,7 +101,7 @@ function frame(now) {
   const {key, from, start, moveMs, holdStart, holdMs, pausedAt} = playback;
   const target = states[key];
   const fraction = moveMs ? Math.min(1, Math.max(0, (now - start) / moveMs)) : 1;
-  const eased = fraction * fraction * (3 - 2 * fraction);
+  const eased = easeLaneMotion(fraction);
   const shift = from.shift + ((target.shift ?? 0) - from.shift) * eased;
   const curve = from.curve + ((target.curve ?? 0) - from.curve) * eased;
   const approaching = !!target.shift && now < holdStart;
@@ -163,7 +149,9 @@ for (const button of buttons) {
     const input = get(button.dataset.duration);
     if (input && !input.reportValidity()) return;
     const now = performance.now();
-    startPlayback(button.dataset.laneState, input?.valueAsNumber ?? 0, now);
+    const key = button.dataset.laneState;
+    if (key !== 'straight') lastAnimation = key;
+    startPlayback(key, input?.valueAsNumber ?? 0, now);
     updatePlayback(now);
   });
 }
@@ -222,10 +210,11 @@ function syncFormatIndicator() {
 
 for (const button of formats) {
   button.addEventListener('click', () => {
-    const {width, height} = screenFormat(button.dataset.screenFormat);
+    const {width, height} = setScreenFormat(button.dataset.screenFormat);
     document.documentElement.style.setProperty('--screen-aspect', String(width / height));
     canvas.width = width;
     canvas.height = height;
+    get('lane-dimensions').textContent = sizeLabel();
     for (const format of formats) format.setAttribute('aria-pressed', String(format === button));
     syncFormatIndicator();
     draw();
@@ -274,3 +263,6 @@ const initTime = performance.now();
 startPlayback(curveMode ? 'straight' : 'recognition', 0, initTime);
 frame(initTime);
 draw();
+const downloadButton = get('download');
+initLaneExport(downloadButton, captureScene);
+downloadButton.disabled = false;

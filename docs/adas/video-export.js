@@ -5,9 +5,11 @@ export function videoFormat(){
  return mimeType?{mimeType,extension:mimeType.startsWith('video/mp4')?'mp4':'webm'}:null;
 }
 
-export async function recordCanvasVideo({canvas,durationMs,renderFrame,onProgress=()=>{},signal}){
- const format=videoFormat();if(!format)throw new Error('此浏览器暂不支持视频导出，请使用新版 Chrome、Edge 或 Safari。');
+export async function recordCanvasVideo({canvas,durationMs,renderFrame,onProgress=()=>{},signal,format=videoFormat()}){
+ if(!format)throw new Error('此浏览器暂不支持视频导出，请使用新版 Chrome、Edge 或 Safari。');
  signal?.throwIfAborted();
+ // Prime the canvas before attaching the stream so it starts on the first frame.
+ renderFrame(0);
  const stream=canvas.captureStream(0),track=stream.getVideoTracks()[0];
  let recorder,recordingError,started=false;const chunks=[];
  try{
@@ -22,8 +24,7 @@ export async function recordCanvasVideo({canvas,durationMs,renderFrame,onProgres
    signal?.throwIfAborted();if(recordingError)throw recordingError;
    renderFrame(elapsed);track.requestFrame();onProgress(elapsed/durationMs);
   };
-  // Prime the canvas before starting so the file always begins at frame zero.
-  renderFrame(0);recorder.start();started=true;capture(0);
+  recorder.start();started=true;capture(0);
   try{
    const start=performance.now();let elapsed=0;
    while(elapsed<durationMs){

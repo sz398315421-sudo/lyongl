@@ -1,7 +1,7 @@
 import {videoFormat} from './video-export.js';
 import {sizeLabel} from './screen-format.js';
 
-export function initExportControls(download,onExport){
+export function initExportControls(download,onExport,options={}){
  const dialog=document.createElement('dialog');dialog.id='export-dialog';dialog.className='export-dialog';dialog.setAttribute('aria-labelledby','export-dialog-title');dialog.setAttribute('aria-describedby','export-dialog-size');
  const header=document.createElement('div'),heading=document.createElement('h2'),size=document.createElement('p'),closeButton=document.createElement('button');
  header.className='export-heading';heading.id='export-dialog-title';heading.textContent='下载';size.id='export-dialog-size';size.textContent='1920 × 1080';
@@ -11,13 +11,15 @@ export function initExportControls(download,onExport){
  const video=videoFormat();
  const formats=[['image','PNG 图片','场景图像','PNG'],['video','演示动画',video?'当前场景完整动画 · '+video.extension.toUpperCase():'此浏览器暂不支持视频导出',video?.extension.toUpperCase()||'视频'],['kit','透视套件','图像、相机参数、深度图及 Figma 参考','ZIP'],['camera','相机参数','投影矩阵与相机设置','JSON'],['depth','深度图','16 位 · 线性 · 0–200 米','PNG']];
  const submit=document.createElement('button');submit.type='button';submit.className='export-submit';submit.textContent='下载 PNG';
- for(const [format,title,description,extension]of formats){
+ for(const [format,title,description,extension,enabled=true]of options.formats?.(video)??formats){
   const label=document.createElement('label'),input=document.createElement('input'),copy=document.createElement('span'),name=document.createElement('span'),detail=document.createElement('span');
   label.className='export-choice';input.type='radio';input.name='export-format';input.value=format;input.checked=format==='image';name.textContent=title;detail.textContent=description;detail.className='export-detail';copy.append(name,detail);label.append(input,copy);choices.append(label);
   if(format==='video'&&!video)input.disabled=true;
-  input.addEventListener('change',()=>{if(input.checked){submit.textContent='下载 '+extension;const sized=format==='image'||format==='video';size.style.visibility=sized?'visible':'hidden';if(sized)dialog.setAttribute('aria-describedby',size.id);else dialog.removeAttribute('aria-describedby');}});
+  if(!enabled)input.disabled=true;
+  input.addEventListener('change',()=>{if(input.checked){submit.textContent='下载 '+extension;const sized=format==='image'||format==='video'||options.isSized?.(format);size.style.visibility=sized?'visible':'hidden';if(sized)dialog.setAttribute('aria-describedby',size.id);else dialog.removeAttribute('aria-describedby');options.onFormatChange?.(format);}});
  }
  dialog.append(header,size,choices,submit);document.body.append(dialog);
+ if(options.fields)submit.before(options.fields);
  const feedback=document.createElement('span');feedback.className='export-feedback';feedback.hidden=true;feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');document.querySelector('.preview-shell').append(feedback);
  download.setAttribute('aria-haspopup','dialog');download.setAttribute('aria-controls','export-dialog');download.setAttribute('aria-label','下载');download.title='下载';
  let busy=false,feedbackTimer=0,previousOverflow='',openingFrame=0;
@@ -31,6 +33,7 @@ export function initExportControls(download,onExport){
  };
  download.addEventListener('click',()=>{
   if(download.disabled||busy||dialog.open)return;
+  choices.querySelectorAll('input').forEach(input=>options.describe?.(input.value,input.parentElement.querySelector('.export-detail')));
   size.textContent=sizeLabel();previousOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';dialog.dataset.state='entering';dialog.showModal();choices.querySelector('input:checked').focus({preventScroll:true});
   dialog.getBoundingClientRect();
   openingFrame=requestAnimationFrame(()=>{if(dialog.open&&dialog.dataset.state==='entering')dialog.dataset.state='open';});
@@ -39,7 +42,7 @@ export function initExportControls(download,onExport){
  dialog.addEventListener('cancel',event=>{event.preventDefault();close();});
  closeButton.addEventListener('click',close);
  dialog.addEventListener('click',event=>{const bounds=dialog.getBoundingClientRect();if(event.target===dialog&&(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom))close();});
- submit.addEventListener('click',async()=>{if(submit.disabled||dialog.dataset.state==='closing')return;const format=choices.querySelector('input:checked').value;await close();onExport(format);});
+ submit.addEventListener('click',async()=>{if(submit.disabled||dialog.dataset.state==='closing')return;const format=choices.querySelector('input:checked').value;if(options.validate?.(format)===false)return;await close();onExport(format);});
  const sync=()=>{if(busy&&!download.disabled)download.disabled=true;submit.disabled=busy||download.disabled||download.inert;if(download.inert)close();};
  new MutationObserver(sync).observe(download,{attributes:true,attributeFilter:['disabled','inert']});
  const progressDialog=document.createElement('dialog');progressDialog.className='export-dialog export-progress-dialog';progressDialog.dataset.state='open';progressDialog.setAttribute('aria-labelledby','video-export-title');progressDialog.setAttribute('aria-describedby','video-export-copy');

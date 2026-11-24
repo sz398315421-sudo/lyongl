@@ -36,7 +36,7 @@
  });
  window.addEventListener('studio:error',event=>fail(event.detail?.kind));
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();fail('context');});
- import('./hud-scene.bundle.mjs?v=3af5b4bb762b').catch(error=>{
+ import('./hud-scene.bundle.mjs?v=9841a6c64c56').catch(error=>{
   console.error('DriveScene startup failed',error);fail(error.code||'startup');
  });
 })();
