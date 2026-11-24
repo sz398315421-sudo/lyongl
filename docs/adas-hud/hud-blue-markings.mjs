@@ -17,6 +17,7 @@ export function createBlueRoadMarkings(world) {
     hudMarkingsCrossing: {value: new Vector2()},
     hudMarkingsTurn: {value: new Vector4()},
     hudJunctionPaint: {value: new Vector3(1, 0, 0)},
+    hudStraightJunction: {value: 0},
     ...createHudDisplayUniforms(world)
   };
   const shaderCompilers = new WeakSet();
@@ -52,7 +53,7 @@ export function createBlueRoadMarkings(world) {
         return;
       }
       shader.fragmentShader = `
-        uniform float hudMarkingsEnabled, hudMarkingsLaneBlend;
+        uniform float hudMarkingsEnabled, hudMarkingsLaneBlend, hudStraightJunction;
         uniform vec3 hudMarkingsColor;
         uniform vec3 hudMarkingsBase;
         uniform float hudMarkingsBaseOverride, hudMarkingsWidth;
@@ -95,7 +96,7 @@ export function createBlueRoadMarkings(world) {
         ${yellow ? 'if (hudJunctionPaint.z > .5 && abs(roadPoint.x) < .30) diffuseColor.a = 0.;' : ''}
         #ifdef USE_FOG
           float hudRoadFade = smoothstep(10.5, 17.0, vFogDepth) * (1.0 - smoothstep(36.0, 90.0, vFogDepth));
-          diffuseColor.a *= mix(1.0, hudRoadFade, ${canHighlight ? 'hudMarkingsEnabled' : '0.0'});
+          diffuseColor.a *= mix(1.0, hudRoadFade, hudMarkingsEnabled${yellow ? ' * hudStraightJunction' : ''});
         #endif
         #include <alphatest_fragment>
       `).replace('#include <premultiplied_alpha_fragment>', `
@@ -132,6 +133,7 @@ export function createBlueRoadMarkings(world) {
     const turn = world.roadGuidePath?.rightTurn;
     const junction = world.state.id === '05' && world.junctionDimensions;
     const reveal = junction ? 1 - MathUtils.smoothstep(world.car.position.z - junction.nearCrosswalk, 38, 78) : 1;
+    uniforms.hudStraightJunction.value = junction ? 1 : 0;
     uniforms.hudJunctionPaint.value.set(reveal, junction?.markingEnd ?? 0, junction && world.hudSettings?.junction?.threeLanes ? 1 : 0);
     uniforms.hudMarkingsLanes.value.set(center, neighbor);
     uniforms.hudMarkingsLaneBlend.value = neighbor === center ? 0 : blend;
