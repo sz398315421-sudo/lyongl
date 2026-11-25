@@ -3,7 +3,7 @@ export function easeLaneMotion(fraction) {
   return t * t * (3 - 2 * t);
 }
 
-function drawLane(context, project, gradient, side, shift, curve, color) {
+function drawLane(context, project, gradient, side, shift, curve, color, widthScale) {
   const farX = side * 59 + shift * 19;
   const lateral = side * 187 + shift * 53;
   const bend = curve * 92;
@@ -17,7 +17,7 @@ function drawLane(context, project, gradient, side, shift, curve, color) {
     const x = farX + lateral * fraction + bend * depth * depth;
     const y = -85 + 170 * fraction;
     const tangentX = lateral - 2 * bend * depth;
-    const width = (.6 + 3.1 * fraction) / Math.hypot(tangentX, 170);
+    const width = (.6 + 3.1 * fraction) * widthScale / Math.hypot(tangentX, 170);
     const offsetX = -170 * width;
     const offsetY = tangentX * width;
     leftEdge.push([x + offsetX, y + offsetY]);
@@ -40,7 +40,7 @@ function drawLane(context, project, gradient, side, shift, curve, color) {
   context.fill();
 }
 
-export function renderLanes(context, view, {key, shift, curve}, colors, transparent = false) {
+export function renderLanes(context, view, {key, shift, curve}, colors, {transparent = false, lineWidth = 100} = {}) {
   const {width, height} = context.canvas;
   if (transparent) context.clearRect(0, 0, width, height);
   else {
@@ -56,7 +56,8 @@ export function renderLanes(context, view, {key, shift, curve}, colors, transpar
   context.translate(width / 2, height / 2);
   context.scale(scale, scale);
   const regular = key === 'lcc' ? colors.lcc : colors.recognition;
-  drawLane(context, view.project, gradient, -1, shift, curve, key === 'left' ? colors.warning : regular);
-  drawLane(context, view.project, gradient, 1, shift, curve, key === 'right' ? colors.warning : regular);
+  const widthScale = lineWidth / 100;
+  drawLane(context, view.project, gradient, -1, shift, curve, key === 'left' ? colors.warning : regular, widthScale);
+  drawLane(context, view.project, gradient, 1, shift, curve, key === 'right' ? colors.warning : regular, widthScale);
   context.restore();
 }

@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../adas/scene-playback.css?v=20261020-all-lanes-1">
   <link rel="stylesheet" href="../adas/traffic-flow.css?v=20261022-traffic-layout-1">
   <link rel="stylesheet" href="./hud.css">
-  <link rel="stylesheet" href="./lane-departure.css?v=4">
+  <link rel="stylesheet" href="./lane-departure.css?v=5">
   <script>
     try {
       if (localStorage.getItem('hud:sr-theme') === 'light') document.documentElement.dataset.theme = 'light';
@@ -116,6 +116,13 @@
             <div class="scene-motion-buttons"><button type="button">重置相机参数</button></div>
           </div>
         </details>
+        <div class="hud-camera-controls lane-width-control">
+          <label class="traffic-field">
+            <span id="lane-width-label">车道线粗细</span>
+            <output for="lane-width" id="lane-width-value">100%</output>
+            <input id="lane-width" type="range" min="25" max="300" step="5" value="100" aria-labelledby="lane-width-label">
+          </label>
+        </div>
         <fieldset class="lane-colors">
           <legend>车道线颜色</legend>
           <div class="lane-color-row" data-lane-color="recognition">
@@ -144,6 +151,6 @@
     </section>
   </main>
   <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
-  <script type="module" src="./lane-departure.mjs?v=5"></script>
+  <script type="module" src="./lane-departure.mjs?v=6"></script>
 </body>
 </html>

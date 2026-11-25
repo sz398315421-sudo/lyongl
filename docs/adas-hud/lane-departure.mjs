@@ -2,8 +2,8 @@ import {setScreenFormat, sizeLabel} from '../adas/screen-format.js';
 import {bindHexColor} from './hud-hex.mjs';
 import {hudPreferences} from './hud-storage.mjs';
 import {initLaneCamera} from './lane-camera.mjs';
-import {initLaneExport} from './lane-export.mjs';
-import {easeLaneMotion, renderLanes} from './lane-render.mjs';
+import {initLaneExport} from './lane-export.mjs?v=2';
+import {easeLaneMotion, renderLanes} from './lane-render.mjs?v=2';
 
 const states = {
   recognition: {label: '识别车道线', description: '两侧显示常规车道线颜色'},
@@ -23,8 +23,7 @@ try {
   }
 } catch {}
 
-const departureMs = 1200;
-const recenterMs = 350;
+const lateralMoveMs = 1200;
 const curveMs = 1500;
 const curveMode = new URLSearchParams(location.search).get('scene') === 'curve';
 const get = id => document.getElementById(id);
@@ -38,6 +37,27 @@ const pauseAfter = get('pause-on-departure');
 const resumeButton = get('lane-resume');
 const resumeControl = get('lane-resume-control');
 const buttons = [...document.querySelectorAll('[data-lane-state]')];
+const lineWidthInput = get('lane-width');
+const lineWidthValue = get('lane-width-value');
+const widthStorageKey = 'lane-line-width-v1';
+const minLineWidth = Number(lineWidthInput.min);
+const maxLineWidth = Number(lineWidthInput.max);
+try {
+  const saved = Number(hudPreferences.getItem(widthStorageKey));
+  if (saved >= minLineWidth && saved <= maxLineWidth) lineWidthInput.value = saved;
+} catch {}
+function syncLineWidth() {
+  const width = lineWidthInput.valueAsNumber;
+  lineWidthValue.value = `${width}%`;
+  lineWidthInput.setAttribute('aria-valuetext', lineWidthValue.value);
+  lineWidthInput.style.setProperty('--range-fill', `${(width - minLineWidth) / (maxLineWidth - minLineWidth) * 100}%`);
+}
+syncLineWidth();
+lineWidthInput.addEventListener('input', () => {
+  syncLineWidth();
+  try { hudPreferences.setItem(widthStorageKey, lineWidthInput.value); } catch {}
+  draw();
+});
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const getCamera = initLaneCamera(get('lane-camera-controls'), curveMode ? 'curve' : 'departure', draw);
 let visual = {key: 'recognition', shift: 0, curve: 0};
@@ -46,7 +66,7 @@ let frameRequest = 0;
 let lastAnimation = curveMode ? 'curve-left' : 'right';
 
 function draw() {
-  renderLanes(context, getCamera(), visual, colors);
+  renderLanes(context, getCamera(), visual, colors, {lineWidth: lineWidthInput.valueAsNumber});
   const {key} = visual;
   status.style.setProperty('--lane-accent', states[key].shift ? colors.warning : key === 'lcc' ? colors.lcc : colors.recognition);
 }
@@ -57,30 +77,32 @@ function captureScene() {
   const activeButton = buttons.find(button => button.dataset.laneState === key);
   const duration = get(activeButton?.dataset.duration);
   const hold = curve ? 1000 : (duration.validity.valid ? duration.valueAsNumber : Number(duration.defaultValue)) * 1000;
-  const enter = curve ? curveMs : shift ? departureMs : 0;
-  const exit = curve ? curveMs : shift ? recenterMs : 0;
-  const endHold = enter + hold;
+  const movement = curve ? curveMs : shift ? lateralMoveMs : 0;
+  const endHold = movement + hold;
   const idle = curveMode ? 'straight' : 'recognition';
   const clip = {
     key, label: curve ? `${label} · 进弯至出弯` : `${label} · 完整演示`,
-    durationMs: endHold + exit,
+    durationMs: endHold + movement,
     sample(elapsed) {
-      if (elapsed < enter) {
-        const amount = easeLaneMotion(elapsed / enter);
+      if (elapsed < movement) {
+        const amount = easeLaneMotion(elapsed / movement);
         return {key: idle, shift: shift * amount, curve: curve * amount};
       }
       if (elapsed < endHold) return {key, shift, curve};
-      if (!exit) return {key: idle, shift: 0, curve: 0};
-      const amount = 1 - easeLaneMotion((elapsed - endHold) / exit);
+      if (!movement) return {key: idle, shift: 0, curve: 0};
+      const amount = 1 - easeLaneMotion((elapsed - endHold) / movement);
       return {key: idle, shift: shift * amount, curve: curve * amount};
     }
   };
-  return {clip, visual, view: getCamera(), colors: {...colors}, width: canvas.width, height: canvas.height, name: curveMode ? 'hud-lane-curve' : 'hud-lane-departure'};
+  return {
+    clip, visual, view: getCamera(), colors: {...colors}, lineWidth: lineWidthInput.valueAsNumber,
+    width: canvas.width, height: canvas.height, name: curveMode ? 'hud-lane-curve' : 'hud-lane-departure'
+  };
 }
 
 function startPlayback(key, seconds, now) {
   const {shift = 0, curve = 0} = states[key];
-  const movement = curveMode ? curveMs : shift ? departureMs : recenterMs;
+  const movement = curveMode ? curveMs : Math.abs(visual.shift - shift) * lateralMoveMs;
   const moveMs = reducedMotion.matches || (visual.shift === shift && visual.curve === curve) ? 0 : movement;
   const holdMs = seconds * 1000;
   // Hold the warning color for the configured time after the lateral movement.

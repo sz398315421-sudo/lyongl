@@ -130,6 +130,7 @@
 }
 .lane-camera .hud-camera-controls { padding: 6px 0 12px; font-size: var(--type-caption, 12px); }
 .lane-camera .hud-camera-controls .scene-motion-buttons button { min-height: 38px; }
+.lane-width-control { margin-top: 14px; font-size: var(--type-caption, 12px); }
 
 .lane-note { margin: 12px 0 0; color: var(--text-secondary); font-size: var(--type-caption, 12px); }
 

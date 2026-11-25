@@ -3,7 +3,7 @@ import {canvasPng, downloadFile} from '../adas/export-files.js';
 import {recordCanvasVideo} from '../adas/video-export.js';
 import {createSequenceFields, renderPngSequence} from './hud-png-sequence.mjs';
 import {supportsHudWebm, transparentVideoFormat} from './hud-video.mjs';
-import {renderLanes} from './lane-render.mjs';
+import {renderLanes} from './lane-render.mjs?v=2';
 
 const animationFormats = ['video', 'transparent-video', 'png-sequence'];
 
@@ -38,14 +38,14 @@ export function initLaneExport(button, captureScene) {
   });
 
   async function exportScene(format) {
-    const {clip, visual, view, colors, width, height, name} = snapshot;
+    const {clip, visual, view, colors, lineWidth, width, height, name} = snapshot;
     const animation = animationFormats.includes(format);
     const controller = new AbortController();
     const {signal} = controller;
     controls.setBusy(true);
     try {
       if (format === 'camera') {
-        const metadata = {scene: name, width, height, camera: view.metadata, colors};
+        const metadata = {scene: name, width, height, camera: view.metadata, colors, lineWidthPercent: lineWidth};
         downloadFile(new Blob([JSON.stringify(metadata, null, 2)], {type: 'application/json'}), `${name}-camera.json`);
       } else {
         const canvas = document.createElement('canvas');
@@ -53,15 +53,16 @@ export function initLaneExport(button, captureScene) {
         canvas.height = height;
         const context = canvas.getContext('2d');
         const transparent = format !== 'image' && format !== 'video';
+        const appearance = {transparent, lineWidth};
         if (!animation) {
-          renderLanes(context, view, visual, colors, transparent);
+          renderLanes(context, view, visual, colors, appearance);
           downloadFile(await canvasPng(canvas), `${name}${transparent ? '-transparent' : ''}.png`);
         } else {
           controls.showVideoProgress(() => controller.abort());
           const options = {
             canvas, durationMs: clip.durationMs, signal,
             onProgress: controls.updateVideoProgress,
-            renderFrame: elapsed => renderLanes(context, view, clip.sample(elapsed), colors, transparent)
+            renderFrame: elapsed => renderLanes(context, view, clip.sample(elapsed), colors, appearance)
           };
           const result = format === 'png-sequence'
             ? await renderPngSequence({...options, options: sequenceOptions})
