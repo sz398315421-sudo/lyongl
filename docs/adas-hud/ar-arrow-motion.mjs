@@ -51,22 +51,32 @@ function makeTurn({id, name, maneuver, poses, bend}) {
 }
 
 export const rightTurn = makeTurn({id: 'right', name: '路口右转', maneuver: '右转', poses: right, bend: .15});
+export const uTurnTiming = Object.freeze({
+  durationMs: 10800,
+  extend: 400,
+  turn: 2240,
+  peak: 5360,
+  straightAgain: 8560,
+  retract: 9000,
+  singleAgain: 10400
+});
+
 export const turnPresets = Object.freeze({
   right: rightTurn,
   left: makeTurn({id: 'left', name: '路口左转', maneuver: '左转', poses: left, bend: -.15}),
   'u-turn': {
     id: 'u-turn',
     name: '左侧掉头',
-    durationMs: 17840,
+    durationMs: uTurnTiming.durationMs,
     referenceMotion: true,
     stages: [
-      {label: '直行', start: 0, preview: 0, position: 'start'},
-      {label: '远端掉头提示', start: 1000, preview: 3400},
-      {label: '提示暂隐', start: 5800, preview: 6240},
-      {label: '进入掉头', start: 6800, preview: 8000},
-      {label: '掉头引导', start: 10000, preview: 11000, position: 'far'},
-      {label: '驶离掉头', start: 13000, preview: 14000},
-      {label: '直行', start: 15000}
+      {label: '单箭头直行', start: 0, preview: 0, position: 'start'},
+      {label: '延展箭头', start: uTurnTiming.extend, preview: 2000},
+      {label: '进入掉头', start: uTurnTiming.turn, preview: 4040},
+      {label: '掉头引导', start: uTurnTiming.peak - 560, preview: uTurnTiming.peak, position: 'far'},
+      {label: '出弯回正', start: uTurnTiming.peak + 720, preview: 8800},
+      {label: '收回箭头', start: uTurnTiming.retract, preview: 9760},
+      {label: '单箭头直行', start: uTurnTiming.singleAgain}
     ],
     tracks: []
   }

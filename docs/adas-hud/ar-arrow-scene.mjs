@@ -1,6 +1,6 @@
 import {MathUtils, PerspectiveCamera, Quaternion, Scene, Vector3, WebGLRenderer} from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {positionArrowMotion, referenceAspect, sampleArrowMotion} from './ar-arrow-motion.mjs';
+import {positionArrowMotion, referenceAspect, sampleArrowMotion, uTurnTiming} from './ar-arrow-motion.mjs';
 import {carpetView, hudCameraPose} from './hud-camera-view.mjs';
 
 const viewScale = Math.tan(MathUtils.degToRad(carpetView.fov / 2));
@@ -21,9 +21,8 @@ function playReferenceMotion(data, arrows, reference, placeArrow, setOpacity) {
     const current = frames[frame];
     const next = frames[Math.min(frame + 1, frames.length - 1)];
     const part = step - frame;
-    const advanceNotice = smoothstep(elapsed, 620, 2680) * (1 - smoothstep(elapsed, 4900, 6640));
-    const maneuver = smoothstep(elapsed, 7460, 9480) * (1 - smoothstep(elapsed, 13000, 15000));
-    const turn = Math.max(advanceNotice, maneuver);
+    const {turn: turnStart, peak, straightAgain} = uTurnTiming;
+    const turn = smoothstep(elapsed, turnStart, peak - 800) * (1 - smoothstep(elapsed, peak + 400, straightAgain));
     const offsetX = lerp(start[0], far[0], turn) / 100 * aspect / referenceAspect;
     const offsetY = lerp(start[1], far[1], turn) / 100;
     const offsetDepth = lerp(start[2] ?? 0, far[2] ?? 0, turn);
@@ -55,7 +54,7 @@ export async function loadArArrow() {
 }
 
 export async function loadArArrowMotion() {
-  const url = new URL('./assets/ar-arrow/u-turn-motion.json?v=2', import.meta.url);
+  const url = new URL('./assets/ar-arrow/u-turn-motion.json?v=3', import.meta.url);
   const response = await fetch(url);
   if (!response.ok) throw Error('无法加载掉头动画。');
   return response.json();
