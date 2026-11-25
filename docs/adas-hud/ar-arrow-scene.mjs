@@ -1,9 +1,8 @@
 import {MathUtils, PerspectiveCamera, Quaternion, Scene, Vector3, WebGLRenderer} from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {sampleArrowMotion} from './ar-arrow-motion.mjs';
+import {positionArrowMotion, referenceAspect, sampleArrowMotion} from './ar-arrow-motion.mjs';
 import {carpetView, hudCameraPose} from './hud-camera-view.mjs';
 
-const referenceAspect = 16 / 9;
 const viewScale = Math.tan(MathUtils.degToRad(carpetView.fov / 2));
 const spinAxis = new Vector3(0, 0, 1);
 const tiltAxis = new Vector3(1, 0, 0);
@@ -14,7 +13,7 @@ export async function loadArArrow() {
   return scene;
 }
 
-export function createArArrowScene(canvas, model, clip, {transparent = false} = {}) {
+export function createArArrowScene(canvas, model, clip, {transparent = false, offsets} = {}) {
   const renderer = new WebGLRenderer({canvas, antialias: true, alpha: true});
   renderer.setClearColor(0x000000, transparent ? 0 : 1);
 
@@ -24,6 +23,7 @@ export function createArArrowScene(canvas, model, clip, {transparent = false} = 
   camera.position.set(...position);
   camera.lookAt(...target);
   camera.updateMatrixWorld(true);
+  let motion = offsets ? positionArrowMotion(clip, offsets, camera.aspect) : clip;
 
   const tiltRotation = new Quaternion();
   const spinRotation = new Quaternion();
@@ -47,10 +47,15 @@ export function createArArrowScene(canvas, model, clip, {transparent = false} = 
     resize(width, height) {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
+      if (offsets) motion = positionArrowMotion(clip, offsets, camera.aspect);
       renderer.setSize(width, height, false);
     },
+    setOffsets(value) {
+      offsets = value;
+      motion = positionArrowMotion(clip, offsets, camera.aspect);
+    },
     draw(elapsed) {
-      sampleArrowMotion(clip, elapsed).forEach(({pose: [x, y, depth, heading, tilt], opacity}, index) => {
+      sampleArrowMotion(motion, elapsed).forEach(({pose: [x, y, depth, heading, tilt], opacity}, index) => {
         const {arrow, materials} = arrows[index];
         arrow.visible = opacity > 0;
         if (!arrow.visible) return;

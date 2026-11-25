@@ -4,7 +4,7 @@ import {exportSize} from '../adas/screen-format.js';
 import {recordCanvasVideo} from '../adas/video-export.js';
 import {createSequenceFields, renderPngSequence} from './hud-png-sequence.mjs';
 import {supportsHudWebm, transparentVideoFormat} from './hud-video.mjs';
-import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=1';
+import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=2';
 
 export function initArArrowExport(button, clip, capture) {
   const sequence = createSequenceFields();
@@ -33,7 +33,7 @@ export function initArArrowExport(button, clip, capture) {
   });
 
   async function exportScene(format) {
-    const {model, elapsed, width, height} = snapshot;
+    const {model, elapsed, width, height, offsets} = snapshot;
     const animation = ['video', 'transparent-video', 'png-sequence'].includes(format);
     const transparent = format !== 'image' && format !== 'video';
     const controller = new AbortController();
@@ -47,7 +47,7 @@ export function initArArrowExport(button, clip, capture) {
       canvas.height = height;
       const context = canvas.getContext('2d', {alpha: transparent});
       const glCanvas = document.createElement('canvas');
-      renderer = createArArrowScene(glCanvas, model, clip, {transparent});
+      renderer = createArArrowScene(glCanvas, model, clip, {transparent, offsets});
       renderer.resize(width, height);
       const renderFrame = time => {
         renderer.draw(time);

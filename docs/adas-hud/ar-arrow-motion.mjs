@@ -1,4 +1,5 @@
 const straight = [.497, .520, 13.21, 0, 22];
+export const referenceAspect = 16 / 9;
 const right = [
   [.598, .394, 26.45, 90, 27],
   [.637, .394, 33.26, 90, 27.5],
@@ -12,20 +13,20 @@ export const rightTurn = {
   name: '路口右转',
   durationMs: 7600,
   stages: [
-    {label: '直行', start: 0, preview: 0},
+    {label: '直行', start: 0, preview: 0, position: 'start'},
     {label: '进入右转', start: 950, preview: 2700},
-    {label: '右转引导', start: 2800, preview: 4070},
+    {label: '右转引导', start: 2800, preview: 4070, position: 'far'},
     {label: '出弯回正', start: 5100, preview: 6250},
     {label: '直行', start: 6800}
   ],
   tracks: [
     [
-      [950, straight, 1],
-      [1800, [.539, .425, 19.2, 49, 26], 1],
+      [950, straight, 1, 0],
+      [1800, [.539, .425, 19.2, 49, 26], 1, .44],
       [2700, right[0], 1],
       [5580, right[0], 1],
-      [6200, [.548, .424, 19.8, 44, 26], 1],
-      [6800, straight, 1]
+      [6200, [.548, .424, 19.8, 44, 26], 1, .50],
+      [6800, straight, 1, 0]
     ],
     [
       [2840, [.617, .398, 35, 89, 27.5], 0],
@@ -79,4 +80,15 @@ function sampleTrack(track, elapsed) {
 
 export function sampleArrowMotion(clip, elapsed) {
   return clip.tracks.map(track => sampleTrack(track, elapsed));
+}
+
+// The last keyframe value controls the blend from the adjusted starting
+// point to the adjusted far end. The turn arrows share the far offset.
+export function positionArrowMotion(clip, {start, far}, aspect) {
+  const horizontalScale = aspect / referenceAspect / 100;
+  return {...clip, tracks: clip.tracks.map(track => track.map(([time, [x, y, ...pose], opacity, farWeight = 1]) => {
+    const offsetX = start[0] * (1 - farWeight) + far[0] * farWeight;
+    const offsetY = start[1] * (1 - farWeight) + far[1] * farWeight;
+    return [time, [x + offsetX * horizontalScale, y + offsetY / 100, ...pose], opacity];
+  }))};
 }

@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="../adas/scene-playback.css?v=20261020-all-lanes-1">
   <link rel="stylesheet" href="../adas/traffic-flow.css?v=20261022-traffic-layout-1">
   <link rel="stylesheet" href="./hud.css?v=subpage-1">
-  <link rel="stylesheet" href="./ar-arrow.css?v=1">
+  <link rel="stylesheet" href="./ar-arrow.css?v=2">
   <script>
     try {
       if (localStorage.getItem('hud:sr-theme') === 'light') document.documentElement.dataset.theme = 'light';
@@ -96,10 +96,39 @@
           </div>
           <div id="ar-stage-choices" class="scene-motion-buttons ar-stage-choices" role="group" aria-label="跳转到动画阶段"></div>
         </fieldset>
+        <details class="ar-position-settings">
+          <summary>箭头位置</summary>
+          <p class="hud-control-note" id="ar-position-note">按画面宽高偏移。向右、向下为正值。</p>
+          <fieldset class="ar-position-groups" id="ar-position-controls" aria-label="箭头位置" aria-describedby="ar-position-note" disabled>
+            <fieldset class="ar-position-group hud-camera-controls" data-ar-endpoint="start">
+              <legend>起点位置</legend>
+              <label class="traffic-field" for="ar-start-x">
+                <span>横向偏移</span><output for="ar-start-x"></output>
+                <input type="range" id="ar-start-x" min="-25" max="25" step="1" value="0" data-axis="0" aria-label="起点横向偏移">
+              </label>
+              <label class="traffic-field" for="ar-start-y">
+                <span>纵向偏移</span><output for="ar-start-y"></output>
+                <input type="range" id="ar-start-y" min="-25" max="25" step="1" value="0" data-axis="1" aria-label="起点纵向偏移">
+              </label>
+            </fieldset>
+            <fieldset class="ar-position-group hud-camera-controls" data-ar-endpoint="far">
+              <legend>远点位置</legend>
+              <label class="traffic-field" for="ar-far-x">
+                <span>横向偏移</span><output for="ar-far-x"></output>
+                <input type="range" id="ar-far-x" min="-25" max="25" step="1" value="0" data-axis="0" aria-label="远点横向偏移">
+              </label>
+              <label class="traffic-field" for="ar-far-y">
+                <span>纵向偏移</span><output for="ar-far-y"></output>
+                <input type="range" id="ar-far-y" min="-25" max="25" step="1" value="0" data-axis="1" aria-label="远点纵向偏移">
+              </label>
+            </fieldset>
+            <div class="scene-motion-buttons"><button type="button" id="ar-position-reset">恢复默认位置</button></div>
+          </fieldset>
+        </details>
       </section>
     </section>
   </main>
   <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
-  <script type="module" src="./ar-arrow.mjs?v=1"></script>
+  <script type="module" src="./ar-arrow.mjs?v=2"></script>
 </body>
 </html>
