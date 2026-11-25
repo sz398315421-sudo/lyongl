@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark" data-nav-design="1">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>路口右转 · AR箭头 · HUD</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E">
+  <link rel="stylesheet" href="../adas/style.css?v=20261013-scene-polish-111">
+  <link rel="stylesheet" href="../adas/workspace.css?v=20261021-screen-format-3">
+  <link rel="stylesheet" href="../adas/corners.css?v=20261013-continuous-4">
+  <link rel="stylesheet" href="../adas/export.css?v=dialog-motion-1">
+  <link rel="stylesheet" href="../adas/ui-typography.css?v=zh-CN-1">
+  <link rel="stylesheet" href="../adas/ui-refinements.css?v=20261017">
+  <link rel="stylesheet" href="../adas/scene-playback.css?v=20261020-all-lanes-1">
+  <link rel="stylesheet" href="../adas/traffic-flow.css?v=20261022-traffic-layout-1">
+  <link rel="stylesheet" href="./hud.css?v=subpage-1">
+  <link rel="stylesheet" href="./ar-arrow.css?v=1">
+  <script>
+    try {
+      if (localStorage.getItem('hud:sr-theme') === 'light') document.documentElement.dataset.theme = 'light';
+    } catch {}
+  </script>
+</head>
+<body class="hud-workspace hud-subpage">
+  <a class="skip-link" href="#main-content">跳转到预览与设置</a>
+  <header>
+    <button id="scene-picker" type="button" aria-label="选择场景" aria-expanded="false" aria-controls="mobile-scene-menu">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">
+        <path class="menu-line menu-line-top" d="M2.5 6.5h15"/><path class="menu-line menu-line-middle" d="M2.5 10h15"/><path class="menu-line menu-line-bottom" d="M2.5 13.5h15"/>
+      </svg>
+    </button>
+    <div class="brand"><a class="wordmark" href="./">HUD</a></div>
+    <div class="control-group appearance-control">
+      <a class="studio-tool-link" href="../adas/">返回 ADAS</a>
+    </div>
+  </header>
+  <main id="main-content" tabindex="-1">
+    <aside>
+      <div id="mobile-scene-menu" inert aria-hidden="true"><div class="mobile-menu-content"><div id="mobile-scene-nav"></div></div></div>
+      <nav aria-label="场景列表" id="scenes">
+        <section class="scene-group">
+          <h2 class="structure-heading">ADAS场景</h2>
+          <div class="structure-items"><a class="scene" href="./?scene=02">3车道变道</a><a class="scene" href="./?scene=05">直行过路口</a></div>
+        </section>
+        <section class="scene-group">
+          <h2 class="structure-heading">HUD光毯</h2>
+          <div class="structure-items"><a class="scene" href="./?scene=03">光毯变道</a></div>
+        </section>
+        <section class="scene-group">
+          <h2 class="structure-heading">车道线</h2>
+          <div class="structure-items"><a class="scene" href="./lane-departure.html">压线提醒</a><a class="scene" href="./lane-departure.html?scene=curve">弯道模拟</a></div>
+        </section>
+        <section class="scene-group">
+          <h2 class="structure-heading">AR箭头</h2>
+          <div class="structure-items"><a class="scene" href="./ar-arrow.html" aria-current="page">路口右转</a></div>
+        </section>
+      </nav>
+    </aside>
+    <section class="workspace" aria-labelledby="scene-title">
+      <div class="preview-shell">
+        <div class="hud-subpage-heading">
+          <h1 id="scene-title">路口右转</h1>
+          <div class="screen-format-toolbar">
+            <span id="screen-format-label">屏幕比例</span>
+            <div class="view-segments screen-format-options" role="group" aria-labelledby="screen-format-label">
+              <button type="button" data-screen-format="16:9" aria-pressed="true">1920 × 1080</button>
+              <button type="button" data-screen-format="21:9" aria-pressed="false">2560 × 1080</button>
+              <button type="button" data-screen-format="1920x720" aria-pressed="false">1920 × 720</button>
+            </div>
+          </div>
+        </div>
+        <div class="preview" id="preview" aria-busy="true">
+          <canvas id="scene-canvas" width="1920" height="1080" role="img" aria-label="蓝色折面箭头的路口右转预览"></canvas>
+          <div class="ar-load-status"><p id="ar-load-message" role="status">正在加载箭头模型…</p><button id="ar-retry" type="button" hidden>重试</button></div>
+          <span id="ar-dimensions" class="dimensions">1920 × 1080</span>
+          <button type="button" id="download" class="download" aria-label="下载" title="下载" disabled>
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" aria-hidden="true"><path d="M10 2.5v10m-3.5-3.5 3.5 3.5 3.5-3.5M2.5 13.5v4h15v-4"/></svg>
+          </button>
+        </div>
+        <div class="scene-motion-buttons hud-preview-actions">
+          <button type="button" id="hud-immersive" aria-haspopup="dialog" aria-controls="hud-immersive-dialog" disabled>沉浸预览</button>
+        </div>
+      </div>
+      <section class="preview-settings ar-settings" aria-labelledby="ar-settings-title">
+        <h2 id="ar-settings-title">演示控制</h2>
+        <div class="ar-stage" id="ar-stage" role="status">直行</div>
+        <fieldset id="ar-playback" class="ar-playback" aria-labelledby="ar-settings-title" disabled>
+          <div class="scene-motion-buttons">
+            <button type="button" id="ar-play">播放</button>
+            <button type="button" id="ar-reset">回到起点</button>
+          </div>
+          <div class="ar-timeline">
+            <label for="ar-time">时间轴</label>
+            <output for="ar-time" id="ar-time-display"></output>
+            <input type="range" id="ar-time" min="0" step="10" value="0">
+          </div>
+          <div id="ar-stage-choices" class="scene-motion-buttons ar-stage-choices" role="group" aria-label="跳转到动画阶段"></div>
+        </fieldset>
+      </section>
+    </section>
+  </main>
+  <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
+  <script type="module" src="./ar-arrow.mjs?v=1"></script>
+</body>
+</html>

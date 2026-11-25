@@ -26,3 +26,14 @@ node scripts/build-hud-preview.mjs
 ```
 
 页面与 `/adas/` 共用车型、场景资源和样式。素材来源见 [鸣谢](CREDITS.md)。
+
+## AR箭头
+
+从 HUD 场景列表进入「AR箭头 → 路口右转」。三维预览沿用光毯相机，黑底显示直行单箭头、进弯单箭头、三箭头右转和出弯回正。整段 7.6 秒，可暂停、拖动时间轴、跳转到指定阶段或沉浸预览。右下角的下载菜单提供当前帧 PNG、演示视频、透明 WebM 和 AE 透明 PNG 序列。
+
+路线的关键帧和时间轴定义在 `ar-arrow-motion.mjs`。网格和蓝色折面材质来自 `AR蓝色折面_单箭头.blend`。更新箭头时可独立重导模型，GLB 使用 Y 向上、−Z 朝前，原点作为动画锚点。导出脚本会把原模型的 UV 材质转为 GLB 内嵌纹理。
+
+```powershell
+blender -b -Y '单箭头.blend' --python-exit-code 1 --python scripts/export-hud-ar-arrow.py -- docs/adas-hud/assets/ar-arrow/arrow.glb
+node scripts/build-hud-arrow.mjs
+```

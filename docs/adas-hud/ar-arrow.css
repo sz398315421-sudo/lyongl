@@ -1,0 +1,56 @@
+.ar-settings h2 {
+  margin: 0 0 14px;
+  font-size: var(--type-control, 14px);
+  font-weight: var(--weight-emphasis, 500);
+}
+.ar-stage {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-block-end: 14px;
+  font-size: var(--type-control, 14px);
+}
+.ar-stage::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2198ff;
+}
+.ar-playback { display: grid; gap: 18px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.ar-playback #ar-play { flex: 1; }
+.ar-timeline {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px 12px;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: var(--type-caption, 12px);
+}
+.ar-timeline output { font-variant-numeric: tabular-nums; }
+.ar-timeline input { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: #2198ff; }
+.ar-stage-choices { flex-wrap: wrap; }
+.workspace .ar-stage-choices button {
+  flex: 1 1 calc(50% - 4px);
+  padding: 8px;
+  min-height: 40px;
+  font-size: var(--type-caption, 12px);
+}
+.workspace .ar-stage-choices button[aria-pressed="true"] {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px #2198ff;
+}
+.ar-load-status {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  position: absolute;
+  inset: 0;
+  padding: 12px;
+  color: #eef2f9;
+  text-align: center;
+  font-size: var(--type-control, 14px);
+}
+.ar-load-status[hidden] { display: none; }
+.ar-load-status p { margin: 0; }
+#ar-retry { margin-top: 12px; background: #242832; color: #fff; padding: 8px 16px; border-radius: var(--ui-radius); }

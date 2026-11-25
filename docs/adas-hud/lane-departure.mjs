@@ -1,6 +1,6 @@
-import {setScreenFormat, sizeLabel} from '../adas/screen-format.js';
 import {bindHexColor} from './hud-hex.mjs';
 import {hudPreferences} from './hud-storage.mjs';
+import {initHudSubpageFormats, initHudSubpageImmersive, initHudSubpageNavigation} from './hud-subpage.mjs';
 import {initLaneCamera} from './lane-camera.mjs';
 import {initLaneExport} from './lane-export.mjs?v=2';
 import {easeLaneMotion, renderLanes} from './lane-render.mjs?v=2';
@@ -222,64 +222,13 @@ if (curveMode) {
   get('curve-controls').hidden = false;
 }
 
-const formats = [...document.querySelectorAll('[data-screen-format]')];
-const formatGroup = formats[0].parentElement;
-function syncFormatIndicator() {
-  const active = formatGroup.querySelector('[aria-pressed="true"]');
-  formatGroup.style.setProperty('--selection-x', `${active.offsetLeft}px`);
-  formatGroup.style.setProperty('--selection-width', `${active.offsetWidth}px`);
-}
-
-for (const button of formats) {
-  button.addEventListener('click', () => {
-    const {width, height} = setScreenFormat(button.dataset.screenFormat);
-    document.documentElement.style.setProperty('--screen-aspect', String(width / height));
-    canvas.width = width;
-    canvas.height = height;
-    get('lane-dimensions').textContent = sizeLabel();
-    for (const format of formats) format.setAttribute('aria-pressed', String(format === button));
-    syncFormatIndicator();
-    draw();
-  });
-}
-new ResizeObserver(syncFormatIndicator).observe(formatGroup);
-
-const picker = get('scene-picker');
-const menu = get('mobile-scene-menu');
-const nav = get('scenes');
-const mobile = matchMedia('(max-width: 760px)');
-function showMenu(open) {
-  menu.classList.toggle('is-open', open);
-  menu.inert = !open;
-  menu.setAttribute('aria-hidden', String(!open));
-  picker.setAttribute('aria-expanded', String(open));
-  picker.setAttribute('aria-label', open ? '关闭场景菜单' : '选择场景');
-}
-function placeNavigation() {
-  showMenu(false);
-  (mobile.matches ? get('mobile-scene-nav') : menu.parentElement).append(nav);
-}
-picker.addEventListener('click', () => showMenu(menu.inert));
-document.addEventListener('keydown', event => {
-  if (event.key !== 'Escape' || menu.inert) return;
-  showMenu(false);
-  picker.focus();
+initHudSubpageFormats(get('lane-dimensions'), ({width, height}) => {
+  canvas.width = width;
+  canvas.height = height;
+  draw();
 });
-mobile.addEventListener('change', placeNavigation);
-placeNavigation();
-
-const immersive = get('hud-immersive');
-const dialog = get('hud-immersive-dialog');
-const preview = get('preview');
-immersive.addEventListener('click', () => {
-  dialog.append(canvas);
-  dialog.showModal();
-});
-dialog.addEventListener('click', () => dialog.close());
-dialog.addEventListener('close', () => {
-  preview.append(canvas);
-  immersive.focus({preventScroll: true});
-});
+initHudSubpageNavigation();
+initHudSubpageImmersive(canvas);
 
 const initTime = performance.now();
 startPlayback(curveMode ? 'straight' : 'recognition', 0, initTime);

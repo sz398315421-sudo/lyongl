@@ -1,8 +1,8 @@
-import {Matrix4, Quaternion, Vector3, MathUtils} from 'three';
+import {Matrix4, Quaternion, Vector3} from 'three';
+import {hudCameraPose} from './hud-camera-view.mjs';
 
 export function createHudCamera(world, settings) {
   const {camera} = world;
-  const {degToRad} = MathUtils;
   const renderedPosition = new Vector3();
   const renderedAim = new Vector3();
   const inverse = new Quaternion();
@@ -29,15 +29,14 @@ export function createHudCamera(world, settings) {
   }
 
   function customView() {
-    const {yaw, pitch, distance, fov, ahead} = settings.view;
-    const h = degToRad(pitch), a = degToRad(yaw), radius = distance * Math.cos(h);
+    const {position, target} = hudCameraPose(settings.view);
     const heading = anchor?.heading ?? (settings.preset === 'carpet' && world.roadGuidePath?.kind === 'hud-right-pass' ? world.hudPlayback?.basePose?.carQuaternion : null) ?? world.car.quaternion;
     const car = anchor?.car ?? world.car.position;
-    renderedAim.set(0, .85, -ahead).applyQuaternion(heading).add(car);
-    renderedPosition.set(radius * Math.sin(a), distance * Math.sin(h) + .85, radius * Math.cos(a)).applyQuaternion(heading).add(car);
+    renderedAim.set(...target).applyQuaternion(heading).add(car);
+    renderedPosition.set(...position).applyQuaternion(heading).add(car);
     camera.position.copy(renderedPosition);
     camera.lookAt(renderedAim);
-    camera.fov = fov;
+    camera.fov = settings.view.fov;
     camera.clearViewOffset();
   }
 

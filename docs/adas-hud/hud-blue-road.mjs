@@ -1,5 +1,6 @@
 import {laneWidth} from '../adas/road-assist.js';
 import {createHudClayTruck} from './hud-clay-truck.mjs';
+import {carpetView} from './hud-camera-view.mjs';
 
 export const blueRoadColor = '#01cff3';
 
@@ -10,7 +11,7 @@ export const blueRoadPreset = {
 };
 
 export const carpetPreset = {
-  view: {yaw: 0, pitch: 12, distance: 8, fov: 36, ahead: 12},
+  view: carpetView,
   guide: {width: 2.9, length: 43, gradient: true, far: '#063038'},
   color: blueRoadColor
 };

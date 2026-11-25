@@ -4,6 +4,29 @@
 
 .hud-workspace #scenes a.scene { text-decoration: none; }
 
+.hud-subpage-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 16px;
+  margin-bottom: 12px;
+}
+.hud-subpage-heading h1 {
+  margin: 0;
+  font-size: clamp(18px, 1.6vw, 25px);
+  line-height: 1.3;
+}
+.hud-subpage-heading .screen-format-toolbar {
+  flex: 0 1 396px;
+  margin: 0 0 0 auto;
+}
+.hud-subpage .structure-items .scene[aria-current="page"] {
+  background: var(--selected);
+  color: var(--text);
+  font-weight: var(--weight-emphasis, 500);
+}
+
 .hud-workspace {
   --shell-width: 1920px;
   height: 100dvh;
@@ -45,6 +68,8 @@
 .hud-workspace .workspace .preview-settings :is(button, input, select) {
   scroll-margin-block: 8px;
 }
+
+.hud-subpage.hud-workspace .workspace .preview-settings { padding: 0 4px 18px 0; }
 
 .hud-workspace .scene-options:has(> #road-controls[hidden]):has(> .toolbar[hidden]):has(> #scene-animation-control:not([hidden])) {
   display: flex;
@@ -103,6 +128,14 @@
     overflow: auto;
     overscroll-behavior: contain;
   }
+}
+
+@media (max-width: 1023px) {
+  .hud-subpage .preview-settings { width: 100%; }
+}
+
+@media (max-width: 600px) {
+  .hud-subpage-heading .screen-format-toolbar { margin-left: 0; }
 }
 
 .appearance-control { display: flex; align-items: center; gap: 12px; }

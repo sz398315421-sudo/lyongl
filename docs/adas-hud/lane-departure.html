@@ -12,15 +12,15 @@
   <link rel="stylesheet" href="../adas/ui-refinements.css?v=20261017">
   <link rel="stylesheet" href="../adas/scene-playback.css?v=20261020-all-lanes-1">
   <link rel="stylesheet" href="../adas/traffic-flow.css?v=20261022-traffic-layout-1">
-  <link rel="stylesheet" href="./hud.css">
-  <link rel="stylesheet" href="./lane-departure.css?v=5">
+  <link rel="stylesheet" href="./hud.css?v=subpage-1">
+  <link rel="stylesheet" href="./lane-departure.css?v=6">
   <script>
     try {
       if (localStorage.getItem('hud:sr-theme') === 'light') document.documentElement.dataset.theme = 'light';
     } catch {}
   </script>
 </head>
-<body class="hud-workspace hud-lane-page">
+<body class="hud-workspace hud-subpage">
   <a class="skip-link" href="#main-content">跳转到预览与设置</a>
   <header>
     <button id="scene-picker" type="button" aria-label="选择场景" aria-expanded="false" aria-controls="mobile-scene-menu">
@@ -52,11 +52,15 @@
             <a class="scene" id="curve-navigation" href="./lane-departure.html?scene=curve">弯道模拟</a>
           </div>
         </section>
+        <section class="scene-group">
+          <h2 class="structure-heading">AR箭头</h2>
+          <div class="structure-items"><a class="scene" href="./ar-arrow.html">路口右转</a></div>
+        </section>
       </nav>
     </aside>
     <section class="workspace" aria-labelledby="scene-title">
       <div class="preview-shell">
-        <div class="lane-preview-heading">
+        <div class="hud-subpage-heading">
           <h1 id="scene-title">压线提醒</h1>
           <div class="screen-format-toolbar">
             <span id="screen-format-label">屏幕比例</span>
@@ -151,6 +155,6 @@
     </section>
   </main>
   <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
-  <script type="module" src="./lane-departure.mjs?v=6"></script>
+  <script type="module" src="./lane-departure.mjs?v=7"></script>
 </body>
 </html>
