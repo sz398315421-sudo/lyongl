@@ -5,44 +5,70 @@ const right = [
   [.637, .394, 33.26, 90, 27.5],
   [.667, .394, 41.08, 90, 31.5]
 ];
-// Followers start behind the preceding arrow and keep their own depth and
-// orientation as they slide into their places in the turn formation.
-const stacked = right.slice(1).map((pose, index) => [...right[index].slice(0, 2), ...pose.slice(2)]);
+const left = right.map(([x, y, depth, heading, tilt]) => [2 * straight[0] - x, y, depth, -heading, tilt]);
+const uTurn = [
+  [.394, .514, 25.8, -180, 24],
+  [.394, .594, 33.4, -180, 26],
+  [.394, .665, 41.4, -180, 29]
+];
 
-// Coordinates use the center of the arrow in the reference 16:9 camera,
-// with optical depth in meters and clockwise rotation and tilt in degrees.
-export const rightTurn = {
-  name: '路口右转',
+const standardTiming = {
   durationMs: 7600,
-  farAnchor: right.at(-1).slice(0, 2),
-  stages: [
-    {label: '直行', start: 0, preview: 0, position: 'start'},
-    {label: '进入右转', start: 950, preview: 2700},
-    {label: '右转引导', start: 2800, preview: 4070, position: 'far'},
-    {label: '出弯回正', start: 4900, preview: 6250},
-    {label: '直行', start: 6800}
-  ],
-  tracks: [
-    [
-      [950, straight, 1, 0],
-      [2700, right[0], 1, 1, .15],
-      [5050, right[0], 1],
-      [6800, straight, 1, 0, -.15]
-    ],
-    [
-      [2390, stacked[0], 0],
-      [3510, right[1], 1],
-      [5070, right[1], 1],
-      [5660, stacked[0], 0]
-    ],
-    [
-      [2720, stacked[1], 0],
-      [3940, right[2], 1],
-      [4900, right[2], 1],
-      [5510, stacked[1], 0]
-    ]
-  ]
+  approach: 950,
+  turned: 2700,
+  guideStart: 2800,
+  guidePreview: 4070,
+  recoveryStart: 5050,
+  recoveryPreview: 6250,
+  straightAgain: 6800,
+  followers: [[2390, 3510, 5070, 5660], [2720, 3940, 4900, 5510]]
 };
+
+// Poses are projected centers in the reference 16:9 camera, optical depth
+// in meters, and clockwise heading and tilt in degrees.
+function makeTurn({id, name, maneuver, poses, bend, recoveryBend = -bend, finish = straight, timing = standardTiming}) {
+  const {durationMs, approach, turned, guideStart, guidePreview, recoveryStart, recoveryPreview, straightAgain, followers} = timing;
+  const [lead] = poses;
+  const followerTracks = followers.map(([appear, settled, withdraw, hidden], index) => {
+    const pose = poses[index + 1];
+    // Slide out from behind the preceding arrow at the follower's own depth.
+    const tucked = [...poses[index].slice(0, 2), ...pose.slice(2)];
+    return [[appear, tucked, 0], [settled, pose, 1], [withdraw, pose, 1], [hidden, tucked, 0]];
+  });
+  return {
+    id,
+    name,
+    durationMs,
+    farAnchor: poses.at(-1).slice(0, 2),
+    stages: [
+      {label: '直行', start: 0, preview: 0, position: 'start'},
+      {label: `进入${maneuver}`, start: approach, preview: turned},
+      {label: `${maneuver}引导`, start: guideStart, preview: guidePreview, position: 'far'},
+      {label: '出弯回正', start: followers.at(-1)[2], preview: recoveryPreview},
+      {label: '直行', start: straightAgain}
+    ],
+    tracks: [
+      [[approach, straight, 1, 0], [turned, lead, 1, 1, bend],
+        [recoveryStart, lead, 1], [straightAgain, finish, 1, 0, recoveryBend]],
+      ...followerTracks
+    ]
+  };
+}
+
+export const rightTurn = makeTurn({id: 'right', name: '路口右转', maneuver: '右转', poses: right, bend: .15});
+export const turnPresets = Object.freeze({
+  right: rightTurn,
+  left: makeTurn({id: 'left', name: '路口左转', maneuver: '左转', poses: left, bend: -.15}),
+  'u-turn': makeTurn({
+    id: 'u-turn', name: '左侧掉头', maneuver: '掉头', poses: uTurn, bend: -.60, recoveryBend: -.60,
+    finish: [straight[0], straight[1], straight[2], -360, straight[4]],
+    timing: {
+      durationMs: 8750, approach: 950, turned: 3190, guideStart: 3290, guidePreview: 4610,
+      recoveryStart: 5960, recoveryPreview: 7550, straightAgain: 8200,
+      followers: [[2880, 4090, 5690, 6190], [3270, 4480, 5520, 6070]]
+    }
+  })
+});
 
 function sampleTrack(track, elapsed) {
   const [firstTime, firstPose, firstOpacity] = track[0];

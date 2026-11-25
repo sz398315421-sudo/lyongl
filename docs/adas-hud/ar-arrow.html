@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="../adas/scene-playback.css?v=20261020-all-lanes-1">
   <link rel="stylesheet" href="../adas/traffic-flow.css?v=20261022-traffic-layout-1">
   <link rel="stylesheet" href="./hud.css?v=subpage-1">
-  <link rel="stylesheet" href="./ar-arrow.css?v=2">
+  <link rel="stylesheet" href="./ar-arrow.css?v=3">
   <script>
     try {
       if (localStorage.getItem('hud:sr-theme') === 'light') document.documentElement.dataset.theme = 'light';
@@ -52,7 +52,11 @@
         </section>
         <section class="scene-group">
           <h2 class="structure-heading">AR箭头</h2>
-          <div class="structure-items"><a class="scene" href="./ar-arrow.html" aria-current="page">路口右转</a></div>
+          <div class="structure-items">
+            <a class="scene" href="./ar-arrow.html" data-ar-preset="right" aria-current="page">路口右转</a>
+            <a class="scene" href="./ar-arrow.html?scene=left" data-ar-preset="left">路口左转</a>
+            <a class="scene" href="./ar-arrow.html?scene=u-turn" data-ar-preset="u-turn">左侧掉头</a>
+          </div>
         </section>
       </nav>
     </aside>
@@ -96,9 +100,35 @@
           </div>
           <div id="ar-stage-choices" class="scene-motion-buttons ar-stage-choices" role="group" aria-label="跳转到动画阶段"></div>
         </fieldset>
+        <details class="ar-camera-settings">
+          <summary>摄像机视角</summary>
+          <fieldset class="ar-camera-controls hud-camera-controls" id="ar-camera-controls" aria-label="摄像机视角" disabled>
+            <label class="traffic-field" for="ar-camera-yaw">
+              <span>水平角</span><output for="ar-camera-yaw"></output>
+              <input type="range" id="ar-camera-yaw" min="-40" max="40" step="1" data-camera="yaw" data-unit="°" aria-label="水平角">
+            </label>
+            <label class="traffic-field" for="ar-camera-pitch">
+              <span>俯角</span><output for="ar-camera-pitch"></output>
+              <input type="range" id="ar-camera-pitch" min="4" max="36" step="1" data-camera="pitch" data-unit="°" aria-label="俯角">
+            </label>
+            <label class="traffic-field" for="ar-camera-distance">
+              <span>相机距离</span><output for="ar-camera-distance"></output>
+              <input type="range" id="ar-camera-distance" min="4" max="18" step="0.5" data-camera="distance" data-unit=" 米" aria-label="相机距离">
+            </label>
+            <label class="traffic-field" for="ar-camera-fov">
+              <span>视野角</span><output for="ar-camera-fov"></output>
+              <input type="range" id="ar-camera-fov" min="24" max="60" step="1" data-camera="fov" data-unit="°" aria-label="视野角">
+            </label>
+            <label class="traffic-field" for="ar-camera-ahead">
+              <span>向前看</span><output for="ar-camera-ahead"></output>
+              <input type="range" id="ar-camera-ahead" min="5" max="24" step="0.5" data-camera="ahead" data-unit=" 米" aria-label="向前看">
+            </label>
+            <div class="scene-motion-buttons"><button type="button" id="ar-camera-reset">恢复光毯视角</button></div>
+          </fieldset>
+        </details>
         <details class="ar-position-settings">
           <summary>箭头位置</summary>
-          <p class="hud-control-note" id="ar-position-note">横、纵向按画面宽高偏移。远近按米调节，正值推远，负值拉近。</p>
+          <p class="hud-control-note" id="ar-position-note">横、纵向按默认镜头的画面宽高偏移。远近按米调节，正值推远，负值拉近。</p>
           <fieldset class="ar-position-groups" id="ar-position-controls" aria-label="箭头位置" aria-describedby="ar-position-note" disabled>
             <fieldset class="ar-position-group hud-camera-controls" data-ar-endpoint="start">
               <legend>起点位置</legend>
@@ -137,6 +167,6 @@
     </section>
   </main>
   <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
-  <script type="module" src="./ar-arrow.mjs?v=7"></script>
+  <script type="module" src="./ar-arrow.mjs?v=8"></script>
 </body>
 </html>

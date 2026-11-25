@@ -1,7 +1,8 @@
 import {exportSize} from '../adas/screen-format.js';
-import {rightTurn as clip} from './ar-arrow-motion.mjs?v=6';
-import {createArArrowScene, loadArArrow} from './ar-arrow-scene.bundle.mjs?v=7';
-import {initArArrowExport} from './ar-arrow-export.mjs?v=7';
+import {rightTurn, turnPresets} from './ar-arrow-motion.mjs?v=8';
+import {createArArrowScene, loadArArrow} from './ar-arrow-scene.bundle.mjs?v=8';
+import {initArArrowExport} from './ar-arrow-export.mjs?v=8';
+import {carpetView} from './hud-camera-view.mjs';
 import {hudPreferences} from './hud-storage.mjs';
 import {initHudSubpageFormats, initHudSubpageImmersive, initHudSubpageNavigation} from './hud-subpage.mjs';
 
@@ -17,14 +18,27 @@ const download = get('download');
 const loadMessage = get('ar-load-message');
 const retry = get('ar-retry');
 const positionControls = get('ar-position-controls');
-const positionStorageKey = 'ar-arrow-position-v1';
+const cameraControls = get('ar-camera-controls');
+const preset = new URLSearchParams(location.search).get('scene');
+const clip = Object.hasOwn(turnPresets, preset) ? turnPresets[preset] : rightTurn;
+const positionStorageKey = clip === rightTurn ? 'ar-arrow-position-v1' : `ar-arrow-position-v1-${clip.id}`;
+const cameraStorageKey = 'ar-arrow-camera-v1';
 const offsets = {start: [0, 0, 0], far: [0, 0, 0]};
+const view = {...carpetView};
 let model;
 let renderer;
 let elapsed = 0;
 let frameRequest = 0;
 let startedAt = 0;
 let activeStage = -1;
+
+document.title = `${clip.name} · AR箭头 · HUD`;
+get('scene-title').textContent = clip.name;
+canvas.setAttribute('aria-label', `蓝色折面箭头的${clip.name}预览`);
+for (const link of document.querySelectorAll('[data-ar-preset]')) {
+  if (link.dataset.arPreset === clip.id) link.setAttribute('aria-current', 'page');
+  else link.removeAttribute('aria-current');
+}
 
 const stageButtons = clip.stages.map(stage => {
   if (stage.preview === undefined) return null;
@@ -68,6 +82,34 @@ function seek(time) {
   sync();
 }
 
+function readSetting(key) {
+  try { return JSON.parse(hudPreferences.getItem(key)); } catch { return null; }
+}
+
+function bindRange(input, {saved, fallback = input.defaultValue, signed = false, update, change}) {
+  const output = input.closest('label').querySelector('output');
+  const min = Number(input.min);
+  const max = Number(input.max);
+  const unit = input.dataset.unit ?? '%';
+  input.value = Number.isFinite(saved) ? saved : fallback;
+  const syncField = () => {
+    const value = input.valueAsNumber;
+    update(value);
+    output.value = `${signed && value > 0 ? '+' : ''}${value}${unit}`;
+    input.setAttribute('aria-valuetext', output.value);
+    input.style.setProperty('--range-fill', `${(value - min) / (max - min) * 100}%`);
+  };
+  input.addEventListener('input', () => {
+    syncField();
+    change();
+  });
+  syncField();
+  return () => {
+    input.value = fallback;
+    syncField();
+  };
+}
+
 function updatePositions(endpoint) {
   try { hudPreferences.setItem(positionStorageKey, JSON.stringify(offsets)); } catch {}
   renderer?.setOffsets(offsets);
@@ -78,37 +120,39 @@ function updatePositions(endpoint) {
   }
 }
 
-let savedOffsets;
-try { savedOffsets = JSON.parse(hudPreferences.getItem(positionStorageKey)); } catch {}
+const savedOffsets = readSetting(positionStorageKey);
 const positionFields = [...positionControls.querySelectorAll('input')].map(input => {
   const endpoint = input.closest('[data-ar-endpoint]').dataset.arEndpoint;
   const axis = Number(input.dataset.axis);
-  const output = input.closest('label').querySelector('output');
-  const min = Number(input.min);
-  const max = Number(input.max);
-  const unit = input.dataset.unit ?? '%';
-  const saved = savedOffsets?.[endpoint]?.[axis];
-  if (Number.isFinite(saved)) input.value = saved;
-  const syncField = () => {
-    const value = input.valueAsNumber;
-    offsets[endpoint][axis] = value;
-    output.value = `${value > 0 ? '+' : ''}${value}${unit}`;
-    input.setAttribute('aria-valuetext', output.value);
-    input.style.setProperty('--range-fill', `${(value - min) / (max - min) * 100}%`);
-  };
-  input.addEventListener('input', () => {
-    syncField();
-    updatePositions(endpoint);
+  return bindRange(input, {
+    saved: savedOffsets?.[endpoint]?.[axis], signed: true,
+    update: value => { offsets[endpoint][axis] = value; },
+    change: () => updatePositions(endpoint)
   });
-  syncField();
-  return () => {
-    input.value = input.defaultValue;
-    syncField();
-  };
 });
 get('ar-position-reset').addEventListener('click', () => {
   positionFields.forEach(reset => reset());
   updatePositions();
+});
+
+function updateCamera() {
+  try { hudPreferences.setItem(cameraStorageKey, JSON.stringify(view)); } catch {}
+  renderer?.setView(view);
+  renderer?.draw(elapsed);
+}
+
+const savedView = readSetting(cameraStorageKey);
+const cameraFields = [...cameraControls.querySelectorAll('input')].map(input => {
+  const key = input.dataset.camera;
+  return bindRange(input, {
+    saved: savedView?.[key], fallback: carpetView[key],
+    update: value => { view[key] = value; },
+    change: updateCamera
+  });
+});
+get('ar-camera-reset').addEventListener('click', () => {
+  cameraFields.forEach(reset => reset());
+  updateCamera();
 });
 
 function tick(now) {
@@ -145,7 +189,7 @@ initHudSubpageFormats(get('ar-dimensions'), resizePreview);
 initHudSubpageImmersive(canvas);
 initArArrowExport(download, clip, () => {
   seek(elapsed);
-  return {model, elapsed, offsets: structuredClone(offsets)};
+  return {model, elapsed, offsets: structuredClone(offsets), view: {...view}};
 });
 new ResizeObserver(resizePreview).observe(canvas);
 sync();
@@ -156,11 +200,11 @@ async function init() {
   preview.setAttribute('aria-busy', 'true');
   try {
     model ??= await loadArArrow();
-    renderer = createArArrowScene(canvas, model, clip, {offsets});
+    renderer = createArArrowScene(canvas, model, clip, {offsets, view});
     renderer.resize(canvas.width, canvas.height);
     resizePreview();
     loadMessage.parentElement.hidden = true;
-    download.disabled = get('hud-immersive').disabled = get('ar-playback').disabled = positionControls.disabled = false;
+    download.disabled = get('hud-immersive').disabled = get('ar-playback').disabled = positionControls.disabled = cameraControls.disabled = false;
   } catch (error) {
     console.error('Could not load the HUD AR arrow scene', error);
     loadMessage.textContent = '无法加载三维箭头。';

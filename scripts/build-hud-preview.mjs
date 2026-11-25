@@ -55,7 +55,7 @@ html = replace(html, 'if(snapshotSearch(cached?.search)===snapshotSearch(locatio
 html = replace(html, '<button type="button" data-road="laneCount" data-value="4"', '<button type="button" data-road="laneCount" data-value="3" aria-label="3 车道" aria-pressed="false">3</button><button type="button" data-road="laneCount" data-value="4"');
 html = replace(html, '</head>', '<link rel="stylesheet" href="./hud.css"></head>');
 const laneNavigation = '<section class="scene-group" id="hud-lane-navigation"><h2 class="structure-heading">车道线</h2><div class="structure-items"><a class="scene" href="./lane-departure.html">压线提醒</a><a class="scene" href="./lane-departure.html?scene=curve">弯道模拟</a></div></section>';
-const arrowNavigation = '<section class="scene-group"><h2 class="structure-heading">AR箭头</h2><div class="structure-items"><a class="scene" href="./ar-arrow.html">路口右转</a></div></section>';
+const arrowNavigation = '<section class="scene-group"><h2 class="structure-heading">AR箭头</h2><div class="structure-items"><a class="scene" href="./ar-arrow.html">路口右转</a><a class="scene" href="./ar-arrow.html?scene=left">路口左转</a><a class="scene" href="./ar-arrow.html?scene=u-turn">左侧掉头</a></div></section>';
 html = replace(html, '<nav aria-label="场景列表" id="scenes"></nav>', `<nav aria-label="场景列表" id="scenes">${laneNavigation}${arrowNavigation}</nav>`);
 const controls = await readFile(path.join(hud, 'hud-controls.html'), 'utf8');
 html = replace(html, /<div class="environment-control" aria-label="场景元素">.*?<\/label><\/div><\/div>(?=<\/div><p id="status")/g, `\n${controls}`);

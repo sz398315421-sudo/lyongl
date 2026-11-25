@@ -13,16 +13,27 @@ export async function loadArArrow() {
   return scene;
 }
 
-export function createArArrowScene(canvas, model, clip, {transparent = false, offsets} = {}) {
+export function createArArrowScene(canvas, model, clip, {transparent = false, offsets, view = carpetView} = {}) {
   const renderer = new WebGLRenderer({canvas, antialias: true, alpha: true});
   renderer.setClearColor(0x000000, transparent ? 0 : 1);
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(carpetView.fov, referenceAspect, .1, 150);
+  // Author arrow placement once in the light-carpet view. An adjustable
+  // camera observes those same world-space poses from a different angle.
+  const reference = new PerspectiveCamera(carpetView.fov, referenceAspect, .1, 150);
   const {position, target} = hudCameraPose(carpetView);
-  camera.position.set(...position);
-  camera.lookAt(...target);
-  camera.updateMatrixWorld(true);
+  reference.position.set(...position);
+  reference.lookAt(...target);
+  reference.updateMatrixWorld(true);
+  const camera = reference.clone();
+  function setView(nextView) {
+    const pose = hudCameraPose(nextView);
+    camera.position.set(...pose.position);
+    camera.lookAt(...pose.target);
+    camera.fov = nextView.fov;
+    camera.updateProjectionMatrix();
+  }
+  setView(view);
   let motion = offsets ? positionArrowMotion(clip, offsets, camera.aspect) : clip;
 
   const tiltRotation = new Quaternion();
@@ -44,6 +55,7 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
   });
 
   return {
+    setView,
     resize(width, height) {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
@@ -60,10 +72,10 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
         arrow.visible = opacity > 0;
         if (!arrow.visible) return;
         const span = 2 * depth * viewScale;
-        camera.localToWorld(arrow.position.set((x - .5) * span * referenceAspect, (.5 - y) * span, -depth));
+        reference.localToWorld(arrow.position.set((x - .5) * span * referenceAspect, (.5 - y) * span, -depth));
         spinRotation.setFromAxisAngle(spinAxis, MathUtils.degToRad(-heading));
         tiltRotation.setFromAxisAngle(tiltAxis, MathUtils.degToRad(tilt));
-        arrow.quaternion.copy(camera.quaternion).multiply(spinRotation).multiply(tiltRotation);
+        arrow.quaternion.copy(reference.quaternion).multiply(spinRotation).multiply(tiltRotation);
         for (const material of materials) {
           material.opacity = opacity;
           material.transparent = opacity < 1;

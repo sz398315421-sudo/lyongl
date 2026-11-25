@@ -55,17 +55,18 @@
 .ar-load-status p { margin: 0; }
 #ar-retry { margin-top: 12px; background: #242832; color: #fff; padding: 8px 16px; border-radius: var(--ui-radius); }
 
-.ar-position-settings {
+:is(.ar-position-settings, .ar-camera-settings) {
   margin-block-start: 20px;
   border-block: 1px solid var(--line);
 }
-.ar-position-settings > summary {
+.ar-position-settings { margin-block-start: 0; border-block-start: 0; }
+:is(.ar-position-settings, .ar-camera-settings) > summary {
   padding-block: 14px;
   cursor: pointer;
   font-size: var(--type-control, 14px);
 }
 .ar-position-settings .hud-control-note { margin: 0 0 14px; }
-.ar-position-groups, .ar-position-group {
+.ar-position-groups, .ar-position-group, .ar-camera-controls {
   min-width: 0;
   padding: 0;
   margin: 0;
@@ -76,5 +77,6 @@
   gap: 16px;
   margin-block-end: 16px;
 }
-.ar-position-group { font-size: var(--type-caption, 12px); gap: 12px; }
+.ar-camera-controls { margin-block-end: 16px; }
+:is(.ar-position-group, .ar-camera-controls) { font-size: var(--type-caption, 12px); gap: 12px; }
 .ar-position-group legend { padding: 0; margin-block-end: 8px; font-weight: var(--weight-emphasis, 500); }
