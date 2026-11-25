@@ -8,11 +8,11 @@ const spinAxis = new Vector3(0, 0, 1);
 const tiltAxis = new Vector3(1, 0, 0);
 
 function playReferenceMotion(data, arrows, reference, placeArrow, setOpacity) {
-  const {frames, fps, farAnchor} = data;
+  const {frames, fps, modelScale, startAnchor, farAnchor} = data;
   const nextRotation = new Quaternion();
   const refRotation = new Quaternion();
-  // Match the Blender mesh axes and keep the replacement fold readable.
-  const modelBasis = new Quaternion().setFromAxisAngle(tiltAxis, MathUtils.degToRad(98));
+  // The current model is Y-up; the saved Blender rotation expects Z-up.
+  const modelBasis = new Quaternion().setFromAxisAngle(tiltAxis, Math.PI / 2);
   const zero = [0, 0, 0];
   const {lerp, smoothstep} = MathUtils;
   return (elapsed, {start = zero, far = zero} = {}, aspect) => {
@@ -21,12 +21,14 @@ function playReferenceMotion(data, arrows, reference, placeArrow, setOpacity) {
     const current = frames[frame];
     const next = frames[Math.min(frame + 1, frames.length - 1)];
     const part = step - frame;
-    const turn = smoothstep(elapsed, 600, 2800) * (1 - smoothstep(elapsed, 5700, 7980));
+    const advanceNotice = smoothstep(elapsed, 620, 2680) * (1 - smoothstep(elapsed, 4900, 6640));
+    const maneuver = smoothstep(elapsed, 7460, 9480) * (1 - smoothstep(elapsed, 13000, 15000));
+    const turn = Math.max(advanceNotice, maneuver);
     const offsetX = lerp(start[0], far[0], turn) / 100 * aspect / referenceAspect;
     const offsetY = lerp(start[1], far[1], turn) / 100;
     const offsetDepth = lerp(start[2] ?? 0, far[2] ?? 0, turn);
-    const anchorX = lerp(.497, farAnchor[0], turn);
-    const anchorY = lerp(.520, farAnchor[1], turn);
+    const anchorX = lerp(startAnchor[0], farAnchor[0], turn);
+    const anchorY = lerp(startAnchor[1], farAnchor[1], turn);
     arrows.forEach((instance, index) => {
       const a = current[index];
       const b = next[index];
@@ -41,7 +43,7 @@ function playReferenceMotion(data, arrows, reference, placeArrow, setOpacity) {
       placeArrow(arrow, x + (anchorX - x) * squeeze + offsetX, y + (anchorY - y) * squeeze + offsetY, depth);
       refRotation.fromArray(a, 3).slerp(nextRotation.fromArray(b, 3), part);
       arrow.quaternion.copy(reference.quaternion).multiply(refRotation).multiply(modelBasis);
-      arrow.scale.setScalar(.68 * scale);
+      arrow.scale.setScalar(modelScale * scale);
     });
   };
 }
@@ -53,7 +55,7 @@ export async function loadArArrow() {
 }
 
 export async function loadArArrowMotion() {
-  const url = new URL('./assets/ar-arrow/u-turn-motion.json?v=1', import.meta.url);
+  const url = new URL('./assets/ar-arrow/u-turn-motion.json?v=2', import.meta.url);
   const response = await fetch(url);
   if (!response.ok) throw Error('无法加载掉头动画。');
   return response.json();

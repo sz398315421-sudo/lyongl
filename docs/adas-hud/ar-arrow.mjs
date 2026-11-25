@@ -1,7 +1,7 @@
 import {exportSize} from '../adas/screen-format.js';
-import {rightTurn, turnPresets} from './ar-arrow-motion.mjs?v=10';
-import {createArArrowScene, loadArArrow, loadArArrowMotion} from './ar-arrow-scene.bundle.mjs?v=10';
-import {initArArrowExport} from './ar-arrow-export.mjs?v=10';
+import {rightTurn, turnPresets} from './ar-arrow-motion.mjs?v=11';
+import {createArArrowScene, loadArArrow, loadArArrowMotion} from './ar-arrow-scene.bundle.mjs?v=11';
+import {initArArrowExport} from './ar-arrow-export.mjs?v=11';
 import {carpetView} from './hud-camera-view.mjs';
 import {hudPreferences} from './hud-storage.mjs';
 import {initHudSubpageFormats, initHudSubpageImmersive, initHudSubpageNavigation} from './hud-subpage.mjs';
@@ -187,6 +187,7 @@ function resizePreview() {
 
 initHudSubpageNavigation();
 initHudSubpageFormats(get('ar-dimensions'), resizePreview);
+if (clip.referenceMotion) document.querySelector('[data-screen-format="1920x720"]').click();
 initHudSubpageImmersive(canvas);
 initArArrowExport(download, clip, () => {
   seek(elapsed);
