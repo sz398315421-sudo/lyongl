@@ -1,7 +1,7 @@
 import {exportSize} from '../adas/screen-format.js';
-import {rightTurn, turnPresets} from './ar-arrow-motion.mjs?v=9';
-import {createArArrowScene, loadArArrow} from './ar-arrow-scene.bundle.mjs?v=9';
-import {initArArrowExport} from './ar-arrow-export.mjs?v=9';
+import {rightTurn, turnPresets} from './ar-arrow-motion.mjs?v=10';
+import {createArArrowScene, loadArArrow, loadArArrowMotion} from './ar-arrow-scene.bundle.mjs?v=10';
+import {initArArrowExport} from './ar-arrow-export.mjs?v=10';
 import {carpetView} from './hud-camera-view.mjs';
 import {hudPreferences} from './hud-storage.mjs';
 import {initHudSubpageFormats, initHudSubpageImmersive, initHudSubpageNavigation} from './hud-subpage.mjs';
@@ -26,6 +26,7 @@ const cameraStorageKey = 'ar-arrow-camera-v1';
 const offsets = {start: [0, 0, 0], far: [0, 0, 0]};
 const view = {...carpetView};
 let model;
+let referenceMotion;
 let renderer;
 let elapsed = 0;
 let frameRequest = 0;
@@ -189,7 +190,7 @@ initHudSubpageFormats(get('ar-dimensions'), resizePreview);
 initHudSubpageImmersive(canvas);
 initArArrowExport(download, clip, () => {
   seek(elapsed);
-  return {model, elapsed, offsets: structuredClone(offsets), view: {...view}};
+  return {model, referenceMotion, elapsed, offsets: structuredClone(offsets), view: {...view}};
 });
 new ResizeObserver(resizePreview).observe(canvas);
 sync();
@@ -199,8 +200,11 @@ async function init() {
   loadMessage.textContent = '正在加载箭头模型…';
   preview.setAttribute('aria-busy', 'true');
   try {
-    model ??= await loadArArrow();
-    renderer = createArArrowScene(canvas, model, clip, {offsets, view});
+    [model, referenceMotion] = await Promise.all([
+      model ?? loadArArrow(),
+      clip.referenceMotion ? referenceMotion ?? loadArArrowMotion() : null
+    ]);
+    renderer = createArArrowScene(canvas, model, clip, {offsets, view, referenceMotion});
     renderer.resize(canvas.width, canvas.height);
     resizePreview();
     loadMessage.parentElement.hidden = true;

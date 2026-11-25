@@ -58,16 +58,15 @@ export const turnPresets = Object.freeze({
     id: 'u-turn',
     name: '左侧掉头',
     durationMs: 8750,
-    roadGuide: 'u-turn',
+    referenceMotion: true,
     stages: [
       {label: '直行', start: 0, preview: 0, position: 'start'},
-      {label: '进入掉头', start: 950, preview: 2010},
-      {label: '掉头引导', start: 2310, preview: 4100, position: 'far'},
-      {label: '驶离掉头', start: 5600, preview: 6120},
-      {label: '直行', start: 7450}
+      {label: '进入掉头', start: 520, preview: 1100},
+      {label: '掉头引导', start: 1900, preview: 4040, position: 'far'},
+      {label: '驶离掉头', start: 5860, preview: 6920},
+      {label: '直行', start: 8000}
     ],
-    tracks: [[[950, straight, 1, 0], [1850, straight, 0, 0],
-      [6590, straight, 0, 0], [7450, straight, 1, 0]]]
+    tracks: []
   }
 });
 
