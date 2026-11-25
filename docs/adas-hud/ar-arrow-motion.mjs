@@ -5,6 +5,9 @@ const right = [
   [.637, .394, 33.26, 90, 27.5],
   [.667, .394, 41.08, 90, 31.5]
 ];
+// Followers start behind the preceding arrow and keep their own depth and
+// orientation as they slide into their places in the turn formation.
+const stacked = right.slice(1).map((pose, index) => [...right[index].slice(0, 2), ...pose.slice(2)]);
 
 // Coordinates use the center of the arrow in the reference 16:9 camera,
 // with optical depth in meters and clockwise rotation and tilt in degrees.
@@ -27,16 +30,16 @@ export const rightTurn = {
       [6800, straight, 1, 0, -.15]
     ],
     [
-      [2780, [.617, .398, 35, 89, 27.5], 0],
-      [3330, right[1], 1],
+      [2390, stacked[0], 0],
+      [3510, right[1], 1],
       [5070, right[1], 1],
-      [5620, [.620, .398, 36, 89, 27.5], 0]
+      [5660, stacked[0], 0]
     ],
     [
-      [3070, [.644, .396, 44, 89, 31.5], 0],
-      [3680, right[2], 1],
+      [2720, stacked[1], 0],
+      [3940, right[2], 1],
       [4900, right[2], 1],
-      [5450, [.644, .396, 44, 89, 31.5], 0]
+      [5510, stacked[1], 0]
     ]
   ]
 };
@@ -56,9 +59,17 @@ function sampleTrack(track, elapsed) {
     const arc = 4 * bend * blend * (1 - blend);
     interpolated[0] += (pose[1] - previousPose[1]) * arc / referenceAspect;
     interpolated[1] -= (pose[0] - previousPose[0]) * arc * referenceAspect;
+    let visibleOpacity = opacity;
+    if (previousOpacity !== opacity) {
+      // Keep the follower hidden at the overlap, then fade it in as the
+      // shapes separate. Reverse the same curve on the way back.
+      const spread = opacity > previousOpacity ? blend : 1 - blend;
+      const fade = Math.max(0, (spread - .22) / .78);
+      visibleOpacity = Math.min(previousOpacity, opacity) + Math.abs(opacity - previousOpacity) * fade * fade * (3 - 2 * fade);
+    }
     return {
       pose: interpolated,
-      opacity: previousOpacity + (opacity - previousOpacity) * blend
+      opacity: visibleOpacity
     };
   }
   const [, pose, opacity] = track.at(-1);
