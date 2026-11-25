@@ -6,11 +6,6 @@ const right = [
   [.667, .394, 41.08, 90, 31.5]
 ];
 const left = right.map(([x, y, depth, heading, tilt]) => [2 * straight[0] - x, y, depth, -heading, tilt]);
-const uTurn = [
-  [.394, .514, 25.8, -180, 24],
-  [.394, .594, 33.4, -180, 26],
-  [.394, .665, 41.4, -180, 29]
-];
 
 const standardTiming = {
   durationMs: 7600,
@@ -26,8 +21,8 @@ const standardTiming = {
 
 // Poses are projected centers in the reference 16:9 camera, optical depth
 // in meters, and clockwise heading and tilt in degrees.
-function makeTurn({id, name, maneuver, poses, bend, recoveryBend = -bend, finish = straight, timing = standardTiming}) {
-  const {durationMs, approach, turned, guideStart, guidePreview, recoveryStart, recoveryPreview, straightAgain, followers} = timing;
+function makeTurn({id, name, maneuver, poses, bend}) {
+  const {durationMs, approach, turned, guideStart, guidePreview, recoveryStart, recoveryPreview, straightAgain, followers} = standardTiming;
   const [lead] = poses;
   const followerTracks = followers.map(([appear, settled, withdraw, hidden], index) => {
     const pose = poses[index + 1];
@@ -49,7 +44,7 @@ function makeTurn({id, name, maneuver, poses, bend, recoveryBend = -bend, finish
     ],
     tracks: [
       [[approach, straight, 1, 0], [turned, lead, 1, 1, bend],
-        [recoveryStart, lead, 1], [straightAgain, finish, 1, 0, recoveryBend]],
+        [recoveryStart, lead, 1], [straightAgain, straight, 1, 0, -bend]],
       ...followerTracks
     ]
   };
@@ -59,15 +54,21 @@ export const rightTurn = makeTurn({id: 'right', name: '路口右转', maneuver: 
 export const turnPresets = Object.freeze({
   right: rightTurn,
   left: makeTurn({id: 'left', name: '路口左转', maneuver: '左转', poses: left, bend: -.15}),
-  'u-turn': makeTurn({
-    id: 'u-turn', name: '左侧掉头', maneuver: '掉头', poses: uTurn, bend: -.60, recoveryBend: -.60,
-    finish: [straight[0], straight[1], straight[2], -360, straight[4]],
-    timing: {
-      durationMs: 8750, approach: 950, turned: 3190, guideStart: 3290, guidePreview: 4610,
-      recoveryStart: 5960, recoveryPreview: 7550, straightAgain: 8200,
-      followers: [[2880, 4090, 5690, 6190], [3270, 4480, 5520, 6070]]
-    }
-  })
+  'u-turn': {
+    id: 'u-turn',
+    name: '左侧掉头',
+    durationMs: 8750,
+    roadGuide: 'u-turn',
+    stages: [
+      {label: '直行', start: 0, preview: 0, position: 'start'},
+      {label: '进入掉头', start: 950, preview: 2010},
+      {label: '掉头引导', start: 2310, preview: 4100, position: 'far'},
+      {label: '驶离掉头', start: 5600, preview: 6120},
+      {label: '直行', start: 7450}
+    ],
+    tracks: [[[950, straight, 1, 0], [1850, straight, 0, 0],
+      [6590, straight, 0, 0], [7450, straight, 1, 0]]]
+  }
 });
 
 function sampleTrack(track, elapsed) {
@@ -112,7 +113,7 @@ export function positionArrowMotion(clip, {start, far}, aspect) {
   const horizontalScale = aspect / referenceAspect / 100;
   const startDepth = start[2] ?? 0;
   const farDepth = far[2] ?? 0;
-  const [anchorX, anchorY] = clip.farAnchor;
+  const [anchorX, anchorY] = clip.farAnchor ?? straight;
   return {...clip, tracks: clip.tracks.map(track => track.map(([time, [x, y, depth, heading, tilt], opacity, farWeight = 1, bend]) => {
     const startWeight = 1 - farWeight;
     const offsetX = start[0] * startWeight + far[0] * farWeight;

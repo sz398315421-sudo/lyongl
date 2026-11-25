@@ -4,7 +4,7 @@ import {exportSize} from '../adas/screen-format.js';
 import {recordCanvasVideo} from '../adas/video-export.js';
 import {createSequenceFields, renderPngSequence} from './hud-png-sequence.mjs';
 import {supportsHudWebm, transparentVideoFormat} from './hud-video.mjs';
-import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=8';
+import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=9';
 
 export function initArArrowExport(button, clip, capture) {
   const sequence = createSequenceFields();
@@ -18,7 +18,7 @@ export function initArArrowExport(button, clip, capture) {
   const controls = initExportControls(button, exportScene, {
     formats: video => [
       ['image', 'PNG 图片', '当前画面 · 黑色背景', 'PNG'],
-      ['transparent', '透明 PNG', '当前画面 · 仅箭头', 'PNG'],
+      ['transparent', '透明 PNG', clip.roadGuide ? '当前画面 · 箭头与轨迹' : '当前画面 · 仅箭头', 'PNG'],
       ['video', '演示动画', video ? description : '此浏览器暂不支持视频导出', video?.extension.toUpperCase() || '视频', !!video],
       ['transparent-video', '透明视频（WebM）', supportsAlpha ? description : '此浏览器暂不支持透明 WebM', 'WebM', supportsAlpha],
       ['png-sequence', '透明 PNG 序列（AE）', description, 'ZIP']
