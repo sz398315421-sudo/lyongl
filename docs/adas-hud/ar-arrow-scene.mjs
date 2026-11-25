@@ -8,7 +8,7 @@ const spinAxis = new Vector3(0, 0, 1);
 const tiltAxis = new Vector3(1, 0, 0);
 
 export async function loadArArrow() {
-  const url = new URL('./assets/ar-arrow/arrow.glb', import.meta.url);
+  const url = new URL('./assets/ar-arrow/arrow.glb?v=2', import.meta.url);
   const {scene} = await new GLTFLoader().loadAsync(url.href);
   return scene;
 }

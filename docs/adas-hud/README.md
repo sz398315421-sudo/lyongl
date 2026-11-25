@@ -33,9 +33,10 @@ node scripts/build-hud-preview.mjs
 
 展开「箭头位置」可分别调整直行起点和右转队列远点。横向、纵向偏移按画面宽高计算，远近偏移按米计算，正值推远，负值拉近。右转队列以最远箭头为画面定位基准，推远时箭头和间距一起缩小，拉近时一起放大。设置会保存在浏览器中，并应用到预览及导出。
 
-路线的关键帧和时间轴定义在 `ar-arrow-motion.mjs`。网格和蓝色折面材质来自 `AR蓝色折面_单箭头.blend`。更新箭头时可独立重导模型，GLB 使用 Y 向上、−Z 朝前，原点作为动画锚点。导出脚本会把原模型的 UV 材质转为 GLB 内嵌纹理。
+路线的关键帧和时间轴定义在 `ar-arrow-motion.mjs`。当前网格和材质来自参考图版 `AR蓝色折面_参考图.blend`，包含独立的浅蓝前缘斜面、双翼折面及钴蓝尾壁。更新箭头时可独立重导模型，GLB 使用 Y 向上、−Z 朝前，原点作为动画锚点。导出脚本会把 UV 材质转为 GLB 内嵌纹理。
 
 ```powershell
-blender -b -Y '单箭头.blend' --python-exit-code 1 --python scripts/export-hud-ar-arrow.py -- docs/adas-hud/assets/ar-arrow/arrow.glb
+blender -b -Y --python-exit-code 1 --python scripts/model-hud-ar-arrow.py -- 'AR蓝色折面_参考图.blend'
+blender -b -Y 'AR蓝色折面_参考图.blend' --python-exit-code 1 --python scripts/export-hud-ar-arrow.py -- docs/adas-hud/assets/ar-arrow/arrow.glb
 node scripts/build-hud-arrow.mjs
 ```
