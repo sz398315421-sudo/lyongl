@@ -86,9 +86,13 @@ export function sampleArrowMotion(clip, elapsed) {
 // point to the adjusted far end. The turn arrows share the far offset.
 export function positionArrowMotion(clip, {start, far}, aspect) {
   const horizontalScale = aspect / referenceAspect / 100;
-  return {...clip, tracks: clip.tracks.map(track => track.map(([time, [x, y, ...pose], opacity, farWeight = 1]) => {
-    const offsetX = start[0] * (1 - farWeight) + far[0] * farWeight;
-    const offsetY = start[1] * (1 - farWeight) + far[1] * farWeight;
-    return [time, [x + offsetX * horizontalScale, y + offsetY / 100, ...pose], opacity];
+  const startDepth = start[2] ?? 0;
+  const farDepth = far[2] ?? 0;
+  return {...clip, tracks: clip.tracks.map(track => track.map(([time, [x, y, depth, heading, tilt], opacity, farWeight = 1]) => {
+    const startWeight = 1 - farWeight;
+    const offsetX = start[0] * startWeight + far[0] * farWeight;
+    const offsetY = start[1] * startWeight + far[1] * farWeight;
+    const offsetDepth = startDepth * startWeight + farDepth * farWeight;
+    return [time, [x + offsetX * horizontalScale, y + offsetY / 100, depth + offsetDepth, heading, tilt], opacity];
   }))};
 }

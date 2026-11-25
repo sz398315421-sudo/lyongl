@@ -1,7 +1,7 @@
 import {exportSize} from '../adas/screen-format.js';
-import {rightTurn as clip} from './ar-arrow-motion.mjs?v=2';
-import {createArArrowScene, loadArArrow} from './ar-arrow-scene.bundle.mjs?v=2';
-import {initArArrowExport} from './ar-arrow-export.mjs?v=2';
+import {rightTurn as clip} from './ar-arrow-motion.mjs?v=3';
+import {createArArrowScene, loadArArrow} from './ar-arrow-scene.bundle.mjs?v=3';
+import {initArArrowExport} from './ar-arrow-export.mjs?v=3';
 import {hudPreferences} from './hud-storage.mjs';
 import {initHudSubpageFormats, initHudSubpageImmersive, initHudSubpageNavigation} from './hud-subpage.mjs';
 
@@ -18,7 +18,7 @@ const loadMessage = get('ar-load-message');
 const retry = get('ar-retry');
 const positionControls = get('ar-position-controls');
 const positionStorageKey = 'ar-arrow-position-v1';
-const offsets = {start: [0, 0], far: [0, 0]};
+const offsets = {start: [0, 0, 0], far: [0, 0, 0]};
 let model;
 let renderer;
 let elapsed = 0;
@@ -86,12 +86,13 @@ const positionFields = [...positionControls.querySelectorAll('input')].map(input
   const output = input.closest('label').querySelector('output');
   const min = Number(input.min);
   const max = Number(input.max);
+  const unit = input.dataset.unit ?? '%';
   const saved = savedOffsets?.[endpoint]?.[axis];
-  if (Number.isFinite(saved)) input.value = Math.min(max, Math.max(min, Math.round(saved)));
+  if (Number.isFinite(saved)) input.value = saved;
   const syncField = () => {
     const value = input.valueAsNumber;
     offsets[endpoint][axis] = value;
-    output.value = `${value > 0 ? '+' : ''}${value}%`;
+    output.value = `${value > 0 ? '+' : ''}${value}${unit}`;
     input.setAttribute('aria-valuetext', output.value);
     input.style.setProperty('--range-fill', `${(value - min) / (max - min) * 100}%`);
   };

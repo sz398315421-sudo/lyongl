@@ -98,7 +98,7 @@
         </fieldset>
         <details class="ar-position-settings">
           <summary>箭头位置</summary>
-          <p class="hud-control-note" id="ar-position-note">按画面宽高偏移。向右、向下为正值。</p>
+          <p class="hud-control-note" id="ar-position-note">横、纵向按画面宽高偏移。远近按米调节，正值推远，负值拉近。</p>
           <fieldset class="ar-position-groups" id="ar-position-controls" aria-label="箭头位置" aria-describedby="ar-position-note" disabled>
             <fieldset class="ar-position-group hud-camera-controls" data-ar-endpoint="start">
               <legend>起点位置</legend>
@@ -109,6 +109,10 @@
               <label class="traffic-field" for="ar-start-y">
                 <span>纵向偏移</span><output for="ar-start-y"></output>
                 <input type="range" id="ar-start-y" min="-25" max="25" step="1" value="0" data-axis="1" aria-label="起点纵向偏移">
+              </label>
+              <label class="traffic-field" for="ar-start-depth">
+                <span>远近偏移</span><output for="ar-start-depth"></output>
+                <input type="range" id="ar-start-depth" min="-8" max="15" step="0.5" value="0" data-axis="2" data-unit=" 米" aria-label="起点远近偏移">
               </label>
             </fieldset>
             <fieldset class="ar-position-group hud-camera-controls" data-ar-endpoint="far">
@@ -121,6 +125,10 @@
                 <span>纵向偏移</span><output for="ar-far-y"></output>
                 <input type="range" id="ar-far-y" min="-25" max="25" step="1" value="0" data-axis="1" aria-label="远点纵向偏移">
               </label>
+              <label class="traffic-field" for="ar-far-depth">
+                <span>远近偏移</span><output for="ar-far-depth"></output>
+                <input type="range" id="ar-far-depth" min="-10" max="25" step="0.5" value="0" data-axis="2" data-unit=" 米" aria-label="远点远近偏移">
+              </label>
             </fieldset>
             <div class="scene-motion-buttons"><button type="button" id="ar-position-reset">恢复默认位置</button></div>
           </fieldset>
@@ -129,6 +137,6 @@
     </section>
   </main>
   <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
-  <script type="module" src="./ar-arrow.mjs?v=2"></script>
+  <script type="module" src="./ar-arrow.mjs?v=3"></script>
 </body>
 </html>

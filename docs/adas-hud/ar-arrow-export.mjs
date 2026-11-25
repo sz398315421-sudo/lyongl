@@ -4,7 +4,7 @@ import {exportSize} from '../adas/screen-format.js';
 import {recordCanvasVideo} from '../adas/video-export.js';
 import {createSequenceFields, renderPngSequence} from './hud-png-sequence.mjs';
 import {supportsHudWebm, transparentVideoFormat} from './hud-video.mjs';
-import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=2';
+import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=3';
 
 export function initArArrowExport(button, clip, capture) {
   const sequence = createSequenceFields();
