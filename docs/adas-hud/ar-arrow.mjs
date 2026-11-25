@@ -1,7 +1,7 @@
 import {exportSize} from '../adas/screen-format.js';
-import {rightTurn as clip} from './ar-arrow-motion.mjs?v=3';
-import {createArArrowScene, loadArArrow} from './ar-arrow-scene.bundle.mjs?v=3';
-import {initArArrowExport} from './ar-arrow-export.mjs?v=3';
+import {rightTurn as clip} from './ar-arrow-motion.mjs?v=4';
+import {createArArrowScene, loadArArrow} from './ar-arrow-scene.bundle.mjs?v=4';
+import {initArArrowExport} from './ar-arrow-export.mjs?v=4';
 import {hudPreferences} from './hud-storage.mjs';
 import {initHudSubpageFormats, initHudSubpageImmersive, initHudSubpageNavigation} from './hud-subpage.mjs';
 

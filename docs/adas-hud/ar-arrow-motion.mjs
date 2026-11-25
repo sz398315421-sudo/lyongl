@@ -12,6 +12,7 @@ const right = [
 export const rightTurn = {
   name: '路口右转',
   durationMs: 7600,
+  farAnchor: right.at(-1).slice(0, 2),
   stages: [
     {label: '直行', start: 0, preview: 0, position: 'start'},
     {label: '进入右转', start: 950, preview: 2700},
@@ -88,11 +89,18 @@ export function positionArrowMotion(clip, {start, far}, aspect) {
   const horizontalScale = aspect / referenceAspect / 100;
   const startDepth = start[2] ?? 0;
   const farDepth = far[2] ?? 0;
+  const [anchorX, anchorY] = clip.farAnchor;
   return {...clip, tracks: clip.tracks.map(track => track.map(([time, [x, y, depth, heading, tilt], opacity, farWeight = 1]) => {
     const startWeight = 1 - farWeight;
     const offsetX = start[0] * startWeight + far[0] * farWeight;
     const offsetY = start[1] * startWeight + far[1] * farWeight;
-    const offsetDepth = startDepth * startWeight + farDepth * farWeight;
-    return [time, [x + offsetX * horizontalScale, y + offsetY / 100, depth + offsetDepth, heading, tilt], opacity];
+    const farDepthOffset = farDepth * farWeight;
+    const offsetDepth = startDepth * startWeight + farDepthOffset;
+    // Moving along the far anchor's camera ray changes both apparent size
+    // and the spacing of the turn arrows while keeping the anchor in place.
+    const perspective = farDepthOffset / (depth + farDepthOffset);
+    const moveX = x + (anchorX - x) * perspective + offsetX * horizontalScale;
+    const moveY = y + (anchorY - y) * perspective + offsetY / 100;
+    return [time, [moveX, moveY, depth + offsetDepth, heading, tilt], opacity];
   }))};
 }
