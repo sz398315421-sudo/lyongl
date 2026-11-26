@@ -1,11 +1,11 @@
 import {MathUtils, PerspectiveCamera, Quaternion, Scene, Vector3, WebGLRenderer} from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {positionArrowMotion, referenceAspect, sampleArrowMotion, uTurnTiming} from './ar-arrow-motion.mjs';
+import {positionArrowMotion, referenceAspect, referenceViewScale, sampleArrowMotion, uTurnTiming} from './ar-arrow-motion.mjs';
 import {carpetView, hudCameraPose} from './hud-camera-view.mjs';
 
-const viewScale = Math.tan(MathUtils.degToRad(carpetView.fov / 2));
 const spinAxis = new Vector3(0, 0, 1);
 const tiltAxis = new Vector3(1, 0, 0);
+const forwardAxis = new Vector3(0, 0, -1);
 
 function playReferenceMotion(data, arrows, reference, placeArrow, setOpacity) {
   const {frames, fps, modelScale, startAnchor, farAnchor} = data;
@@ -47,6 +47,21 @@ function playReferenceMotion(data, arrows, reference, placeArrow, setOpacity) {
   };
 }
 
+function findArrowTip(model) {
+  const tip = new Vector3(0, 0, Infinity);
+  const point = new Vector3();
+  model.updateMatrixWorld(true);
+  model.traverse(mesh => {
+    const positions = mesh.geometry?.getAttribute('position');
+    if (!mesh.isMesh || !positions) return;
+    for (let index = 0; index < positions.count; index++) {
+      point.fromBufferAttribute(positions, index).applyMatrix4(mesh.matrixWorld);
+      if (point.z < tip.z || (point.z === tip.z && point.y > tip.y)) tip.copy(point);
+    }
+  });
+  return Number.isFinite(tip.z) ? tip : point.set(0, 0, 0);
+}
+
 export async function loadArArrow() {
   const url = new URL('./assets/ar-arrow/arrow.glb?v=2', import.meta.url);
   const {scene} = await new GLTFLoader().loadAsync(url.href);
@@ -84,6 +99,9 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
   let motion;
   const tiltRotation = new Quaternion();
   const spinRotation = new Quaternion();
+  const rollRotation = new Quaternion();
+  const tip = referenceMotion ? null : findArrowTip(model);
+  const tipOffset = new Vector3();
   function addArrow() {
     const arrow = model.clone(true);
     const materials = [];
@@ -109,7 +127,7 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
   }
 
   function placeArrow(arrow, x, y, depth) {
-    const span = 2 * depth * viewScale;
+    const span = 2 * depth * referenceViewScale;
     reference.localToWorld(arrow.position.set((x - .5) * span * referenceAspect, (.5 - y) * span, -depth));
   }
   const arrows = (referenceMotion?.frames[0] ?? clip.tracks).map(addArrow);
@@ -133,7 +151,7 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
     },
     draw(elapsed) {
       if (playback) playback(elapsed, offsets, camera.aspect);
-      else sampleArrowMotion(motion, elapsed).forEach(({pose: [x, y, depth, heading, tilt], opacity}, index) => {
+      else sampleArrowMotion(motion, elapsed).forEach(({pose: [x, y, depth, heading, tilt, tipWeight, roll], opacity}, index) => {
         const instance = arrows[index];
         const {arrow} = instance;
         setOpacity(instance, opacity);
@@ -141,7 +159,9 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
         placeArrow(arrow, x, y, depth);
         spinRotation.setFromAxisAngle(spinAxis, MathUtils.degToRad(-heading));
         tiltRotation.setFromAxisAngle(tiltAxis, MathUtils.degToRad(tilt));
-        arrow.quaternion.copy(reference.quaternion).multiply(spinRotation).multiply(tiltRotation);
+        rollRotation.setFromAxisAngle(forwardAxis, MathUtils.degToRad(roll));
+        arrow.quaternion.copy(reference.quaternion).multiply(spinRotation).multiply(tiltRotation).multiply(rollRotation);
+        arrow.position.sub(tipOffset.copy(tip).applyQuaternion(arrow.quaternion).multiplyScalar(tipWeight));
       });
       renderer.render(scene, camera);
     },

@@ -1,11 +1,44 @@
-const straight = [.497, .520, 13.21, 0, 22];
+import {carpetView} from './hud-camera-view.mjs';
+
+const straight = [.497, .520, 13.21, 0, 22, 0, 0];
 export const referenceAspect = 16 / 9;
-const right = [
-  [.598, .394, 26.45, 90, 27],
-  [.637, .394, 33.26, 90, 27.5],
-  [.667, .394, 41.08, 90, 31.5]
-];
-const left = right.map(([x, y, depth, heading, tilt]) => [2 * straight[0] - x, y, depth, -heading, tilt]);
+export const referenceViewScale = Math.tan(carpetView.fov * Math.PI / 360);
+const screenHeight = 2 * referenceViewScale;
+const screenWidth = screenHeight * referenceAspect;
+const degrees = 180 / Math.PI;
+
+function turnAngles(right, up, forward) {
+  return [Math.atan2(right, up) * degrees, Math.atan2(Math.hypot(right, up), forward) * degrees];
+}
+
+// Counter-roll around the pointing axis so the wings still read upright in
+// the reference camera when the row is seen to the left or right.
+function turnRoll(x, heading, tilt, direction) {
+  const yaw = heading / degrees;
+  const angle = tilt / degrees;
+  const horizontal = Math.sin(yaw) * Math.cos(angle) + (x - .5) * screenWidth * Math.sin(angle);
+  return Math.atan2(Math.cos(yaw) * direction, horizontal * direction) * degrees;
+}
+
+// The row is a straight line in camera space, with the model tips as anchors.
+// Set the outer screen positions and solve the middle arrow at its own depth.
+const rowY = .396;
+const rowDepths = [26.45, 33.26, 41.08];
+function turnRow(nearX, farX) {
+  const nearDepth = rowDepths[0];
+  const farDepth = rowDepths.at(-1);
+  const near = (nearX - .5) * nearDepth;
+  const far = (farX - .5) * farDepth;
+  const run = (far - near) / (farDepth - nearDepth);
+  const [heading, tilt] = turnAngles(run * screenWidth, (.5 - rowY) * screenHeight, 1);
+  const direction = Math.sign(run);
+  return rowDepths.map(depth => {
+    const x = .5 + (near + run * (depth - nearDepth)) / depth;
+    return [x, rowY, depth, heading, tilt, 1, turnRoll(x, heading, tilt, direction)];
+  });
+}
+const right = turnRow(.612, .678);
+const left = turnRow(2 * straight[0] - .612, 2 * straight[0] - .678);
 
 const standardTiming = {
   durationMs: 7600,
@@ -19,15 +52,15 @@ const standardTiming = {
   followers: [[2390, 3510, 5070, 5660], [2720, 3940, 4900, 5510]]
 };
 
-// Poses are projected centers in the reference 16:9 camera, optical depth
-// in meters, and clockwise heading and tilt in degrees.
+// Poses store a projected anchor, optical depth in meters, heading and tilt
+// in degrees, the weight of the tip anchor and roll in degrees.
 function makeTurn({id, name, maneuver, poses, bend}) {
   const {durationMs, approach, turned, guideStart, guidePreview, recoveryStart, recoveryPreview, straightAgain, followers} = standardTiming;
   const [lead] = poses;
   const followerTracks = followers.map(([appear, settled, withdraw, hidden], index) => {
     const pose = poses[index + 1];
-    // Slide out from behind the preceding arrow at the follower's own depth.
-    const tucked = [...poses[index].slice(0, 2), ...pose.slice(2)];
+    // Slide out along the same line from behind the preceding arrow.
+    const tucked = poses[index];
     return [[appear, tucked, 0], [settled, pose, 1], [withdraw, pose, 1], [hidden, tucked, 0]];
   });
   return {
@@ -94,6 +127,13 @@ function sampleTrack(track, elapsed) {
     // and acceleration both reach zero at the stationary endpoints.
     const blend = t * t * t * (10 + t * (6 * t - 15));
     const interpolated = pose.map((value, component) => previousPose[component] + (value - previousPose[component]) * blend);
+    if (previousPose[5] === 1 && pose[5] === 1) {
+      // Interpolate the projected coordinates in 3D, so the follower stays on
+      // the row when the preview camera is moved.
+      for (let axis = 0; axis < 2; axis++) {
+        interpolated[axis] = (previousPose[axis] * previousPose[2] * (1 - blend) + pose[axis] * pose[2] * blend) / interpolated[2];
+      }
+    }
     const arc = 4 * bend * blend * (1 - blend);
     interpolated[0] += (pose[1] - previousPose[1]) * arc / referenceAspect;
     interpolated[1] -= (pose[0] - previousPose[0]) * arc * referenceAspect;
@@ -122,20 +162,31 @@ export function sampleArrowMotion(clip, elapsed) {
 // point to the adjusted far end. The turn arrows share the far offset.
 export function positionArrowMotion(clip, {start, far}, aspect) {
   const horizontalScale = aspect / referenceAspect / 100;
-  const startDepth = start[2] ?? 0;
-  const farDepth = far[2] ?? 0;
+  const startDepthOffset = start[2] ?? 0;
+  const farDepthSetting = far[2] ?? 0;
   const [anchorX, anchorY] = clip.farAnchor ?? straight;
-  return {...clip, tracks: clip.tracks.map(track => track.map(([time, [x, y, depth, heading, tilt], opacity, farWeight = 1, bend]) => {
+  return {...clip, tracks: clip.tracks.map(track => track.map(([time, [x, y, depth, heading, tilt, tipWeight, roll], opacity, farWeight = 1, bend]) => {
     const startWeight = 1 - farWeight;
-    const offsetX = start[0] * startWeight + far[0] * farWeight;
-    const offsetY = start[1] * startWeight + far[1] * farWeight;
-    const farDepthOffset = farDepth * farWeight;
-    const offsetDepth = startDepth * startWeight + farDepthOffset;
+    const offsetX = (start[0] * startWeight + far[0] * farWeight) * horizontalScale;
+    const offsetY = (start[1] * startWeight + far[1] * farWeight) / 100;
+    const farDepthOffset = farDepthSetting * farWeight;
+    const offsetDepth = startDepthOffset * startWeight + farDepthOffset;
     // Moving along the far anchor's camera ray changes both apparent size
     // and the spacing of the turn arrows while keeping the anchor in place.
     const perspective = farDepthOffset / (depth + farDepthOffset);
-    const moveX = x + (anchorX - x) * perspective + offsetX * horizontalScale;
-    const moveY = y + (anchorY - y) * perspective + offsetY / 100;
-    return [time, [moveX, moveY, depth + offsetDepth, heading, tilt], opacity, farWeight, bend];
+    const moveX = x + (anchorX - x) * perspective + offsetX;
+    const moveY = y + (anchorY - y) * perspective + offsetY;
+    if (tipWeight === 1) {
+      const direction = Math.sign(heading);
+      // Image-plane offsets also change the row's direction in camera space.
+      const side = Math.tan(tilt / degrees);
+      [heading, tilt] = turnAngles(
+        side * Math.sin(heading / degrees) + offsetX * screenWidth,
+        side * Math.cos(heading / degrees) - offsetY * screenHeight,
+        1
+      );
+      roll = turnRoll(moveX, heading, tilt, direction);
+    }
+    return [time, [moveX, moveY, depth + offsetDepth, heading, tilt, tipWeight, roll], opacity, farWeight, bend];
   }))};
 }
