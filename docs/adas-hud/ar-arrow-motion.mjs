@@ -23,17 +23,21 @@ function turnRoll(x, heading, tilt, direction) {
 // The row is a straight line in camera space, with the model tips as anchors.
 // Set the outer screen positions and solve the middle arrow at its own depth.
 const rowY = .396;
-const rowDepths = [26.45, 33.26, 41.08];
+const turnProfile = [[26.45, 27], [33.26, 27.5], [41.08, 31.5]];
 function turnRow(nearX, farX) {
-  const nearDepth = rowDepths[0];
-  const farDepth = rowDepths.at(-1);
+  const [nearDepth] = turnProfile[0];
+  const [farDepth] = turnProfile.at(-1);
   const near = (nearX - .5) * nearDepth;
   const far = (farX - .5) * farDepth;
   const run = (far - near) / (farDepth - nearDepth);
-  const [heading, tilt] = turnAngles(run * screenWidth, (.5 - rowY) * screenHeight, 1);
   const direction = Math.sign(run);
-  return rowDepths.map(depth => {
+  const rise = (.5 - rowY) * screenHeight;
+  return turnProfile.map(([depth, tilt]) => {
     const x = .5 + (near + run * (depth - nearDepth)) / depth;
+    // Keep the original face angle. Adjust its heading only enough for the
+    // center ridge to point horizontally at this screen height.
+    const slope = Math.tan(tilt / degrees);
+    const heading = Math.atan2(direction * Math.sqrt(slope * slope - rise * rise), rise) * degrees;
     return [x, rowY, depth, heading, tilt, 1, turnRoll(x, heading, tilt, direction)];
   });
 }
@@ -178,11 +182,12 @@ export function positionArrowMotion(clip, {start, far}, aspect) {
     const moveY = y + (anchorY - y) * perspective + offsetY;
     if (tipWeight === 1) {
       const direction = Math.sign(heading);
-      // Image-plane offsets also change the row's direction in camera space.
+      // Compensate for the new projection ray to keep the visible arrow
+      // pointing sideways when the group is moved around the image.
       const side = Math.tan(tilt / degrees);
       [heading, tilt] = turnAngles(
-        side * Math.sin(heading / degrees) + offsetX * screenWidth,
-        side * Math.cos(heading / degrees) - offsetY * screenHeight,
+        side * Math.sin(heading / degrees) + (moveX - x) * screenWidth,
+        side * Math.cos(heading / degrees) - (moveY - y) * screenHeight,
         1
       );
       roll = turnRoll(moveX, heading, tilt, direction);
