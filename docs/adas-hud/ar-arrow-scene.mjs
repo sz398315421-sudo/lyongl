@@ -150,6 +150,10 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
       offsets = value;
       updateMotion();
     },
+    setClip(value) {
+      clip = value;
+      updateMotion();
+    },
     setFlashEnabled(value) {
       flashEnabled = value;
     },

@@ -99,10 +99,22 @@
             <input type="range" id="ar-time" min="0" step="10" value="0">
           </div>
           <div id="ar-stage-choices" class="scene-motion-buttons ar-stage-choices" role="group" aria-label="跳转到动画阶段"></div>
-          <label class="toggle" hidden>
-            <span class="setting-title">轮流闪烁</span>
-            <input id="ar-guide-flash" type="checkbox" role="switch"><span class="track" aria-hidden="true"></span>
-          </label>
+          <div id="ar-guide-controls" hidden>
+            <div class="hud-camera-controls">
+              <label class="traffic-field" for="ar-guide-hold">
+                <span>引导停留时间</span><output for="ar-guide-hold"></output>
+                <input type="range" id="ar-guide-hold" min="1" max="8" step="0.1" value="2.5" data-guide="holdSeconds" data-unit=" 秒" aria-label="引导停留时间">
+              </label>
+              <label class="traffic-field" for="ar-guide-speed">
+                <span>闪烁速度</span><output for="ar-guide-speed"></output>
+                <input type="range" id="ar-guide-speed" min="0.5" max="2" step="0.1" value="1" data-guide="flashSpeed" data-unit="×" aria-label="闪烁速度">
+              </label>
+            </div>
+            <label class="toggle">
+              <span class="setting-title">轮流闪烁</span>
+              <input id="ar-guide-flash" type="checkbox" role="switch"><span class="track" aria-hidden="true"></span>
+            </label>
+          </div>
         </fieldset>
         <details class="ar-camera-settings">
           <summary>摄像机视角</summary>
@@ -171,6 +183,6 @@
     </section>
   </main>
   <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
-  <script type="module" src="./ar-arrow.mjs?v=15"></script>
+  <script type="module" src="./ar-arrow.mjs?v=17"></script>
 </body>
 </html>

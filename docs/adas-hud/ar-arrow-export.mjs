@@ -4,9 +4,11 @@ import {exportSize} from '../adas/screen-format.js';
 import {recordCanvasVideo} from '../adas/video-export.js';
 import {createSequenceFields, renderPngSequence} from './hud-png-sequence.mjs';
 import {supportsHudWebm, transparentVideoFormat} from './hud-video.mjs';
-import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=15';
+import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=17';
 
-export function initArArrowExport(button, clip, capture) {
+const animationFormats = ['video', 'transparent-video', 'png-sequence'];
+
+export function initArArrowExport(button, capture) {
   const sequence = createSequenceFields();
   const supportsAlpha = supportsHudWebm();
   let snapshot;
@@ -14,7 +16,7 @@ export function initArArrowExport(button, clip, capture) {
   button.addEventListener('click', () => {
     if (!button.disabled) snapshot = {...capture(), ...exportSize};
   });
-  const description = `${clip.name} · ${clip.durationMs / 1000} 秒`;
+  const description = '当前场景完整动画';
   const controls = initExportControls(button, exportScene, {
     formats: video => [
       ['image', 'PNG 图片', '当前画面 · 黑色背景', 'PNG'],
@@ -23,6 +25,11 @@ export function initArArrowExport(button, clip, capture) {
       ['transparent-video', '透明视频（WebM）', supportsAlpha ? description : '此浏览器暂不支持透明 WebM', 'WebM', supportsAlpha],
       ['png-sequence', '透明 PNG 序列（AE）', description, 'ZIP']
     ],
+    describe(format, detail) {
+      if (!animationFormats.includes(format) || detail.closest('label').querySelector('input').disabled) return;
+      const {name, durationMs} = snapshot.clip;
+      detail.textContent = `${name} · ${durationMs / 1000} 秒`;
+    },
     fields: sequence.fields,
     isSized: () => true,
     onFormatChange: format => { sequence.fields.hidden = format !== 'png-sequence'; },
@@ -33,8 +40,8 @@ export function initArArrowExport(button, clip, capture) {
   });
 
   async function exportScene(format) {
-    const {model, referenceMotion, elapsed, width, height, offsets, view, flashEnabled} = snapshot;
-    const animation = ['video', 'transparent-video', 'png-sequence'].includes(format);
+    const {clip, model, referenceMotion, elapsed, width, height, offsets, view, flashEnabled} = snapshot;
+    const animation = animationFormats.includes(format);
     const transparent = format !== 'image' && format !== 'video';
     const controller = new AbortController();
     const {signal} = controller;

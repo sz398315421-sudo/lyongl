@@ -1,7 +1,7 @@
 import {exportSize} from '../adas/screen-format.js';
-import {rightTurn, turnPresets} from './ar-arrow-motion.mjs?v=15';
-import {createArArrowScene, loadArArrow, loadArArrowMotion} from './ar-arrow-scene.bundle.mjs?v=15';
-import {initArArrowExport} from './ar-arrow-export.mjs?v=15';
+import {createRightTurn, rightTurn, turnPresets} from './ar-arrow-motion.mjs?v=17';
+import {createArArrowScene, loadArArrow, loadArArrowMotion} from './ar-arrow-scene.bundle.mjs?v=17';
+import {initArArrowExport} from './ar-arrow-export.mjs?v=17';
 import {carpetView} from './hud-camera-view.mjs';
 import {hudPreferences} from './hud-storage.mjs';
 import {initHudSubpageFormats, initHudSubpageImmersive, initHudSubpageNavigation} from './hud-subpage.mjs';
@@ -21,10 +21,11 @@ const retry = get('ar-retry');
 const positionControls = get('ar-position-controls');
 const cameraControls = get('ar-camera-controls');
 const preset = new URLSearchParams(location.search).get('scene');
-const clip = Object.hasOwn(turnPresets, preset) ? turnPresets[preset] : rightTurn;
+let clip = Object.hasOwn(turnPresets, preset) ? turnPresets[preset] : rightTurn;
 const positionStorageKey = clip === rightTurn ? 'ar-arrow-position-v1' : `ar-arrow-position-v1-${clip.id}`;
 const cameraStorageKey = 'ar-arrow-camera-v1';
 const flashStorageKey = 'ar-arrow-guide-flash-v1';
+const guideStorageKey = 'ar-arrow-guide-timing-v1';
 const offsets = {start: [0, 0, 0], far: [0, 0, 0]};
 const view = {...carpetView};
 let model;
@@ -43,12 +44,12 @@ for (const link of document.querySelectorAll('[data-ar-preset]')) {
   else link.removeAttribute('aria-current');
 }
 
-const stageButtons = clip.stages.map(stage => {
+const stageButtons = clip.stages.map((stage, index) => {
   if (stage.preview === undefined) return null;
   const button = document.createElement('button');
   button.type = 'button';
   button.textContent = stage.label;
-  button.addEventListener('click', () => seek(stage.preview));
+  button.addEventListener('click', () => seek(clip.stages[index].preview));
   choices.append(button);
   return button;
 });
@@ -90,7 +91,32 @@ function readSetting(key) {
 }
 
 if (clip.guideFlash) {
-  guideFlash.closest('label').hidden = false;
+  const guideControls = get('ar-guide-controls');
+  guideControls.hidden = false;
+  const settings = {};
+  const saved = readSetting(guideStorageKey);
+  function updateGuide() {
+    const previousEnd = clip.guideFlash.end;
+    clip = createRightTurn(settings.holdSeconds, settings.flashSpeed);
+    const end = clip.guideFlash.end;
+    elapsed = elapsed >= previousEnd ? elapsed + end - previousEnd : Math.min(elapsed, end);
+    if (frameRequest) startedAt = performance.now() - elapsed;
+    timeline.max = clip.durationMs;
+    renderer?.setClip(clip);
+    sync();
+  }
+  for (const input of guideControls.querySelectorAll('input[type="range"]')) {
+    const key = input.dataset.guide;
+    bindRange(input, {
+      saved: saved?.[key],
+      update: value => { settings[key] = value; },
+      change() {
+        try { hudPreferences.setItem(guideStorageKey, JSON.stringify(settings)); } catch {}
+        updateGuide();
+      }
+    });
+  }
+  updateGuide();
   guideFlash.checked = readSetting(flashStorageKey) === true;
   guideFlash.addEventListener('change', () => {
     try { hudPreferences.setItem(flashStorageKey, JSON.stringify(guideFlash.checked)); } catch {}
@@ -201,9 +227,9 @@ initHudSubpageNavigation();
 initHudSubpageFormats(get('ar-dimensions'), resizePreview);
 if (clip.referenceMotion) document.querySelector('[data-screen-format="1920x720"]').click();
 initHudSubpageImmersive(canvas);
-initArArrowExport(download, clip, () => {
+initArArrowExport(download, () => {
   seek(elapsed);
-  return {model, referenceMotion, elapsed, offsets: structuredClone(offsets), view: {...view}, flashEnabled: guideFlash.checked};
+  return {clip, model, referenceMotion, elapsed, offsets: structuredClone(offsets), view: {...view}, flashEnabled: guideFlash.checked};
 });
 new ResizeObserver(resizePreview).observe(canvas);
 sync();

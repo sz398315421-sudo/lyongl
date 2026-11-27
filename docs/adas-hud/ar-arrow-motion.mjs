@@ -58,39 +58,46 @@ const standardTiming = {
 
 // Poses store a projected anchor, optical depth in meters, heading and tilt
 // in degrees, the weight of the tip anchor and roll in degrees.
-function makeTurn({id, name, maneuver, poses, bend}) {
+function makeTurn({id, name, maneuver, poses, bend}, holdExtension = 0) {
   const {durationMs, approach, turned, guideStart, guidePreview, recoveryStart, recoveryPreview, straightAgain, followers} = standardTiming;
   const [lead] = poses;
+  const afterHold = time => time + holdExtension;
   const followerTracks = followers.map(([appear, settled, withdraw, hidden], index) => {
     const pose = poses[index + 1];
     // Slide out along the same line from behind the preceding arrow.
     const tucked = poses[index];
-    return [[appear, tucked, 0], [settled, pose, 1], [withdraw, pose, 1], [hidden, tucked, 0]];
+    return [[appear, tucked, 0], [settled, pose, 1], [afterHold(withdraw), pose, 1], [afterHold(hidden), tucked, 0]];
   });
   return {
     id,
     name,
-    durationMs,
+    durationMs: afterHold(durationMs),
     farAnchor: poses.at(-1).slice(0, 2),
     stages: [
       {label: '直行', start: 0, preview: 0, position: 'start'},
       {label: `进入${maneuver}`, start: approach, preview: turned},
       {label: `${maneuver}引导`, start: guideStart, preview: guidePreview, position: 'far'},
-      {label: '出弯回正', start: followers.at(-1)[2], preview: recoveryPreview},
-      {label: '直行', start: straightAgain}
+      {label: '出弯回正', start: afterHold(followers.at(-1)[2]), preview: afterHold(recoveryPreview)},
+      {label: '直行', start: afterHold(straightAgain)}
     ],
     tracks: [
       [[approach, straight, 1, 0], [turned, lead, 1, 1, bend],
-        [recoveryStart, lead, 1], [straightAgain, straight, 1, 0, -bend]],
+        [afterHold(recoveryStart), lead, 1], [afterHold(straightAgain), straight, 1, 0, -bend]],
       ...followerTracks
     ]
   };
 }
 
-export const rightTurn = {
-  ...makeTurn({id: 'right', name: '路口右转', maneuver: '右转', poses: right, bend: .15}),
-  guideFlash: standardTiming.followers.at(-1).slice(1, 3)
-};
+export function createRightTurn(holdSeconds = 2.5, flashSpeed = 1) {
+  const [, start, defaultEnd] = standardTiming.followers.at(-1);
+  const end = start + Math.round(holdSeconds * 1000);
+  return {
+    ...makeTurn({id: 'right', name: '路口右转', maneuver: '右转', poses: right, bend: .15}, end - defaultEnd),
+    guideFlash: {start, end, stepMs: 320 / flashSpeed}
+  };
+}
+
+export const rightTurn = createRightTurn();
 export const uTurnTiming = Object.freeze({
   durationMs: 10800,
   extend: 400,
@@ -166,17 +173,18 @@ export function sampleArrowMotion(clip, elapsed) {
 }
 
 export function sampleGuideFlash(clip, elapsed, index) {
-  const [start, end] = clip.guideFlash;
+  const {start, end, stepMs} = clip.guideFlash;
   if (elapsed <= start || elapsed >= end) return 1;
-  // Each arrow reaches full brightness in order on the shared timeline.
-  // Ease into and out of the effect while the three arrows are settled.
-  const progress = (elapsed - start) / (end - start);
-  const distance = Math.abs(progress * clip.tracks.length - index - .5);
+  // Preserve the phase across a whole cycle, including the handoff from far to near.
+  const count = clip.tracks.length;
+  const slot = (elapsed - start) / stepMs % count;
+  const gap = Math.abs(slot - index - .5);
+  const distance = Math.min(gap, count - gap);
   const ease = value => {
     const t = Math.min(1, value);
     return t * t * (3 - 2 * t);
   };
-  const fade = ease(Math.min(progress, 1 - progress) / .15);
+  const fade = ease(Math.min(elapsed - start, end - elapsed) / 140);
   return 1 - .76 * fade * ease(distance / .72);
 }
 
