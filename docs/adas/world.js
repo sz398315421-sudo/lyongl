@@ -17,7 +17,7 @@ import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 import {FXAAPass} from 'three/addons/postprocessing/FXAAPass.js';
 import {FullScreenQuad} from 'three/addons/postprocessing/Pass.js';
 import {Reflector} from 'three/addons/objects/Reflector.js';
-import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 import {RoundedBoxGeometry} from './RoundedBoxGeometry.js';
 import {createVehicleDetail} from './vehicle-detail.js';
 import {prepareRenderer} from './prepare-renderer.js';
@@ -60,10 +60,10 @@ export class World {
    road:['#545e6d','#303031'],ground:['#b4c3d6','#373a3e'],pavement:['#d1dbee','#3c4045'],
    curb:['#d6e1ef','#5a6068'],building:['#d3d7dd','#817d7d'],glass:['#a6bed0','#606a72'],
    white:['#d6e0e9','#a7adb2'],yellow:['#bbaa6f','#99864e'],grass:['#809c68','#3e4d3d'],
-   leaf:['#84966e','#465644'],leaf2:['#96a883','#56634e'],trunk:['#847968','#50483e'],cone:['#ff5109','#ff590c'],water:['#7695ae','#304146'],parkingFloor:['#7c8b9e','#17181b'],parkingBay:['#aebdce','#393c41'],parkingEdge:['#98a9bc','#34383e']
+   leaf:['#9ab0a0','#445752'],leaf2:['#b0c0a7','#526358'],trunk:['#887d67','#534b40'],cone:['#ff5109','#ff590c'],water:['#7695ae','#304146'],parkingFloor:['#7c8b9e','#17181b'],parkingBay:['#aebdce','#393c41'],parkingEdge:['#98a9bc','#34383e']
   };
   for(const [key,pair]of Object.entries(this.colors))this.mat[key]=new THREE.MeshStandardMaterial({color:pair[0],roughness:key==='glass'?.35:.86,metalness:key==='glass'?.1:0});
-  for(const k of ['leaf','leaf2','trunk'])this.mat[k].flatShading=true;
+  for(const k of ['leaf','leaf2'])this.mat[k].vertexColors=true;
   this.mat.road.roughness=.54;this.mat.road.metalness=.08;this.mat.building.roughness=.36;this.mat.glass.dispose();
   this.mat.glass=new THREE.MeshPhysicalMaterial({color:this.colors.glass[0],roughness:.30,metalness:0,clearcoat:.72,clearcoatRoughness:.25,envMapIntensity:.8});
   this.mat.glass.onBeforeCompile=shader=>{
@@ -274,17 +274,29 @@ export class World {
  tree(x,z,scale=1){
   const tree=new THREE.Group();
   const seed=Math.abs(Math.round(x*67+z*137)),variant=seed%4;
-  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.065,.12,1.64,8),this.mat.trunk);
-  trunk.position.y=.82;tree.add(trunk);
-  const profile=new THREE.CatmullRomCurve3([
-   [0,0],[.48,.10],[.88,.44],[1,.89],[.79,1.45],[.43,1.96],[.16,2.22],[0,2.28]
-  ].map(([radius,height])=>new THREE.Vector3(radius,height,0)));
-  const crown=new THREE.Mesh(new THREE.LatheGeometry(profile.getPoints(18).map(p=>new THREE.Vector2(Math.max(0,p.x),p.y)),16),this.mat[variant%2===0?'leaf2':'leaf']);
-  crown.position.y=1.26;
-  crown.scale.set([.88,1.04,.79,1.13][variant],[1.06,.93,1.17,.86][variant],.84);
-  crown.rotation.set(.045,seed*.41,variant%2===0?.095:-.08);
-  tree.add(crown);tree.position.set(x,0,z);tree.scale.setScalar(scale);
-  tree.traverse(part=>{if(part.isMesh){part.castShadow=true;part.receiveShadow=true;}});
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.062,.09,1.48,8),this.mat.trunk);
+  trunk.position.y=.74;trunk.rotation.z=.045;trunk.castShadow=true;trunk.receiveShadow=true;
+  const source=new THREE.SphereGeometry(1,22,16);
+  source.deleteAttribute('normal');source.deleteAttribute('uv');
+  const geometry=mergeVertices(source);source.dispose();
+  const positions=geometry.getAttribute('position'),tint=new Float32Array(positions.count*3);
+  const radius=[.79,.88,.71,.82][variant],height=[2.6,2.45,2.74,2.56][variant];
+  const phase=(seed%628)*.01,lean=variant%2===0?.24:-.17;
+  for(let i=0;i<positions.count;i++){
+   const u=positions.getX(i),v=positions.getZ(i),t=(positions.getY(i)+1)/2;
+   const angle=Math.atan2(v,u)+phase,section=Math.hypot(u,v);
+   const lobes=1+(.095*Math.sin(angle*3+t*4)+.055*Math.cos(angle*5-t*3))*section;
+   const taper=radius*(1.20-.51*t)*lobes;
+   const dx=lean*t*t+section*.085*Math.sin(t*6+phase);
+   positions.setXYZ(i,u*taper+dx,t*height+.12*section*Math.sin(angle*2+t*3),v*taper*.91);
+   const shade=.58+.42*THREE.MathUtils.smoothstep(t,.04,.88);
+   tint.set([shade*.97,shade,shade],i*3);
+  }
+  geometry.setAttribute('color',new THREE.BufferAttribute(tint,3));
+  geometry.computeVertexNormals();
+  const crown=new THREE.Mesh(geometry,this.mat[variant%2===0?'leaf':'leaf2']);
+  crown.position.y=1.13;crown.rotation.y=phase;crown.castShadow=true;
+  tree.add(trunk,crown);tree.position.set(x,0,z);tree.scale.setScalar(scale);
   this.vegetation.add(tree);
  }
  environmentPlan(w,{small=false,cross=false,tee=false,elevated=false,residential=false,centerX=0}={},id=this.current){

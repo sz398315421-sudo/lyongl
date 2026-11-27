@@ -12,6 +12,8 @@ export function nearbyVehicleSpec(id){return clayVehicleCatalog.find(model=>mode
 export function vehicleReadme(readme,id,parkedIds=[]){
  const model=vehicleSpec(id);
  const nearby=[...new Set(parkedIds)].filter(parkedId=>parkedId!==id).map(parkedId=>nearbyVehicleSpec(parkedId));
- const attribution=nearby.length?'\n\n旁车模型：\n'+nearby.map(model=>`${model.label} — ${model.author}（${model.license||'CC BY 4.0'}）\n${model.source}${model.license?'\n已统一灰白材质、柔化法线并调整比例与朝向。':''}`).join('\n'):'';
+ const attribution=nearby.length?'\n\n旁车模型：\n'+nearby.map(model=>model.procedural
+  ?`${model.label} — ${model.author}（程序化建模）`
+  :`${model.label} — ${model.author}（${model.license||'CC BY 4.0'}）\n${model.source}`).join('\n'):'';
  return readme.replace(/Vehicle: BMW[^\n]+/,`车辆：${model.label}（${model.name}），作者：${model.author}。模型元数据声明采用 CC BY 4.0 许可。已优化用于网页交付的几何与纹理，并调整材质、朝向和比例。${model.id==='911-gt3-r'?'保留原模型的 Rennsport 赛车涂装。':''}\n模型来源：${model.source}\n车辆资源库：vehicle-library/README.md`)+attribution;
 }
