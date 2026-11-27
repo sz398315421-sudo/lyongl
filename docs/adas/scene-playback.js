@@ -1,6 +1,7 @@
 import {roadLaneState,sampleLanePath,junctionLaneEndZ} from './road-assist.js';
 import {canExitRamp,sampleRampExit,rampExitDurationMs} from './ramp-exit.js';
 import {planParking,sampleParkingPose,sampleParkingExit,createParkingGraphics,parkingDurationMs,parkingExitDurationMs} from './parking-maneuver.js';
+import {turnDirection,turnSignalBeat} from './turn-signal.js';
 
 // Finite forward trips stay inside each authored environment. The camera and
 // vehicle travel together, preserving both the chosen view and vehicle framing.
@@ -19,6 +20,8 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
  const notify=()=>onChange(snapshot());
  const cancel=()=>{if(frame)cancelFrame(frame);frame=0;lastTime=null;};
  function apply(){
+  const direction=turnDirection({rampExit:trip.rampExit,parkingExit:trip.parkingExit?.side,laneChange:trip.laneChange});
+  world.turnIndicator=elapsedMs<trip.durationMs&&turnSignalBeat(elapsedMs)%2===0?direction:null;
   if(trip.parking||trip.parkingExit){
    const point=parkingPose(),pose={...base,carPosition:base.carPosition.clone().set(point.x,base.carPosition.y,point.z)};
    world.applyCamera(pose);world.car.quaternion.copy(base.carQuaternion);world.car.rotateY(point.yaw);
@@ -48,7 +51,7 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
  function pause(){if(status!=='playing')return;cancel();status='paused';notify();}
  function reset({render=true}={}){
   parkingGraphics?.dispose();parkingGraphics=null;
-  world.roadGuidePath=null;if(world.roadGuidance)world.roadGuidance.time=0;
+  world.turnIndicator=null;world.roadGuidePath=null;if(world.roadGuidance)world.roadGuidance.time=0;
   if(!base&&status==='idle')return;
   cancel();if(origin&&world.root===root){world.applyCamera(origin);world.car.quaternion.copy(origin.carQuaternion);world.framing=origin.framing;if(render&&!world.suspended)world.renderFrame();}
   status='idle';scene=null;trip=null;base=null;origin=null;root=null;elapsedMs=0;notify();

@@ -2,6 +2,7 @@ import {laneRetireTiming,junctionApproachTiming,previewMotionSettings} from './m
 import {createStudioEnvironment} from './studio-environment.js';
 import {attachGroundReflection} from './ground-reflection.js?v=139';
 import {createTailLight,updateTailLight} from './tail-light.js';
+import {createVehicleIndicators} from './vehicle-indicators.js';
 import {anchorVehicle,vehicleFrame} from './framing.js';
 import {buildOutdoorParking} from './outdoor-parking.js';
 import {buildParkingReference} from './parking-reference.js';
@@ -59,7 +60,7 @@ export class World {
    road:['#545e6d','#303031'],ground:['#b4c3d6','#373a3e'],pavement:['#d1dbee','#3c4045'],
    curb:['#d6e1ef','#5a6068'],building:['#d3d7dd','#817d7d'],glass:['#a6bed0','#606a72'],
    white:['#d6e0e9','#a7adb2'],yellow:['#bbaa6f','#99864e'],grass:['#809c68','#3e4d3d'],
-   leaf:['#6f914f','#4a593e'],leaf2:['#84a25c','#526047'],trunk:['#776956','#4b463e'],cone:['#ff5109','#ff590c'],water:['#7695ae','#304146'],parkingFloor:['#7c8b9e','#17181b'],parkingBay:['#aebdce','#393c41'],parkingEdge:['#98a9bc','#34383e']
+   leaf:['#84966e','#465644'],leaf2:['#96a883','#56634e'],trunk:['#847968','#50483e'],cone:['#ff5109','#ff590c'],water:['#7695ae','#304146'],parkingFloor:['#7c8b9e','#17181b'],parkingBay:['#aebdce','#393c41'],parkingEdge:['#98a9bc','#34383e']
   };
   for(const [key,pair]of Object.entries(this.colors))this.mat[key]=new THREE.MeshStandardMaterial({color:pair[0],roughness:key==='glass'?.35:.86,metalness:key==='glass'?.1:0});
   for(const k of ['leaf','leaf2','trunk'])this.mat[k].flatShading=true;
@@ -108,6 +109,7 @@ export class World {
   this.tailReflection=createTailLight();this.scene.add(this.tailReflection);
   this.roadGuidance=createRoadGuidance();this.scene.add(this.roadGuidance.mesh);
   this.scene.add(this.sky);this.scene.fog=new THREE.Fog('#c9dbea',85,280);this.car=car;this.scene.add(this.car);this.egoContact=createContactShadows(this.car);this.scene.add(this.egoContact);this.current=null;
+  this.vehicleIndicators=createVehicleIndicators();this.scene.add(this.vehicleIndicators.group);
   const target=new THREE.WebGLRenderTarget(width,height,{type:THREE.HalfFloatType,samples:width<=960?2:4});
   this.composer=new EffectComposer(this.renderer,target);this.composer.addPass(new RenderPass(this.scene,this.camera));
   this.composer.addPass(new OutputPass());
@@ -271,11 +273,16 @@ export class World {
  }
  tree(x,z,scale=1){
   const tree=new THREE.Group();
-  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.075,.13,1.57,7),this.mat.trunk);
-  trunk.position.y=.78;tree.add(trunk);
-  const variant=Math.abs(Math.round(x+z))%3;
-  const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1,2),this.mat[variant===0?'leaf2':'leaf']);
-  crown.position.y=2.17;crown.scale.set(.95+variant*.055,1.37+variant*.09,.92);
+  const seed=Math.abs(Math.round(x*67+z*137)),variant=seed%4;
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.065,.12,1.64,8),this.mat.trunk);
+  trunk.position.y=.82;tree.add(trunk);
+  const profile=new THREE.CatmullRomCurve3([
+   [0,0],[.48,.10],[.88,.44],[1,.89],[.79,1.45],[.43,1.96],[.16,2.22],[0,2.28]
+  ].map(([radius,height])=>new THREE.Vector3(radius,height,0)));
+  const crown=new THREE.Mesh(new THREE.LatheGeometry(profile.getPoints(18).map(p=>new THREE.Vector2(Math.max(0,p.x),p.y)),16),this.mat[variant%2===0?'leaf2':'leaf']);
+  crown.position.y=1.26;
+  crown.scale.set([.88,1.04,.79,1.13][variant],[1.06,.93,1.17,.86][variant],.84);
+  crown.rotation.set(.045,seed*.41,variant%2===0?.095:-.08);
   tree.add(crown);tree.position.set(x,0,z);tree.scale.setScalar(scale);
   tree.traverse(part=>{if(part.isMesh){part.castShadow=true;part.receiveShadow=true;}});
   this.vegetation.add(tree);
@@ -851,6 +858,7 @@ export class World {
  }
  renderFrame(moving=false){
   if(this.suspended)return;
+  this.vehicleIndicators.group.visible=false;
   this.traffic?.syncWorld();
   const stats=this.performanceStats,started=stats?performance.now():0;if(stats){this.renderer.info.autoReset=false;this.renderer.info.reset();}
   const {id,mode,vehicle}=this.state,dark=mode==='dark',isParking=parkingIds.includes(id);
@@ -909,6 +917,7 @@ export class World {
   this.car.visible=vehicle;this.tailReflection.visible=vehicle;updateTailLight(this.tailReflection,this.car,dark,isParking);this.renderer.shadowMap.needsUpdate=shadowChanged;
   this.egoContact.visible=vehicle;updateContactShadows(this.egoContact,this.car);
   this.roadGuidance.mesh.visible=showGuidance;
+  this.vehicleIndicators.update(this.car,this.turnIndicator,dark);
   this.vehicleDetail.setVehicleFrame(this.framing.vehicleFrame,vehicle);this.composer.render();
   this.shadowSceneRoot=this.root;this.shadowKey=shadowKey;this.shadowVehiclePosition=this.car.position.clone();this.shadowFrameAudit={updated:shadowChanged,car:this.shadowVehiclePosition.toArray(),contact:this.egoContact.position.toArray()};
   if(stats){stats.frames++;stats.drawCalls+=this.renderer.info.render.calls;stats.times.push(performance.now()-started);if(stats.times.length>120)stats.times.shift();}

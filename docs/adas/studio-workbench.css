@@ -89,10 +89,11 @@
  }
  #main-content > aside {position:static;display:flex;flex-direction:column;align-self:stretch;min-height:0;width:auto;overflow:auto;gap:8px;background:var(--studio-panel);border:1px solid var(--studio-edge);border-radius:var(--studio-radius);padding:10px 8px;}
  #main-content > aside #scenes {display:grid;gap:22px;padding:4px 0 0;}
- #main-content > aside .folder-icon,#main-content > aside .nav-pill {display:none;}
+ #main-content > aside .folder-icon {display:none;}
+ :root[data-nav-design="1"] #main-content #scenes>.nav-pill:not([hidden]) {display:none!important;}
  #main-content > aside .structure-heading {padding:4px 10px 8px;color:var(--text);font-size:13px;font-weight:700;}
  #main-content > aside .scene {min-height:34px;padding:6px 17px;font-size:13px;color:var(--text-secondary);font-weight:400;position:relative;}
- #main-content > aside .scene[aria-current=true] {color:var(--text);background:var(--studio-control);box-shadow:inset 3px 0 var(--studio-blue);font-weight:650;}
+ #main-content > aside .scene[aria-current=true] {color:var(--text);background:var(--studio-control);font-weight:650;}
  #main-content > aside .vehicle-entry {margin:auto 0 0;padding:0 2px 2px;width:100%;}
  .vehicle-entry-button:has(.studio-vehicle-caption) {background:var(--selected);border:1px solid var(--studio-edge);}
  #main-content .workspace {display:grid;grid-template-columns:minmax(0,1fr) var(--studio-inspector);grid-template-rows:minmax(0,1fr);gap:var(--studio-gutter);align-content:stretch;min-height:0;}
@@ -100,9 +101,9 @@
  .workspace .preview {border-radius:var(--studio-radius);}
  .workspace .screen-format-toolbar {margin:0 0 9px;min-height:32px;}
  .workspace .screen-format-toolbar button {min-height:28px;}
- #main-content .workspace .preview-settings {display:flex;flex-direction:column;align-self:stretch;height:100%;width:100%;min-width:0;min-height:0;padding:0;margin:0;background:var(--studio-panel);border:1px solid var(--studio-edge);border-radius:var(--studio-radius);overflow:hidden;}
- .studio-inspector-scroll {overflow:auto;scrollbar-width:thin;flex:1;min-height:0;min-width:0;padding:14px 13px;}
- .studio-export {flex:none;max-height:55%;margin:0;padding:11px 13px;overflow:auto;scrollbar-width:thin;}
+ #main-content .workspace .preview-settings {display:flex;flex-direction:column;align-items:stretch;align-self:start;justify-content:flex-start;gap:0;max-height:100%;width:100%;min-width:0;min-height:0;padding:0;margin:0;background:var(--studio-panel);border:1px solid var(--studio-edge);border-radius:var(--studio-radius);overflow:auto;scrollbar-width:thin;}
+ .studio-inspector-scroll {flex:none;min-width:0;padding:14px 13px;}
+ .studio-export {flex:none;min-width:0;margin:0;padding:11px 13px;}
  .studio-export-preview canvas {max-height:16dvh;object-fit:contain;}
  .workspace .scene-options #road-controls,.workspace #camera-control,.workspace #camera-control:has(#layout-control:not([hidden])) {grid-template-columns:minmax(0,1fr);gap:8px;margin:0;}
  .workspace .studio-inspector-scroll .choice-row,.workspace .scene-options #road-controls .choice-row {gap:5px;}
@@ -127,8 +128,8 @@
 @media (max-width:999px) {
  #scenes .structure-heading {font-size:13px;font-weight:700;color:var(--text);}
  #scenes .scene {font-weight:400;}
- #scenes .scene[aria-current=true] {font-weight:650;box-shadow:inset 3px 0 var(--studio-blue);}
- .workspace .preview-settings {margin-top:12px;padding:13px;background:var(--studio-panel);border:1px solid var(--studio-edge);border-radius:var(--studio-radius);}
+ #scenes .scene[aria-current=true] {font-weight:650;}
+ .workspace .preview-settings {display:block;margin-top:12px;padding:13px;background:var(--studio-panel);border:1px solid var(--studio-edge);border-radius:var(--studio-radius);}
  .studio-inspector-scroll {min-width:0;}
  .studio-weather-options {max-width:236px;}
 }

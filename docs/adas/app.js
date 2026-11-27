@@ -136,7 +136,7 @@ const parkingHmi=initParkingHmi(preview);
 const cruise=createStudioCruise(world,preview);
 const scenePlayback=createScenePlayback(world,{onChange:snapshot=>{
  syncScenePlayback(snapshot);
- preview.dataset.sceneMotion=JSON.stringify({...snapshot,car:world.car.position.toArray(),camera:world.camera.position.toArray()});
+ preview.dataset.sceneMotion=JSON.stringify({...snapshot,turnIndicator:world.turnIndicator??null,car:world.car.position.toArray(),camera:world.camera.position.toArray()});
  if(!exporting&&snapshot.status!=='playing'&&vehicleReady&&!world.suspended){preview.dataset.audit=JSON.stringify(world.audit());rememberPreview();}
 }});
 const sceneMotionControls=initScenePlaybackControls({onToggle:()=>{

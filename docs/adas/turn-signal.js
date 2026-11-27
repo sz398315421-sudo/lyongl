@@ -1,3 +1,11 @@
+export function turnDirection({rampExit,parkingExit,laneChange}){
+ if(rampExit||parkingExit===1)return 'right';
+ if(parkingExit===-1)return 'left';
+ return laneChange?.direction==='left'||laneChange?.direction==='right'?laneChange.direction:null;
+}
+
+export const turnSignalBeat=elapsedMs=>Math.floor(elapsedMs/430);
+
 export function mountTurnSignal(container,initialMuted,onMute){
  const button=document.createElement('button');
  button.type='button';button.className='studio-signal';button.hidden=true;
@@ -30,12 +38,11 @@ export function mountTurnSignal(container,initialMuted,onMute){
  }
  updateButton();container.append(button);
  return {unlock,sync(snapshot,exporting){
-  const direction=snapshot.rampExit||snapshot.parkingExit===1?'right':snapshot.parkingExit===-1?'left':snapshot.laneChange?.direction;
-  const turning=direction==='left'||direction==='right';
+  const turning=!!turnDirection(snapshot);
   button.hidden=!turning||snapshot.status==='finished';
   button.disabled=exporting;
   if(exporting||!turning||snapshot.status!=='playing'){beat=-1;return;}
-  const pulse=Math.floor(snapshot.elapsedMs/430);
+  const pulse=turnSignalBeat(snapshot.elapsedMs);
   if(pulse!==beat){beat=pulse;if(!muted)tick(pulse);}
  }};
 }
