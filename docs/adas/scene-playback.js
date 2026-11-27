@@ -1,6 +1,6 @@
 import {roadLaneState,sampleLanePath,junctionLaneEndZ} from './road-assist.js';
 import {canExitRamp,sampleRampExit,rampExitDurationMs} from './ramp-exit.js';
-import {planParking,sampleParkingPose,createParkingGraphics,parkingDurationMs} from './parking-maneuver.js';
+import {planParking,sampleParkingPose,sampleParkingExit,createParkingGraphics,parkingDurationMs,parkingExitDurationMs} from './parking-maneuver.js';
 
 // Finite forward trips stay inside each authored environment. The camera and
 // vehicle travel together, preserving both the chosen view and vehicle framing.
@@ -13,12 +13,14 @@ export const sceneTrips=Object.freeze(Object.fromEntries(Object.entries({
 
 export function createScenePlayback(world,{requestFrame=callback=>requestAnimationFrame(callback),cancelFrame=id=>cancelAnimationFrame(id),onChange=()=>{}}={}){
  let status='idle',scene=null,trip=null,base=null,origin=null,root=null,elapsedMs=0,frame=0,lastTime=null,parkingGraphics=null;
- const snapshot=()=>({scene,status,progress:trip?elapsedMs/trip.durationMs:0,elapsedMs,durationMs:trip?.durationMs||sceneTripDurationMs,distanceMeters:trip?.distance||0,parking:trip?.parking?sampleParkingPose(trip.parking,elapsedMs):null,rampExit:!!trip?.rampExit,laneChange:trip?.laneChange?{direction:trip.laneChange.direction,fromLane:trip.laneChange.fromLane,toLane:trip.laneChange.toLane}:null});
+ let loop=false;
+ const parkingPose=()=>trip?.parkingExit?sampleParkingExit(trip.parkingExit,elapsedMs):trip?.parking?sampleParkingPose(trip.parking,elapsedMs):null;
+ const snapshot=()=>({scene,status,progress:trip?elapsedMs/trip.durationMs:0,elapsedMs,durationMs:trip?.durationMs||sceneTripDurationMs,distanceMeters:trip?.distance||0,parking:parkingPose(),parkingExit:trip?.parkingExit?.side??null,rampExit:!!trip?.rampExit,laneChange:trip?.laneChange?{direction:trip.laneChange.direction,fromLane:trip.laneChange.fromLane,toLane:trip.laneChange.toLane}:null});
  const notify=()=>onChange(snapshot());
  const cancel=()=>{if(frame)cancelFrame(frame);frame=0;lastTime=null;};
  function apply(){
-  if(trip.parking){
-   const point=sampleParkingPose(trip.parking,elapsedMs),pose={...base,carPosition:base.carPosition.clone().set(point.x,base.carPosition.y,point.z)};
+  if(trip.parking||trip.parkingExit){
+   const point=parkingPose(),pose={...base,carPosition:base.carPosition.clone().set(point.x,base.carPosition.y,point.z)};
    world.applyCamera(pose);world.car.quaternion.copy(base.carQuaternion);world.car.rotateY(point.yaw);
    parkingGraphics?.update(elapsedMs);world.framing=base.framing;world.renderFrame(true);return;
   }
@@ -59,13 +61,20 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
   // Limit reflection-heavy rendering to 30 fps, but use real elapsed time so
   // slower frames do not also slow the vehicle down. Pause resets this clock.
   const delta=now-lastTime;
-  if(delta>=1000/30){elapsedMs=Math.min(trip.durationMs,elapsedMs+delta);lastTime=now;apply();if(elapsedMs>=trip.durationMs){status='finished';lastTime=null;notify();return;}notify();}
+  if(delta>=1000/30){
+   elapsedMs+=delta;lastTime=now;
+   if(elapsedMs>=trip.durationMs){
+    if(loop&&['road','elevated','ramp'].includes(scene))elapsedMs%=trip.durationMs;
+    else{elapsedMs=trip.durationMs;apply();status='finished';lastTime=null;notify();return;}
+   }
+   apply();notify();
+  }
   frame=requestFrame(tick);
  }
  function play(key){
   if(!sceneTrips[key]||world.suspended)return false;
   if(status==='playing')return true;
-  if(scene===key&&world.root===root&&status==='finished'&&(trip.laneChange||trip.rampExit)){
+  if(scene===key&&world.root===root&&status==='finished'&&(trip.laneChange||trip.rampExit||trip.parkingExit)){
    elapsedMs=0;world.applyCamera(base);world.car.quaternion.copy(base.carQuaternion);world.framing=base.framing;apply();
    status='playing';lastTime=null;notify();frame=requestFrame(tick);return true;
   }
@@ -89,6 +98,13 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
   return planDirection(direction);
  }
  function goStraight(){return planDirection(0);}
+ function exitParking(side){
+  const plan=status==='finished'?trip?.parking:status==='planned'?trip?.parkingExit:null;
+  if(![-1,1].includes(side)||world.suspended||world.root!==root||!plan)return false;
+  parkingGraphics?.dispose();parkingGraphics=null;
+  trip={durationMs:parkingExitDurationMs,parkingExit:{...plan,side}};
+  elapsedMs=0;status='planned';apply();notify();return true;
+ }
  function exitRamp(){
   if(!canExitRamp(world)||world.suspended||['playing','paused'].includes(status))return false;
   if(root&&world.root!==root)reset({render:false});
@@ -118,20 +134,32 @@ export function createScenePlayback(world,{requestFrame=callback=>requestAnimati
   status=elapsedMs>=trip.durationMs?'finished':nextStatus==='planned'&&elapsedMs===0?'planned':'paused';
   apply();if(notifyChange)notify();return true;
  }
- return {play,changeLane,goStraight,exitRamp,pause,reset,seek,snapshot,get active(){return !!base;}};
+ return {play,changeLane,goStraight,exitRamp,exitParking,pause,reset,seek,snapshot,setLoop(enabled){loop=enabled;},get active(){return !!base;}};
 }
 
-export function initScenePlaybackControls({onToggle,onReset}){
+export function initScenePlaybackControls({onToggle,onReset,onParkingExit}){
  const block=document.createElement('div');block.id='scene-animation-control';block.className='scene-animation-control';block.hidden=true;
  block.innerHTML='<div class="scene-motion-heading"><span class="choice-label">场景动画</span><span id="scene-motion-time" aria-hidden="true">0:00 / 0:04</span></div><div class="scene-motion-buttons"><button id="scene-motion-play" type="button" aria-label="播放场景动画" aria-pressed="false" disabled><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg><span>播放</span></button><button id="scene-motion-reset" type="button" aria-label="重置场景动画" title="重置动画" disabled><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a6 6 0 1 1-.2 5M4 3v4h4"/></svg></button></div><progress id="scene-motion-progress" value="0" max="100" aria-label="场景动画进度"></progress>';
  document.querySelector('.vehicle-entry').before(block);
  const play=block.querySelector('#scene-motion-play'),reset=block.querySelector('#scene-motion-reset'),icon=play.querySelector('svg'),label=play.querySelector('span'),time=block.querySelector('#scene-motion-time'),progress=block.querySelector('progress'),heading=block.querySelector('.choice-label');
  play.addEventListener('click',onToggle);reset.addEventListener('click',onReset);
+ const exit=document.createElement('div');exit.className='studio-parking-exit';exit.hidden=true;
+ for(const [side,label] of [[-1,'向左驶离'],[1,'向右驶离']]){
+  const button=document.createElement('button');button.type='button';button.textContent=label;
+  button.dataset.side=side;
+  button.addEventListener('click',()=>onParkingExit(side));exit.append(button);
+ }
+ block.append(exit);
  let previousStatus;
  const format=ms=>`0:${String(Math.floor(ms/1000)).padStart(2,'0')}`;
  return {sync(scene,ready,state){
   block.hidden=scene==='junction'||!sceneTrips[scene];const {status}=state;block.dataset.state=status;
   const parking=['parking','outdoor'].includes(scene);heading.textContent=parking?'自动泊车动画':'场景动画';
+  exit.hidden=!(parking&&((status==='finished'&&state.parking?.phase==='complete')||(status==='planned'&&state.parkingExit)));
+  for(const button of exit.children){
+   button.disabled=!ready;
+   button.setAttribute('aria-pressed',String(Number(button.dataset.side)===state.parkingExit));
+  }
   play.disabled=block.hidden||!ready;reset.disabled=block.hidden||!ready||status==='idle';
   if(status!==previousStatus){
    label.textContent={idle:'播放',planned:'播放',playing:'暂停',paused:'继续',finished:'重播'}[status];

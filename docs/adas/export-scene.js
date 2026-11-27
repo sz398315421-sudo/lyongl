@@ -69,8 +69,8 @@ export function perspectiveSvg(world){
  return `<svg xmlns="http://www.w3.org/2000/svg" width="${exportSize.width}" height="${exportSize.height}" viewBox="0 0 ${exportSize.width} ${exportSize.height}"><title>DriveScene 透视参考</title><desc>参考平面与车辆所在路面等高。列间距为 1 米，行间距为 5 米。参考箭头宽 2 米、长 3.5 米，起点位于车辆前方 18 米。参考线不考虑遮挡，也不跟随支路或匝道的几何形状。</desc><g id="ground-grid" fill="none" stroke="#0085ff" stroke-width="1.5">${lines.join('')}</g><g id="reference-arrow" fill="none" stroke="#0085ff" stroke-width="3">${arrowLines.join('')}</g></svg>`;
 }
 
-export function renderDepth(world){
- const {renderer,scene,camera}=world,{width,height}=exportSize;
+export function renderDepth(world,{width,height}=exportSize){
+ const {renderer,scene,camera}=world;
  const target=new THREE.WebGLRenderTarget(width,height,{type:THREE.UnsignedByteType,depthBuffer:true,stencilBuffer:false});
  const materials=new Map(),originals=[],hidden=[];
  const saved={target:renderer.getRenderTarget(),viewport:renderer.getViewport(new THREE.Vector4()),scissor:renderer.getScissor(new THREE.Vector4()),scissorTest:renderer.getScissorTest(),clearColor:renderer.getClearColor(new THREE.Color()),clearAlpha:renderer.getClearAlpha(),background:scene.background,overrideMaterial:scene.overrideMaterial,autoClear:renderer.autoClear,shadowAutoUpdate:renderer.shadowMap.autoUpdate,shadowNeedsUpdate:renderer.shadowMap.needsUpdate};

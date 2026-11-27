@@ -5,6 +5,10 @@ export const screenFormats=Object.freeze([
 ]);
 
 export function screenFormat(id){return screenFormats.find(format=>format.id===id)||screenFormats[0];}
+export function exportDimensions(format,highResolution=false){
+ if(!highResolution)return {width:format.width,height:format.height};
+ return {width:3840,height:Math.round(format.height*3840/format.width)};
+}
 // Shared by preview and every export format. Changes are blocked during export.
 export const exportSize={width:1920,height:1080};
 export function setScreenFormat(id){const format=screenFormat(id);Object.assign(exportSize,{width:format.width,height:format.height});return format;}

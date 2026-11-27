@@ -4,6 +4,7 @@ import {createGuidanceMaterial} from './road-assist.js';
 
 export const parkingDurationMs=18000;
 export const parkingDetectionMs=4000;
+export const parkingExitDurationMs=6500;
 const clamp=t=>Math.max(0,Math.min(1,t));
 const smooth=t=>{t=clamp(t);return t*t*(3-2*t);};
 // Rearward quarter circle with tangent-continuous entry and exit. Heading is
@@ -27,6 +28,24 @@ function reversePathPoint(plan,distance){
  const arc=plan.radius*Math.PI/2;
  if(distance<=arc){const a=distance/plan.radius;return {x:plan.startX+plan.radius*(1-Math.cos(a)),z:plan.targetZ-plan.radius+plan.radius*Math.sin(a),yaw:a};}
  return {x:plan.startX+plan.radius+distance-arc,z:plan.targetZ,yaw:Math.PI/2};
+}
+
+export function sampleParkingExit(plan,elapsedMs){
+ const {startX,targetX,targetZ,radius,side}=plan;
+ const lead=targetX-startX-radius,arc=radius*Math.PI/2,straight=3;
+ const progress=clamp(elapsedMs/parkingExitDurationMs);
+ const distance=(lead+arc+straight)*smooth(progress);
+ let x=targetX-distance,z=targetZ,yaw=Math.PI/2;
+ if(distance>lead){
+  const angle=Math.min(Math.PI/2,(distance-lead)/radius);
+  x=startX+radius*(1-Math.sin(angle));
+  z=targetZ+side*(radius*(1-Math.cos(angle))+Math.max(0,distance-lead-arc));
+  yaw=Math.PI/2+side*angle;
+ }
+ const complete=progress===1;
+ return {x,z,yaw,progress,phase:complete?'departed':'exit',title:complete?'驶离完成':'驶离车位',
+  gear:complete?'P':'D',speed:complete?0:(lead+arc+straight)*6*progress*(1-progress)*3600/parkingExitDurationMs,
+  detected:true,remaining:lead+arc+straight-distance};
 }
 
 function createRadarTexture(){

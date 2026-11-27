@@ -269,9 +269,20 @@ export class World {
   if(!this.contactMap){const n=64,data=new Uint8Array(n*n*4);for(let y=0;y<n;y++)for(let x=0;x<n;x++){const u=Math.abs((x+.5)/n*2-1),v=Math.abs((y+.5)/n*2-1),a=Math.pow(Math.max(0,1-Math.pow(Math.max(u,v),3)),2);const i=(y*n+x)*4;data[i]=data[i+1]=data[i+2]=0;data[i+3]=Math.round(a*255);}this.contactMap=new THREE.DataTexture(data,n,n);this.contactMap.needsUpdate=true;}
   const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:this.contactMap,transparent:true,opacity,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}));m.rotation.x=-Math.PI/2;m.position.set(x,.022,z);this.root.add(m);
  }
- tree(x,z,scale=1){const g=new THREE.Group();const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.10,.17,1.6,7),this.mat.trunk);trunk.position.y=.8;g.add(trunk);for(const [px,py,pz,r,m]of [[0,2.7,0,1.05,'leaf'],[-.65,2.03,.05,.74,'leaf2'],[.60,2.25,.02,.83,'leaf'],[.13,2.18,.60,.71,'leaf2']]){const o=new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),this.mat[m]);o.position.set(px,py,pz);o.scale.y=1.16;o.castShadow=true;g.add(o);}g.position.set(x,0,z);g.scale.setScalar(scale);g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});this.vegetation.add(g);}
+ tree(x,z,scale=1){
+  const tree=new THREE.Group();
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.075,.13,1.57,7),this.mat.trunk);
+  trunk.position.y=.78;tree.add(trunk);
+  const variant=Math.abs(Math.round(x+z))%3;
+  const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1,2),this.mat[variant===0?'leaf2':'leaf']);
+  crown.position.y=2.17;crown.scale.set(.95+variant*.055,1.37+variant*.09,.92);
+  tree.add(crown);tree.position.set(x,0,z);tree.scale.setScalar(scale);
+  tree.traverse(part=>{if(part.isMesh){part.castShadow=true;part.receiveShadow=true;}});
+  this.vegetation.add(tree);
+ }
  environmentPlan(w,{small=false,cross=false,tee=false,elevated=false,residential=false,centerX=0}={},id=this.current){
   const sites=[[-1,6,9,13,small?5:23],[1,-9,13,11,small?4.5:12],[-1,-31,13,17,small?6:14],[1,-54,8,12,small?5.3:21],[-1,-83,11,13,small?4:10],[1,-107,14,15,small?6:13],[-1,-144,9,14,small?5:16],[1,-180,11,14,small?4:9]],plan=[];
+  if(!cross&&!elevated)sites.push([1,-27,9,12,8],[-1,-62,11,12,18],[1,-79,9,10,15],[-1,-193,9,12,11],[1,-220,13,12,15]);
   const add=(kind,...args)=>plan.push({kind,args,key:JSON.stringify([kind,...args])});let siteVariant=0,buildingCount=0;
   const building=(x,z,bw,bd,bh,variant=buildingCount%3)=>{add('building',x,z,bw,bd,bh,variant%3);buildingCount++;};
   for(const [side,z,bw,bd,bh]of sites.map(v=>residential?[v[0],v[1]-8,v[2]*.82,v[3]*.8,3.8]:v)){
@@ -585,7 +596,7 @@ export class World {
   this.vehicleNeedsFraming=false;this.options=options;
   const dark=mode==='dark',idx=dark?1:0,isParking=parkingIds.includes(id),isIndoor=['10','14','15','16'].includes(id),vegetated=trees&&catalog.find(s=>s.id===id).trees;
   for(const [key,pair]of Object.entries(this.colors)){this.mat[key].color.set(pair[idx]);if(!dark){const c=this.mat[key].color,l=.2126*c.r+.7152*c.g+.0722*c.b;c.lerp(new THREE.Color(l,l,l),.025);}}
-  const palettes={balanced:{road:'#59616c',ground:'#c4cfdd',pavement:'#d3dce4',building:'#d3d7dd'},cool:{road:'#626974',ground:'#c1c9d3',pavement:'#d4d9e0',building:'#d3d7dd'},neutral:{road:'#68696b',ground:'#cccdce',pavement:'#d9dadb',building:'#dcdddd'},warm:{road:'#6c6965',ground:'#d1cec8',pavement:'#dfdbd4',building:'#e2dfd9'},soft:{road:'#7d7f82',ground:'#d5d7da',pavement:'#e0e2e5',building:'#e1e3e6'}};
+  const palettes={balanced:{road:'#404b59',ground:'#b9c4d1',pavement:'#dce3eb',building:'#cbd4df'},cool:{road:'#626974',ground:'#c1c9d3',pavement:'#d4d9e0',building:'#d3d7dd'},neutral:{road:'#68696b',ground:'#cccdce',pavement:'#d9dadb',building:'#dcdddd'},warm:{road:'#6c6965',ground:'#d1cec8',pavement:'#dfdbd4',building:'#e2dfd9'},soft:{road:'#7d7f82',ground:'#d5d7da',pavement:'#e0e2e5',building:'#e1e3e6'}};
   if(!dark&&palettes[this.palette])for(const[k,c]of Object.entries(palettes[this.palette]))this.mat[k].color.set(c);
   this.mat.environmentBuilding.color.copy(this.mat.building.color);this.mat.shoreGrass.color.copy(this.mat.grass.color);this.mat.junctionGrass.color.copy(this.mat.grass.color);
   this.mat.whitePaint.color.copy(this.mat.white.color);this.mat.yellowPaint.color.copy(this.mat.yellow.color);this.mat.crosswalk.color.copy(this.mat.white.color);this.mat.lanePaint.color.copy(this.mat.white.color);for(const m of this.laneMaterials.values())m.color.copy(this.mat.white.color);
@@ -602,7 +613,8 @@ export class World {
   this.scene.environmentIntensity=isParking?(dark?.28:.42):(dark?.30:.38);
   if(isParking){this.hemi.color.set(dark?'#e5e5e5':'#d9e2eb');this.hemi.groundColor.set(dark?'#717171':'#91969e');this.hemi.intensity=dark?.65:.85;this.sun.color.set(dark?'#eeeeee':'#fff5e8');this.sun.intensity=dark?1.4:2.6;this.fill.color.set(dark?'#cccccc':'#d7e2eb');this.fill.intensity=.35;}
   this.sun.position.set(-38,55+(id==='03'?ELEVATED_DECK_HEIGHT:0),48);this.sun.shadow.intensity=dark?.22:.28;
-  const bodyContact=this.egoContact.children[0];bodyContact.scale.y=1;bodyContact.position.z=0;bodyContact.material.uniforms.opacity.value=dark?.30:.38;
+  const bodyContact=this.egoContact.children[0];bodyContact.scale.y=1;bodyContact.position.z=0;
+  bodyContact.material.uniforms.opacity.value=isParking?(dark?.54:.44):(dark?.30:.38);
   this.environmentTone.value=dark?1:0;this.darkAerialPerspective.value=dark?1:0;
   this.sky.material.uniforms.range.value=dark?.32:.20;this.sky.material.uniforms.top.value.set(dark?'#2d2e30':'#96bde0');this.sky.material.uniforms.bottom.value.set(dark?'#48494b':'#dce5ee');
   this.scene.fog.color.set(dark?'#48494b':'#dce5ee');this.scene.fog.near=isIndoor?100000:55;this.scene.fog.far=isIndoor?120000:210;this.sky.visible=true;this.scene.background=null;
@@ -617,6 +629,12 @@ export class World {
 
   }
   this.state={id,mode,trees:vegetated,vehicle,parkedCars:isParking&&parkedCars,buildings,waterfront,roadworks,laneCount,cameraView,junctionPosition,junctionLane};
+  if(isParking){
+   this.sky.material.uniforms.top.value.set(dark?'#2e3036':'#c0c6ce');
+   this.sky.material.uniforms.bottom.value.set(dark?'#2e3036':'#b7bfc9');
+   this.sky.material.uniforms.range.value=.45;
+   this.scene.fog.color.copy(this.sky.material.uniforms.bottom.value);
+  }
   if(this.vehicleSettings){applyVehicleAppearance(this.car,this.vehicleSettings);applyVehicleLighting(this,this.vehicleSettings);}
   this.environmentTargets={buildings:buildings?1:0,trees:vegetated?1:0,waterfront:waterfront&&!!this.waterBounds?1:0,roadworks:roadworks&&!!this.roadworkZone?1:0};
   if(!environmentMotion||geometryChanged)for(const key of Object.keys(this.environmentGrowth)){
@@ -841,7 +859,8 @@ export class World {
   const shadowChanged=this.shadowSceneRoot!==this.root||this.shadowKey!==shadowKey||this.renderer.shadowMap.needsUpdate;
   const cameraKey=this.camera.matrixWorld.elements.join(',')+'|'+this.camera.projectionMatrix.elements.join(',');
   const baseKey=[cameraKey,mode,this.width,this.height,this.layoutBlend.value,this.structureMotion?.environmentReveal??1].join('|');
-  const groundKey=[baseKey,this.environmentGrowth.buildings.value,this.waterMix.value].join('|');
+  const groundKey=[baseKey,this.environmentGrowth.buildings.value,this.waterMix.value,this.state.parkedCars,
+   isParking&&vehicle?this.car.position.toArray().join(',')+'|'+this.car.rotation.y:''].join('|');
   const waterKey=[baseKey,this.environmentGrowth.trees.value,this.environmentGrowth.roadworks.value,this.waterMix.value].join('|');
   const rootChanged=this.reflectionSceneRoot!==this.root;
   const waterChanged=this.waterMix.value>0&&(rootChanged||this.waterReflectionKey!==waterKey);
@@ -866,11 +885,13 @@ export class World {
   // Building reflection contains no sky; clear areas must not tint the ground.
   if(stats)stats.groundPasses++;
   this.mirror.position.y=isParking?0:-.14;this.mirror.updateMatrixWorld(true);
+  this.car.visible=isParking&&vehicle;
   const priorBackground=this.scene.background,priorSky=this.sky.visible,priorAlpha=this.renderer.getClearAlpha(),priorClear=this.renderer.getClearColor(new THREE.Color());
   this.scene.background=null;this.sky.visible=false;this.renderer.setClearColor(0x000000,0);
-  const reflectionExcluded=[];this.root.traverse(o=>{if(o.isMesh&&!o.userData.buildingOwned&&!this.parkingColumns.includes(o)){reflectionExcluded.push([o,o.visible]);o.visible=false;}});
+  const reflectionExcluded=[];this.root.traverse(o=>{if(o.isMesh&&!o.userData.buildingOwned&&!this.parkingColumns.includes(o)&&!(isParking&&o.userData.sharedVehicleGeometry)){reflectionExcluded.push([o,o.visible]);o.visible=false;}});
   this.groundReflectionAudit={trees:0,buildings:0};this.root.traverse(o=>{if(!o.isMesh||!o.visible)return;if(o.userData.buildingOwned)this.groundReflectionAudit.buildings++;if([this.mat.leaf,this.mat.leaf2,this.mat.trunk].includes(o.material))this.groundReflectionAudit.trees++;});
   this.mirror.onBeforeRender(this.renderer,this.scene,this.camera);
+  this.car.visible=false;
   for(const [o,visible]of reflectionExcluded)o.visible=visible;
   this.scene.background=priorBackground;this.sky.visible=priorSky;this.renderer.setClearColor(priorClear,priorAlpha);
   const rt=this.renderer.getRenderTarget();

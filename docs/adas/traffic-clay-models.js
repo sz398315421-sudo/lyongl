@@ -17,7 +17,26 @@ export async function loadClayModels(){
   if(bytes[0]===0x1f&&bytes[1]===0x8b)bytes=gunzipSync(bytes);
   const gltf=await loader.parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
   const root=gltf.scene;root.name=spec.label;
-  root.traverse(mesh=>{if(mesh.isMesh){mesh.castShadow=true;mesh.receiveShadow=true;mesh.material=new THREE.MeshStandardMaterial({color:'#c5cbd3',roughness:.78,metalness:0});}});
+  const body=new THREE.MeshStandardMaterial({color:'#e2e6e9',roughness:.56,metalness:.06,vertexColors:true});
+  body.name='Neutral traffic body';
+  root.traverse(mesh=>{
+   if(!mesh.isMesh)return;
+   mesh.castShadow=true;mesh.receiveShadow=true;mesh.material=body;
+   const position=mesh.geometry.getAttribute('position');
+   mesh.geometry.computeBoundingBox();
+   const {min,max}=mesh.geometry.boundingBox;
+   const colors=new Float32Array(position.count*3);
+   for(let i=0;i<position.count;i++){
+    const x=(position.getX(i)-min.x)/(max.x-min.x);
+    const y=(position.getY(i)-min.y)/(max.y-min.y);
+    const z=(position.getZ(i)-min.z)/(max.z-min.z);
+    const wheels=y<.30&&Math.abs(x-.5)>.34;
+    const cabin=y>.57&&z>.25&&z<.77;
+    const shade=wheels?.52:cabin?.82:1;
+    colors.set([shade*.98,shade,shade],i*3);
+   }
+   mesh.geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  });
   root.userData.vehicleSpec={id:spec.id,length:spec.length,wheels:[]};
   return {...spec,root};
  }));

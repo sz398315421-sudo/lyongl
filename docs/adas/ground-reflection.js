@@ -25,8 +25,7 @@ float grain(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 q){vec2 i=floor(q),f=fract(q);f=f*f*(3.-2.*f);return mix(mix(grain(i),grain(i+vec2(1.,0.)),f.x),mix(grain(i+vec2(0.,1.)),grain(i+vec2(1.)),f.x),f.y);}
 void main(){
  float radius=length(p.xz*vec2(.055,.038));float pool=exp(-radius*radius*.8);
- vec3 dark=mix(vec3(.022),vec3(.027),pool);
- dark*=mix(vec3(1.),vec3(.94,1.,1.09),outdoor);
+ vec3 dark=mix(vec3(.030,.033,.040),vec3(.043,.046,.055),pool);
  float center=exp(-dot(vec2(p.x*.10,(p.z+3.)*.08),vec2(p.x*.10,(p.z+3.)*.08))*1.2);
  vec3 light=mix(base,centerTone,center*.68);
  // Broad overhead illumination, with subdued, stable concrete variation.
@@ -38,7 +37,10 @@ void main(){
  light+=vec3(microVariation);
  float distanceFade=smoothstep(24.,95.,-p.z);
  light=mix(light,farTone,distanceFade);
- vec3 surface=mix(light,dark,tone);float courtyardDistance=max(0.,-p.z);float aerial=1.-exp(-courtyardDistance/32.);surface=mix(surface,horizon,outdoor*aerial);gl_FragColor=vec4(surface,1.);
+ vec3 surface=mix(light,dark,tone);
+ float courtyardDistance=max(0.,length(p.xz-cameraPosition.xz)-25.);
+ float aerial=1.-exp(-pow(courtyardDistance/72.,1.25));
+ surface=mix(surface,horizon,aerial);gl_FragColor=vec4(surface,1.);
 #include <colorspace_fragment>}`});
  attachGroundReflection(floor,world,true);return floor;
 }
