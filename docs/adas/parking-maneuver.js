@@ -7,12 +7,13 @@ export const parkingDetectionMs=4000;
 export const parkingExitDurationMs=6500;
 const clamp=t=>Math.max(0,Math.min(1,t));
 const smooth=t=>{t=clamp(t);return t*t*(3-2*t);};
+const stagingZ=plan=>plan.targetZ-plan.radius;
 // Rearward quarter circle with tangent-continuous entry and exit. Heading is
 // derived from travel direction; reversing never turns the vehicle nose first.
 export function sampleParkingPose(plan,elapsedMs){
  const t=Math.max(0,Math.min(parkingDurationMs,elapsedMs))/1000;
  const {startX,startZ,targetX,targetZ,radius}=plan;
- const setupZ=targetZ-radius;
+ const setupZ=stagingZ(plan);
  let x=startX,z=startZ,yaw=0,gear='D',phase='search',title='寻找车位',speed=0,remaining=targetX-startX-radius+radius*Math.PI/2;
  // Search happens while driving; detection does not interrupt forward motion.
  if(t<6){const q=t/6;z=startZ+(setupZ-startZ)*smooth(q);speed=Math.abs(setupZ-startZ)*6*q*(1-q)/6*3.6;}
@@ -26,7 +27,7 @@ export function sampleParkingPose(plan,elapsedMs){
 
 function reversePathPoint(plan,distance){
  const arc=plan.radius*Math.PI/2;
- if(distance<=arc){const a=distance/plan.radius;return {x:plan.startX+plan.radius*(1-Math.cos(a)),z:plan.targetZ-plan.radius+plan.radius*Math.sin(a),yaw:a};}
+ if(distance<=arc){const a=distance/plan.radius;return {x:plan.startX+plan.radius*(1-Math.cos(a)),z:stagingZ(plan)+plan.radius*Math.sin(a),yaw:a};}
  return {x:plan.startX+plan.radius+distance-arc,z:plan.targetZ,yaw:Math.PI/2};
 }
 
@@ -89,6 +90,9 @@ export function createParkingGraphics(world,plan){
  }
  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));geometry.setAttribute('uv',new THREE.BufferAttribute(uv,2));geometry.setIndex(indices);
  const guidanceMaterial=createGuidanceMaterial(),line=new THREE.Mesh(geometry,guidanceMaterial);line.name='Parking guidance ribbon';line.frustumCulled=false;line.renderOrder=6;group.add(line);
+ const stopMaterial=material('#277ed0');
+ const stopMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.28,.075),stopMaterial);
+ stopMarker.name='Parking staging stop marker';stopMarker.rotation.x=-Math.PI/2;stopMarker.renderOrder=7;group.add(stopMarker);
  const daytimeGuideColor=guidanceMaterial.uniforms.guideColor.value.clone();
  // Circular gradient sheets live in the vehicle's ground plane. Their world
  // radius is identical along X and Z; the camera supplies all foreshortening.
@@ -103,16 +107,28 @@ export function createParkingGraphics(world,plan){
   const pose=sampleParkingPose(plan,ms),finished=pose.phase==='complete',dark=world.state?.mode==='dark';
   target.visible=pose.detected;const reveal=smooth((ms-parkingDetectionMs)/450);fill.opacity=(finished?(dark?.09:.17):(dark?.065:.12))*reveal;cyan.opacity=reveal*(dark?.72:1);
   cyan.color.set(dark?(finished?'#408e77':'#427eb2'):(finished?'#2bd5a2':'#248cff'));fill.color.copy(cyan.color);
-  line.visible=!finished;guidanceMaterial.uniforms.dark.value=dark?1:0;
-  guidanceMaterial.uniforms.displayOpacity.value=dark?.52:1;
+  const length=world.car.userData.vehicleSpec?.length||4.85,frontOffset=length/2+.08;
+  // The bar stays at the projected front bumper of the stationary staging pose.
+  const frontZ=pose.z-frontOffset,stopZ=stagingZ(plan)-frontOffset,forwardDistance=frontZ-stopZ;
+  const forward=pose.phase==='found'&&forwardDistance>0;
+  const reverse=pose.phase==='reverse'||pose.phase==='align';
+  const forwardOpacity=forward?smooth((ms-parkingDetectionMs)/160)*smooth(forwardDistance/.28):0;
+  stopMarker.visible=forwardOpacity>0;stopMarker.position.set(plan.startX,.08,stopZ);
+  stopMaterial.color.set(dark?'#76bcff':'#277ed0');
+  stopMaterial.opacity=forwardOpacity*(dark?.79:.85);
+  line.visible=reverse||stopMarker.visible;guidanceMaterial.uniforms.dark.value=dark?1:0;
+  guidanceMaterial.uniforms.displayOpacity.value=(dark?.52:1)*(reverse?1:forwardOpacity);
   guidanceMaterial.uniforms.guideColor.value.copy(daytimeGuideColor).multiplyScalar(dark?.62:1);
-  const reverse=ms>=6000,near=(world.car.userData.vehicleSpec?.length||4.85)*.4,total=plan.radius*Math.PI/2+plan.targetX-plan.startX-plan.radius,travelled=total-pose.remaining;
-  for(let i=0;i<=count;i++){
-   const f=i/count,point=reverse?reversePathPoint(plan,travelled+near+pose.remaining*f):{x:pose.x,z:pose.z-near-9*f,yaw:0};
-   const nx=Math.cos(point.yaw),nz=-Math.sin(point.yaw);
-   for(let edge=0;edge<2;edge++){const k=i*6+edge*3,s=edge?1:-1;positions[k]=point.x+nx*.70*s;positions[k+1]=.075;positions[k+2]=point.z+nz*.70*s;}
+  if(line.visible){
+   const total=plan.radius*Math.PI/2+plan.targetX-plan.startX-plan.radius,travelled=total-pose.remaining;
+   const halfWidth=reverse?.70:.44;
+   for(let i=0;i<=count;i++){
+    const f=i/count,point=reverse?reversePathPoint(plan,travelled+length*.4+pose.remaining*f):{x:pose.x,z:THREE.MathUtils.lerp(frontZ,stopZ,f),yaw:0};
+    const nx=Math.cos(point.yaw),nz=-Math.sin(point.yaw);
+    for(let edge=0;edge<2;edge++){const k=i*6+edge*3,s=edge?1:-1;positions[k]=point.x+nx*halfWidth*s;positions[k+1]=.075;positions[k+2]=point.z+nz*halfWidth*s;}
+   }
+   geometry.attributes.position.needsUpdate=true;
   }
-  geometry.attributes.position.needsUpdate=true;
   const scanFade=1-smooth((ms-parkingDetectionMs)/450);
   scan.visible=scanFade>0;scan.position.set(pose.x,world.car.position.y+.04,pose.z);
   // Ground geometry follows the vehicle, so every camera sees the same physical
@@ -127,7 +143,7 @@ export function createParkingGraphics(world,plan){
    wave.material.color.set(dark?'#7396b8':'#ffffff');
    wave.material.opacity=strength*smooth(phase/.12)*(1-smooth((phase-.32)/.68))*.88;
   }
- },dispose(){group.removeFromParent();const geometries=new Set();group.traverse(o=>{if(o.geometry)geometries.add(o.geometry);});for(const geometry of geometries)geometry.dispose();for(const mat of new Set([cyan,fill,guidanceMaterial,...waves.map(w=>w.material)]))mat.dispose();radarTexture.dispose();}};
+ },dispose(){group.removeFromParent();const geometries=new Set();group.traverse(o=>{if(o.geometry)geometries.add(o.geometry);});for(const geometry of geometries)geometry.dispose();for(const mat of new Set([cyan,fill,guidanceMaterial,stopMaterial,...waves.map(w=>w.material)]))mat.dispose();radarTexture.dispose();}};
 }
 
 export function initParkingHmi(preview){
