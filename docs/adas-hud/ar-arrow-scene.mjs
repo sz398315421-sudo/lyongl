@@ -1,6 +1,6 @@
 import {MathUtils, PerspectiveCamera, Quaternion, Scene, Vector3, WebGLRenderer} from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {positionArrowMotion, referenceAspect, referenceViewScale, sampleArrowMotion, uTurnTiming} from './ar-arrow-motion.mjs';
+import {positionArrowMotion, referenceAspect, referenceViewScale, sampleArrowMotion, sampleGuideFlash, uTurnTiming} from './ar-arrow-motion.mjs';
 import {carpetView, hudCameraPose} from './hud-camera-view.mjs';
 
 const spinAxis = new Vector3(0, 0, 1);
@@ -75,7 +75,7 @@ export async function loadArArrowMotion() {
   return response.json();
 }
 
-export function createArArrowScene(canvas, model, clip, {transparent = false, offsets, view = carpetView, referenceMotion} = {}) {
+export function createArArrowScene(canvas, model, clip, {transparent = false, offsets, view = carpetView, referenceMotion, flashEnabled = false} = {}) {
   const renderer = new WebGLRenderer({canvas, antialias: true, alpha: true});
   renderer.setClearColor(0x000000, transparent ? 0 : 1);
 
@@ -109,7 +109,7 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
       if (!object.isMesh) return;
       const clone = material => {
         const copy = material.clone();
-        materials.push(copy);
+        materials.push({material: copy, emissiveIntensity: copy.emissiveIntensity});
         return copy;
       };
       object.material = Array.isArray(object.material) ? object.material.map(clone) : clone(object.material);
@@ -117,12 +117,13 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
     scene.add(arrow);
     return {arrow, materials};
   }
-  function setOpacity({arrow, materials}, opacity) {
+  function setOpacity({arrow, materials}, opacity, brightness = 1) {
     arrow.visible = opacity > 0;
     if (!arrow.visible) return;
-    for (const material of materials) {
+    for (const {material, emissiveIntensity} of materials) {
       material.opacity = opacity;
       material.transparent = opacity < 1;
+      if (emissiveIntensity !== undefined) material.emissiveIntensity = emissiveIntensity * brightness;
     }
   }
 
@@ -149,12 +150,16 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
       offsets = value;
       updateMotion();
     },
+    setFlashEnabled(value) {
+      flashEnabled = value;
+    },
     draw(elapsed) {
       if (playback) playback(elapsed, offsets, camera.aspect);
       else sampleArrowMotion(motion, elapsed).forEach(({pose: [x, y, depth, heading, tilt, tipWeight, roll], opacity}, index) => {
         const instance = arrows[index];
         const {arrow} = instance;
-        setOpacity(instance, opacity);
+        const brightness = flashEnabled && clip.guideFlash ? sampleGuideFlash(clip, elapsed, index) : 1;
+        setOpacity(instance, opacity, brightness);
         if (!arrow.visible) return;
         placeArrow(arrow, x, y, depth);
         spinRotation.setFromAxisAngle(spinAxis, MathUtils.degToRad(-heading));
@@ -166,7 +171,7 @@ export function createArArrowScene(canvas, model, clip, {transparent = false, of
       renderer.render(scene, camera);
     },
     dispose() {
-      for (const {materials} of arrows) materials.forEach(material => material.dispose());
+      for (const {materials} of arrows) materials.forEach(({material}) => material.dispose());
       renderer.dispose();
       renderer.forceContextLoss();
     }

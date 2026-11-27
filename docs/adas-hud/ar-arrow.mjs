@@ -1,7 +1,7 @@
 import {exportSize} from '../adas/screen-format.js';
-import {rightTurn, turnPresets} from './ar-arrow-motion.mjs?v=14';
-import {createArArrowScene, loadArArrow, loadArArrowMotion} from './ar-arrow-scene.bundle.mjs?v=14';
-import {initArArrowExport} from './ar-arrow-export.mjs?v=14';
+import {rightTurn, turnPresets} from './ar-arrow-motion.mjs?v=15';
+import {createArArrowScene, loadArArrow, loadArArrowMotion} from './ar-arrow-scene.bundle.mjs?v=15';
+import {initArArrowExport} from './ar-arrow-export.mjs?v=15';
 import {carpetView} from './hud-camera-view.mjs';
 import {hudPreferences} from './hud-storage.mjs';
 import {initHudSubpageFormats, initHudSubpageImmersive, initHudSubpageNavigation} from './hud-subpage.mjs';
@@ -14,6 +14,7 @@ const timeline = get('ar-time');
 const timeDisplay = get('ar-time-display');
 const stageLabel = get('ar-stage');
 const choices = get('ar-stage-choices');
+const guideFlash = get('ar-guide-flash');
 const download = get('download');
 const loadMessage = get('ar-load-message');
 const retry = get('ar-retry');
@@ -23,6 +24,7 @@ const preset = new URLSearchParams(location.search).get('scene');
 const clip = Object.hasOwn(turnPresets, preset) ? turnPresets[preset] : rightTurn;
 const positionStorageKey = clip === rightTurn ? 'ar-arrow-position-v1' : `ar-arrow-position-v1-${clip.id}`;
 const cameraStorageKey = 'ar-arrow-camera-v1';
+const flashStorageKey = 'ar-arrow-guide-flash-v1';
 const offsets = {start: [0, 0, 0], far: [0, 0, 0]};
 const view = {...carpetView};
 let model;
@@ -85,6 +87,16 @@ function seek(time) {
 
 function readSetting(key) {
   try { return JSON.parse(hudPreferences.getItem(key)); } catch { return null; }
+}
+
+if (clip.guideFlash) {
+  guideFlash.closest('label').hidden = false;
+  guideFlash.checked = readSetting(flashStorageKey) === true;
+  guideFlash.addEventListener('change', () => {
+    try { hudPreferences.setItem(flashStorageKey, JSON.stringify(guideFlash.checked)); } catch {}
+    renderer?.setFlashEnabled(guideFlash.checked);
+    renderer?.draw(elapsed);
+  });
 }
 
 function bindRange(input, {saved, fallback = input.defaultValue, signed = false, update, change}) {
@@ -191,7 +203,7 @@ if (clip.referenceMotion) document.querySelector('[data-screen-format="1920x720"
 initHudSubpageImmersive(canvas);
 initArArrowExport(download, clip, () => {
   seek(elapsed);
-  return {model, referenceMotion, elapsed, offsets: structuredClone(offsets), view: {...view}};
+  return {model, referenceMotion, elapsed, offsets: structuredClone(offsets), view: {...view}, flashEnabled: guideFlash.checked};
 });
 new ResizeObserver(resizePreview).observe(canvas);
 sync();
@@ -205,7 +217,7 @@ async function init() {
       model ?? loadArArrow(),
       clip.referenceMotion ? referenceMotion ?? loadArArrowMotion() : null
     ]);
-    renderer = createArArrowScene(canvas, model, clip, {offsets, view, referenceMotion});
+    renderer = createArArrowScene(canvas, model, clip, {offsets, view, referenceMotion, flashEnabled: guideFlash.checked});
     renderer.resize(canvas.width, canvas.height);
     resizePreview();
     loadMessage.parentElement.hidden = true;

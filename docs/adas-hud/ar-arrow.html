@@ -99,6 +99,10 @@
             <input type="range" id="ar-time" min="0" step="10" value="0">
           </div>
           <div id="ar-stage-choices" class="scene-motion-buttons ar-stage-choices" role="group" aria-label="跳转到动画阶段"></div>
+          <label class="toggle" hidden>
+            <span class="setting-title">轮流闪烁</span>
+            <input id="ar-guide-flash" type="checkbox" role="switch"><span class="track" aria-hidden="true"></span>
+          </label>
         </fieldset>
         <details class="ar-camera-settings">
           <summary>摄像机视角</summary>
@@ -167,6 +171,6 @@
     </section>
   </main>
   <dialog id="hud-immersive-dialog" aria-label="HUD 沉浸预览，按 Esc 或点击画面退出"></dialog>
-  <script type="module" src="./ar-arrow.mjs?v=14"></script>
+  <script type="module" src="./ar-arrow.mjs?v=15"></script>
 </body>
 </html>

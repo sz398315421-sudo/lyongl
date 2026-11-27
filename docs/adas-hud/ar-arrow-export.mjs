@@ -4,7 +4,7 @@ import {exportSize} from '../adas/screen-format.js';
 import {recordCanvasVideo} from '../adas/video-export.js';
 import {createSequenceFields, renderPngSequence} from './hud-png-sequence.mjs';
 import {supportsHudWebm, transparentVideoFormat} from './hud-video.mjs';
-import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=14';
+import {createArArrowScene} from './ar-arrow-scene.bundle.mjs?v=15';
 
 export function initArArrowExport(button, clip, capture) {
   const sequence = createSequenceFields();
@@ -33,7 +33,7 @@ export function initArArrowExport(button, clip, capture) {
   });
 
   async function exportScene(format) {
-    const {model, referenceMotion, elapsed, width, height, offsets, view} = snapshot;
+    const {model, referenceMotion, elapsed, width, height, offsets, view, flashEnabled} = snapshot;
     const animation = ['video', 'transparent-video', 'png-sequence'].includes(format);
     const transparent = format !== 'image' && format !== 'video';
     const controller = new AbortController();
@@ -47,7 +47,7 @@ export function initArArrowExport(button, clip, capture) {
       canvas.height = height;
       const context = canvas.getContext('2d', {alpha: transparent});
       const glCanvas = document.createElement('canvas');
-      renderer = createArArrowScene(glCanvas, model, clip, {transparent, offsets, view, referenceMotion});
+      renderer = createArArrowScene(glCanvas, model, clip, {transparent, offsets, view, referenceMotion, flashEnabled});
       renderer.resize(width, height);
       const renderFrame = time => {
         renderer.draw(time);

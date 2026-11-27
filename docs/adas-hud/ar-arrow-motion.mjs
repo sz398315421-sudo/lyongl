@@ -87,7 +87,10 @@ function makeTurn({id, name, maneuver, poses, bend}) {
   };
 }
 
-export const rightTurn = makeTurn({id: 'right', name: '路口右转', maneuver: '右转', poses: right, bend: .15});
+export const rightTurn = {
+  ...makeTurn({id: 'right', name: '路口右转', maneuver: '右转', poses: right, bend: .15}),
+  guideFlash: standardTiming.followers.at(-1).slice(1, 3)
+};
 export const uTurnTiming = Object.freeze({
   durationMs: 10800,
   extend: 400,
@@ -160,6 +163,21 @@ function sampleTrack(track, elapsed) {
 
 export function sampleArrowMotion(clip, elapsed) {
   return clip.tracks.map(track => sampleTrack(track, elapsed));
+}
+
+export function sampleGuideFlash(clip, elapsed, index) {
+  const [start, end] = clip.guideFlash;
+  if (elapsed <= start || elapsed >= end) return 1;
+  // Each arrow reaches full brightness in order on the shared timeline.
+  // Ease into and out of the effect while the three arrows are settled.
+  const progress = (elapsed - start) / (end - start);
+  const distance = Math.abs(progress * clip.tracks.length - index - .5);
+  const ease = value => {
+    const t = Math.min(1, value);
+    return t * t * (3 - 2 * t);
+  };
+  const fade = ease(Math.min(progress, 1 - progress) / .15);
+  return 1 - .76 * fade * ease(distance / .72);
 }
 
 // The fourth keyframe value controls the blend from the adjusted starting
